@@ -113,7 +113,8 @@
       <button class="ponte-btn" id="tab-btn-mundo" onclick="switchTab('mundo')" style="border-color:var(--mint);">🌍 Jogos do Mundo (Hoje/Live)</button>
       <button class="ponte-btn secondary" id="tab-btn-futuro" onclick="switchTab('futuro')">📅 Jogos Futuros (Calendário)</button>
       <button class="ponte-btn secondary" id="tab-btn-antigos" onclick="switchTab('antigos')">📜 Jogos Antigos &amp; Históricos</button>
-      <button class="ponte-btn secondary" id="tab-btn-jogadores" onclick="switchTab('jogadores')">🏃 Jogadores &amp; Elencos</button>
+      <button class="ponte-btn secondary" id="tab-btn-classicos" onclick="switchTab('classicos')">🏆 Clássicos H2H</button>
+      <button class="ponte-btn secondary" id="tab-btn-jogadores" onclick="switchTab('jogadores')">🏃 Jogadores &amp; Radar SVG</button>
       <button class="ponte-btn secondary" id="tab-btn-tabela" onclick="switchTab('tabela')">📊 Classificação</button>
       <button class="ponte-btn secondary" id="tab-btn-clubes" onclick="switchTab('clubes')">🛡️ Clubes &amp; Estádios</button>
       <button class="ponte-btn secondary" id="tab-btn-confronto" onclick="switchTab('confronto')">⚔️ Simulador Elo</button>
@@ -170,6 +171,17 @@
         <span class="ponte-badge purple">Histórico Lendário</span>
       </div>
       <div id="grid-antigos">
+        <!-- Renderizado dinamicamente -->
+      </div>
+    </section>
+
+    <!-- ABA: CLÁSSICOS & RETROSPECTO HISTÓRICO H2H -->
+    <section id="section-classicos" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px;">🏆 Grandes Clássicos &amp; Retrospecto Histórico H2H</h3>
+        <span class="ponte-badge mint">Dérbis &amp; Rivalidades</span>
+      </div>
+      <div id="grid-classicos" class="ponte-grid-2">
         <!-- Renderizado dinamicamente -->
       </div>
     </section>
@@ -410,6 +422,14 @@
       </div>
     </section>
 
+    <!-- Modal Detalhes da Partida / Súmula -->
+    <div id="modal-partida" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-lg); max-width:760px; width:100%; max-height:90vh; overflow-y:auto; padding:24px; position:relative;">
+        <button onclick="fecharModalPartida()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--muted); font-size:24px; cursor:pointer;">&times;</button>
+        <div id="modal-partida-conteudo"></div>
+      </div>
+    </div>
+
   </main>
 
   <script type="module">
@@ -420,7 +440,11 @@
       JOGADORES_CONSOLIDADOS, 
       JOGOS_ANTIGOS_HISTORICOS, 
       JOGOS_FUTUROS_CALENDARIO, 
+      RETROSPECTO_CLASSICOS,
       calcularProbabilidadeConfronto, 
+      compararJogadores,
+      gerarNoticiaPartida,
+      renderRadarAtletaSvg,
       renderCardPartidaSvg 
     } from './dados-futebol.js';
 
@@ -430,7 +454,7 @@
     let cacheJogosMundo = [];
 
     window.switchTab = function(tabName) {
-      const tabs = ['mundo', 'futuro', 'antigos', 'jogadores', 'tabela', 'clubes', 'confronto', 'cardsvg', 'playground'];
+      const tabs = ['mundo', 'futuro', 'antigos', 'classicos', 'jogadores', 'tabela', 'clubes', 'confronto', 'cardsvg', 'playground'];
       tabs.forEach(t => {
         const sec = document.getElementById(`section-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
@@ -448,6 +472,7 @@
       if (tabName === 'mundo') loadJogosMundo();
       if (tabName === 'futuro') renderJogosFuturos();
       if (tabName === 'antigos') renderJogosAntigos();
+      if (tabName === 'classicos') renderClassicos();
       if (tabName === 'jogadores') renderJogadores(JOGADORES_CONSOLIDADOS);
       if (tabName === 'tabela') loadTabela(currentCampeonato);
       if (tabName === 'clubes') renderClubes(Object.values(CLUBES));
@@ -516,6 +541,40 @@
             <div style="margin-top:4px; color:var(--mint); font-weight:600; font-size:11px;">
               ✨ ${j.destaque}
             </div>
+            <div style="margin-top:10px;">
+              <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="abrirNoticiaPartida('${j.id}')">📰 Ler Artigo Jornalístico do Jogo</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    window.renderClassicos = function() {
+      const container = document.getElementById('grid-classicos');
+      container.innerHTML = Object.entries(RETROSPECTO_CLASSICOS).map(([slug, c]) => `
+        <div class="match-card">
+          <h4 style="margin:0 0 10px; font-size:15px; color:var(--mint);">${c.classico}</h4>
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; text-align:center; margin-bottom:12px;">
+            <div style="background:var(--paper-elevated); padding:8px; border-radius:var(--radius-sm);">
+              <small style="color:var(--muted); font-size:10px;">Vitórias Time 1</small>
+              <div style="font-size:18px; font-weight:800; color:#10b981;">${c.vitoriasTime1}</div>
+            </div>
+            <div style="background:var(--paper-elevated); padding:8px; border-radius:var(--radius-sm);">
+              <small style="color:var(--muted); font-size:10px;">Empates</small>
+              <div style="font-size:18px; font-weight:800; color:#fbbf24;">${c.empates}</div>
+            </div>
+            <div style="background:var(--paper-elevated); padding:8px; border-radius:var(--radius-sm);">
+              <small style="color:var(--muted); font-size:10px;">Vitórias Time 2</small>
+              <div style="font-size:18px; font-weight:800; color:#60a5fa;">${c.vitoriasTime2}</div>
+            </div>
+          </div>
+          <div style="font-size:12px; color:var(--ink-secondary); margin-bottom:10px;">
+            <strong>🏟️ Total de Jogos:</strong> ${c.totalJogos} (${c.golsTime1 + c.golsTime2} gols marcados)<br>
+            <strong>💥 Maior Goleada:</strong> ${c.maiorGoleada}
+          </div>
+          <div style="border-top:1px solid var(--line-light); padding-top:8px; font-size:11px; color:var(--muted); line-height:1.5;">
+            <strong>Últimos Confrontos Diretos:</strong><br>
+            ${c.ultimosConfrontos.map(u => `• ${u.data}: ${u.placar} (${u.campeonato})`).join('<br>')}
           </div>
         </div>
       `).join('');
@@ -540,8 +599,42 @@
             <strong>📐 Físico:</strong> ${jg.altura || '-'} • ${jg.peso || '-'}<br>
             <strong>⚽ Carreira:</strong> ${jg.golsCarreira || 0} gols, ${jg.assistenciasCarreira || 0} assistências em ${jg.jogosCarreira || 0} jogos
           </div>
+          <div style="display:flex; gap:6px;">
+            <button class="ponte-btn secondary" style="flex:1; padding:6px; font-size:11px;" onclick="abrirRadarJogador('${jg.id}')">🕸️ Ver Radar SVG</button>
+          </div>
         </div>
       `).join('');
+    };
+
+    window.abrirRadarJogador = function(id) {
+      window.open(`/api/futebol/jogadores/${id}/radar.svg`, '_blank');
+    };
+
+    window.abrirNoticiaPartida = async function(id) {
+      try {
+        const res = await fetch(`/api/futebol/partida/${id}/noticia`);
+        const data = await res.json();
+        const n = data.noticia;
+        const modal = document.getElementById('modal-partida');
+        const conteudo = document.getElementById('modal-partida-conteudo');
+        conteudo.innerHTML = `
+          <h2 style="margin-top:0; color:var(--ink); font-size:1.4rem;">${n.titulo}</h2>
+          <p style="color:var(--mint); font-weight:600; font-size:13px; margin-bottom:14px;">${n.subtitulo}</p>
+          <div style="font-size:11px; color:var(--muted); margin-bottom:16px;">
+            ✍️ ${n.autor} • 🏟️ ${n.estadio} • 🏆 ${n.campeonato}
+          </div>
+          <div style="background:var(--canvas); padding:16px; border-radius:var(--radius-md); font-size:13px; line-height:1.7; color:var(--ink-secondary); white-space:pre-line; border:1px solid var(--line);">
+            ${n.artigo}
+          </div>
+        `;
+        modal.style.display = 'flex';
+      } catch (err) {
+        alert('Erro ao carregar notícia da partida.');
+      }
+    };
+
+    window.fecharModalPartida = function() {
+      document.getElementById('modal-partida').style.display = 'none';
     };
 
     window.filtrarJogadores = function() {

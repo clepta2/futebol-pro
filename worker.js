@@ -25,8 +25,12 @@ import {
   JOGADORES_CONSOLIDADOS,
   JOGOS_ANTIGOS_HISTORICOS,
   JOGOS_FUTUROS_CALENDARIO,
+  RETROSPECTO_CLASSICOS,
   calcularProbabilidadeConfronto,
+  compararJogadores,
+  gerarNoticiaPartida,
   renderCardPartidaSvg,
+  renderRadarAtletaSvg,
   exportarTabelaCsv,
   exportarTabelaXml
 } from './dados-futebol.js';
@@ -981,9 +985,12 @@ export default {
       });
     }
 
-    // 6.5 DETALHES DE UMA PARTIDA ESPECÍFICA (Lances, Jogadores, Escalações, Boxscore)
+    // 6.5 DETALHES DE UMA PARTIDA ESPECÍFICA (Lances, Jogadores, Escalações, Boxscore, Notícia)
     if (path.startsWith('/api/futebol/partida/')) {
-      const partidaId = path.split('/')[4];
+      const parts = path.split('/');
+      const partidaId = parts[4];
+      const subAcao = parts[5];
+
       const detalhe = await fetchPartidaDetalheLive(partidaId);
       if (!detalhe) {
         return new Response(JSON.stringify({
@@ -996,7 +1003,54 @@ export default {
         });
       }
 
+      // Geração de Notícia Automatizada da Partida
+      if (subAcao === 'noticia') {
+        const artigo = gerarNoticiaPartida(detalhe.partida || detalhe);
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          noticia: artigo
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       return new Response(JSON.stringify(detalhe, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 6.6 RETROSPECTO HISTÓRICO DE GRANDES CLÁSSICOS MUNDIAIS
+    if (path === '/api/futebol/classicos') {
+      return new Response(JSON.stringify({
+        ok: true,
+        totalClassicos: Object.keys(RETROSPECTO_CLASSICOS).length,
+        classicos: RETROSPECTO_CLASSICOS
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path.startsWith('/api/futebol/classicos/')) {
+      const slugClassico = path.split('/')[4]?.toLowerCase();
+      const classico = RETROSPECTO_CLASSICOS[slugClassico];
+      if (!classico) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'CLASSICO_NAO_ENCONTRADO',
+          mensagem: `Clássico "${slugClassico}" não encontrado.`,
+          disponiveis: Object.keys(RETROSPECTO_CLASSICOS)
+        }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        slug: slugClassico,
+        dados: classico
+      }, null, 2), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
       });
     }
@@ -1166,8 +1220,41 @@ export default {
       });
     }
 
+    if (path.startsWith('/api/futebol/jogadores/comparar/')) {
+      const parts = path.split('/');
+      const id1 = parts[5]?.toLowerCase();
+      const id2 = parts[6]?.toLowerCase();
+
+      const j1 = JOGADORES_CONSOLIDADOS.find(j => j.id.toLowerCase() === id1 || j.nome.toLowerCase().includes(id1));
+      const j2 = JOGADORES_CONSOLIDADOS.find(j => j.id.toLowerCase() === id2 || j.nome.toLowerCase().includes(id2));
+
+      if (!j1 || !j2) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'JOGADORES_INVALIDOS',
+          mensagem: 'Informe dois identificadores válidos de atletas para comparação.',
+          exemplo: '/api/futebol/jogadores/comparar/pedro-9/veiga-23'
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      const comparacao = compararJogadores(j1, j2);
+      return new Response(JSON.stringify({
+        ok: true,
+        comparacao
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
     if (path.startsWith('/api/futebol/jogadores/')) {
-      const jogadorId = path.split('/')[4]?.toLowerCase();
+      const parts = path.split('/');
+      let jogadorId = parts[4]?.toLowerCase();
+      const isRadarSvg = jogadorId.endsWith('.svg') || parts[5] === 'radar.svg';
+      jogadorId = jogadorId.replace(/\.svg$/, '').replace(/\/radar$/, '');
+
       const jogador = JOGADORES_CONSOLIDADOS.find(j => j.id.toLowerCase() === jogadorId || j.nome.toLowerCase().includes(jogadorId));
       if (!jogador) {
         return new Response(JSON.stringify({
@@ -1177,6 +1264,19 @@ export default {
         }), {
           status: 404,
           headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Renderização do Radar SVG de Atributos
+      if (isRadarSvg) {
+        const svg = renderRadarAtletaSvg(jogador);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
         });
       }
 

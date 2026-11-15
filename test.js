@@ -255,4 +255,42 @@ const dataPed = await resPed.json();
 assert(dataPed.jogador.clube === 'Flamengo', 'Clube do Pedro validado');
 assert(dataPed.jogador.posicao === 'Atacante', 'Posição do jogador validada');
 
+// ─── 9. CLÁSSICOS H2H, COMPARADOR, RADAR SVG E NOTÍCIAS ───
+console.log('\n--- 9. Clássicos H2H, Comparador, Radar SVG & Notícias de Jogos ---');
+
+// 9.1 Clássicos Mundiais H2H
+const resClassicos = await worker.fetch(new Request('https://api.test/api/futebol/classicos'), {});
+assert(resClassicos.status === 200, 'Endpoint /api/futebol/classicos responde HTTP 200');
+const dataClassicos = await resClassicos.json();
+assert(dataClassicos.totalClassicos >= 5, 'Mínimo de 5 grandes clássicos mundiais cadastrados');
+
+// 9.2 Clássico Específico (Flamengo vs Palmeiras)
+const resClasEsp = await worker.fetch(new Request('https://api.test/api/futebol/classicos/flamengo-palmeiras'), {});
+assert(resClasEsp.status === 200, 'Endpoint /classicos/flamengo-palmeiras responde 200');
+const dataClasEsp = await resClasEsp.json();
+assert(dataClasEsp.dados.totalJogos > 100, 'Total de jogos do confronto histórico retornado');
+assert(dataClasEsp.dados.ultimosConfrontos.length > 0, 'Últimos confrontos diretos retornados');
+
+// 9.3 Comparador de Jogadores
+const resCompJg = await worker.fetch(new Request('https://api.test/api/futebol/jogadores/comparar/pedro-9/veiga-23'), {});
+assert(resCompJg.status === 200, 'Endpoint /jogadores/comparar/pedro-9/veiga-23 responde 200');
+const dataCompJg = await resCompJg.json();
+assert(dataCompJg.comparacao.jogador1.nome === 'Pedro', 'Jogador 1 é Pedro');
+assert(dataCompJg.comparacao.jogador2.nome.includes('Veiga'), 'Jogador 2 é Raphael Veiga');
+assert(dataCompJg.comparacao.vereditoEstatistico, 'Veredito estatístico comparativo gerado');
+
+// 9.4 Radar Vetorial SVG de Atributos do Atleta
+const resRadar = await worker.fetch(new Request('https://api.test/api/futebol/jogadores/pedro-9/radar.svg'), {});
+assert(resRadar.status === 200, 'Endpoint /radar.svg responde HTTP 200');
+assert(resRadar.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado');
+const svgRadar = await resRadar.text();
+assert(svgRadar.includes('<polygon') && svgRadar.includes('FINALIZAÇÃO'), 'Polígono radar com habilidades gerado no SVG');
+
+// 9.5 Gerador de Notícia da Partida
+const resNoticia = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/noticia'), {});
+assert(resNoticia.status === 200, 'Endpoint /partida/:id/noticia responde HTTP 200');
+const dataNoticia = await resNoticia.json();
+assert(dataNoticia.noticia.titulo.length > 10, 'Título jornalístico gerado');
+assert(dataNoticia.noticia.artigo.includes('Flamengo'), 'Corpo da matéria gerado com contexto da partida');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);

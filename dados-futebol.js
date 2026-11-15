@@ -1559,3 +1559,244 @@ export const JOGOS_FUTUROS_CALENDARIO = [
     importancia: "Decisão da Glória Eterna pela Taça Libertadores."
   }
 ];
+
+export const RETROSPECTO_CLASSICOS = {
+  'flamengo-palmeiras': {
+    classico: 'Flamengo vs Palmeiras (Duelo Decisivo)',
+    totalJogos: 128,
+    vitoriasTime1: 44,
+    vitoriasTime2: 48,
+    empates: 36,
+    golsTime1: 184,
+    golsTime2: 202,
+    maiorGoleada: 'Palmeiras 7 x 1 Flamengo (1951)',
+    ultimosConfrontos: [
+      { data: '2024-08-11', placar: 'Flamengo 1 x 1 Palmeiras', campeonato: 'Brasileirão' },
+      { data: '2024-08-07', placar: 'Palmeiras 1 x 0 Flamengo', campeonato: 'Copa do Brasil' },
+      { data: '2024-07-31', placar: 'Flamengo 2 x 0 Palmeiras', campeonato: 'Copa do Brasil' },
+      { data: '2024-04-21', placar: 'Palmeiras 0 x 0 Flamengo', campeonato: 'Brasileirão' },
+      { data: '2023-11-08', placar: 'Flamengo 3 x 0 Palmeiras', campeonato: 'Brasileirão' }
+    ]
+  },
+  'corinthians-palmeiras': {
+    classico: 'Dérbi Paulista (Corinthians vs Palmeiras)',
+    totalJogos: 380,
+    vitoriasTime1: 130,
+    vitoriasTime2: 135,
+    empates: 115,
+    golsTime1: 494,
+    golsTime2: 541,
+    maiorGoleada: 'Palmeiras 8 x 0 Corinthians (1933)',
+    ultimosConfrontos: [
+      { data: '2024-11-04', placar: 'Corinthians 2 x 0 Palmeiras', campeonato: 'Brasileirão' },
+      { data: '2024-07-01', placar: 'Palmeiras 2 x 0 Corinthians', campeonato: 'Brasileirão' },
+      { data: '2024-02-18', placar: 'Palmeiras 2 x 2 Corinthians', campeonato: 'Paulistão' }
+    ]
+  },
+  'flamengo-fluminense': {
+    classico: 'Fla-Flu (O Clássico das Multidões)',
+    totalJogos: 447,
+    vitoriasTime1: 164,
+    vitoriasTime2: 141,
+    empates: 142,
+    golsTime1: 645,
+    golsTime2: 586,
+    maiorGoleada: 'Flamengo 7 x 0 Fluminense (1945)',
+    ultimosConfrontos: [
+      { data: '2024-10-17', placar: 'Flamengo 0 x 2 Fluminense', campeonato: 'Brasileirão' },
+      { data: '2024-06-23', placar: 'Fluminense 0 x 1 Flamengo', campeonato: 'Brasileirão' }
+    ]
+  },
+  'gremio-internacional': {
+    classico: 'Gre-Nal (Maior Clássico do Sul)',
+    totalJogos: 443,
+    vitoriasTime1: 141,
+    vitoriasTime2: 163,
+    empates: 139,
+    golsTime1: 574,
+    golsTime2: 601,
+    maiorGoleada: 'Grêmio 10 x 0 Internacional (1909)',
+    ultimosConfrontos: [
+      { data: '2024-10-19', placar: 'Internacional 1 x 0 Grêmio', campeonato: 'Brasileirão' },
+      { data: '2024-06-22', placar: 'Grêmio 0 x 1 Internacional', campeonato: 'Brasileirão' }
+    ]
+  },
+  'real-madrid-barcelona': {
+    classico: 'El Clásico (Real Madrid vs Barcelona)',
+    totalJogos: 257,
+    vitoriasTime1: 105,
+    vitoriasTime2: 100,
+    empates: 52,
+    golsTime1: 433,
+    golsTime2: 419,
+    maiorGoleada: 'Real Madrid 11 x 1 Barcelona (1943)',
+    ultimosConfrontos: [
+      { data: '2024-10-26', placar: 'Real Madrid 0 x 4 Barcelona', campeonato: 'LaLiga' },
+      { data: '2024-04-21', placar: 'Real Madrid 3 x 2 Barcelona', campeonato: 'LaLiga' }
+    ]
+  }
+};
+
+/**
+ * Compara dois atletas em métricas estatísticas e de rendimento
+ */
+export function compararJogadores(j1, j2) {
+  const mediaGols1 = j1.jogosCarreira > 0 ? Number((j1.golsCarreira / j1.jogosCarreira).toFixed(2)) : 0;
+  const mediaGols2 = j2.jogosCarreira > 0 ? Number((j2.golsCarreira / j2.jogosCarreira).toFixed(2)) : 0;
+  const partGol1 = (j1.golsCarreira || 0) + (j1.assistenciasCarreira || 0);
+  const partGol2 = (j2.golsCarreira || 0) + (j2.assistenciasCarreira || 0);
+
+  return {
+    jogador1: {
+      id: j1.id,
+      nome: j1.nome,
+      clube: j1.clube,
+      posicao: j1.posicao,
+      idade: j1.idade,
+      golsCarreira: j1.golsCarreira,
+      assistencias: j1.assistenciasCarreira,
+      totalParticipacoesEmGols: partGol1,
+      mediaGolsPorJogo: mediaGols1,
+      valorMercado: j1.valorMercado || 'N/A'
+    },
+    jogador2: {
+      id: j2.id,
+      nome: j2.nome,
+      clube: j2.clube,
+      posicao: j2.posicao,
+      idade: j2.idade,
+      golsCarreira: j2.golsCarreira,
+      assistencias: j2.assistenciasCarreira,
+      totalParticipacoesEmGols: partGol2,
+      mediaGolsPorJogo: mediaGols2,
+      valorMercado: j2.valorMercado || 'N/A'
+    },
+    vereditoEstatistico: mediaGols1 > mediaGols2
+      ? `${j1.nome} possui maior média de gols (${mediaGols1} vs ${mediaGols2} por partida).`
+      : mediaGols2 > mediaGols1
+        ? `${j2.nome} possui maior média de gols (${mediaGols2} vs ${mediaGols1} por partida).`
+        : 'Ambos os atletas possuem médias de gols rigorosamente empatadas.',
+    timestampAnalise: new Date().toISOString()
+  };
+}
+
+/**
+ * Gera artigo jornalístico de resumo da partida em tempo real
+ */
+export function gerarNoticiaPartida(partida) {
+  const mandante = partida.mandante?.nome || 'Mandante';
+  const placarCasa = partida.mandante?.placar !== undefined ? partida.mandante.placar : 0;
+  const visitante = partida.visitante?.nome || 'Visitante';
+  const placarFora = partida.visitante?.placar !== undefined ? partida.visitante.placar : 0;
+  const campeonato = partida.campeonato || 'Futebol Pro';
+  const estadio = partida.infoJogo?.estadio || partida.estadio || 'Estádio';
+
+  let titulo = '';
+  let subtitulo = '';
+
+  if (placarCasa > placarFora) {
+    titulo = `${mandante} domina e vence o ${visitante} por ${placarCasa} a ${placarFora} pelo ${campeonato}`;
+    subtitulo = `Em atuação consistente no ${estadio}, a equipe mandante impôs seu ritmo e somou pontos cruciais.`;
+  } else if (placarFora > placarCasa) {
+    titulo = `${visitante} surpreende fora de casa e bate o ${mandante} por ${placarFora} a ${placarCasa}`;
+    subtitulo = `Com eficiência cirúrgica nos contra-ataques, visitantes calam o ${estadio}.`;
+  } else {
+    titulo = `Tudo igual: ${mandante} e ${visitante} empatam em ${placarCasa} a ${placarFora} em jogo eletrizante`;
+    subtitulo = `Partida movimentada pelo ${campeonato} termina em igualdade após 90 minutos de pura disputa.`;
+  }
+
+  const lances = (partida.golsELances || partida.gols || []).map(l => {
+    const min = l.minuto || '';
+    const desc = l.descricao || `${l.jogador} (${l.time}) - ${l.tipo}`;
+    return `[${min}] ${desc}`;
+  }).join('\n');
+
+  const corpoArtigo = `Em confronto vibrante disputado no ${estadio}, ${mandante} e ${visitante} mediram forças em partida válida pelo ${campeonato}.
+
+O duelo começou em alta intensidade com ambas as equipes buscando o ataque desde o apito inicial.
+
+Destaques da Súmula e Lances Chave:
+${lances || 'Partida marcada por forte disputa tática no meio de campo.'}
+
+Com o resultado de ${mandante} ${placarCasa} x ${placarFora} ${visitante}, as equipes seguem seus compromissos no calendário oficial, de olho nos objetivos de liderança e classificação.`;
+
+  return {
+    titulo,
+    subtitulo,
+    autor: 'Redação Futebol Pro Anycast • Inteligência Esportiva',
+    dataPublicacao: new Date().toISOString(),
+    estadio,
+    campeonato,
+    placarFinal: `${mandante} ${placarCasa} x ${placarFora} ${visitante}`,
+    artigo: corpoArtigo
+  };
+}
+
+/**
+ * Renderiza gráfico vetorial SVG de Radar de Atributos de Atleta
+ */
+export function renderRadarAtletaSvg(jogador) {
+  const nome = jogador.nome || 'Atleta';
+  const clube = jogador.clube || '';
+  const pos = jogador.posicao || '';
+
+  const fin = Math.min(99, Math.max(70, Math.round(((jogador.golsCarreira || 50) / 300) * 40 + 60)));
+  const pas = Math.min(99, Math.max(65, Math.round(((jogador.assistenciasCarreira || 30) / 150) * 40 + 60)));
+  const vel = jogador.idade < 25 ? 93 : jogador.idade < 30 ? 86 : 78;
+  const dri = 88;
+  const fis = 84;
+  const dec = 90;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 380" width="420" height="380">
+  <defs>
+    <linearGradient id="radarBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1120"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <filter id="radarGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="420" height="380" rx="16" fill="url(#radarBg)" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Título do Atleta -->
+  <text x="210" y="36" text-anchor="middle" font-family="system-ui, sans-serif" font-size="17" font-weight="800" fill="#f8fafc">
+    ${nome.toUpperCase()}
+  </text>
+  <text x="210" y="54" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#a3e635">
+    ${clube} • ${pos}
+  </text>
+
+  <!-- Teias do Radar Hexagonal -->
+  <g transform="translate(210, 205)" stroke="#334155" stroke-width="1" fill="none">
+    <polygon points="0,-110 95,-55 95,55 0,110 -95,55 -95,-55" opacity="0.3"/>
+    <polygon points="0,-82 71,-41 71,41 0,82 -71,41 -71,-41" opacity="0.4"/>
+    <polygon points="0,-55 47,-27 47,27 0,55 -47,27 -47,-27" opacity="0.5"/>
+    <polygon points="0,-27 23,-13 23,13 0,27 -23,13 -23,-13" opacity="0.6"/>
+
+    <!-- Eixos -->
+    <line x1="0" y1="-110" x2="0" y2="110"/>
+    <line x1="-95" y1="-55" x2="95" y2="55"/>
+    <line x1="-95" y1="55" x2="95" y2="-55"/>
+
+    <!-- Área de Habilidades do Atleta -->
+    <polygon points="0,${-110 * (fin/100)} ${95 * (vel/100)},${-55 * (vel/100)} ${95 * (dri/100)},${55 * (dri/100)} 0,${110 * (fis/100)} ${-95 * (pas/100)},${55 * (pas/100)} ${-95 * (dec/100)},${-55 * (dec/100)}" 
+      fill="rgba(163, 230, 53, 0.35)" stroke="#a3e635" stroke-width="2.5" filter="url(#radarGlow)"/>
+
+    <!-- Labels das Habilidades -->
+    <text x="0" y="-120" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#f8fafc">FINALIZAÇÃO (${fin})</text>
+    <text x="125" y="-55" text-anchor="start" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#f8fafc">VELOCIDADE (${vel})</text>
+    <text x="125" y="65" text-anchor="start" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#f8fafc">DRIBLE (${dri})</text>
+    <text x="0" y="130" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#f8fafc">FÍSICO (${fis})</text>
+    <text x="-125" y="65" text-anchor="end" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#f8fafc">PASSE (${pas})</text>
+    <text x="-125" y="-55" text-anchor="end" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#f8fafc">DECISÃO (${dec})</text>
+  </g>
+
+  <!-- Watermark -->
+  <text x="210" y="365" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">
+    Futebol Pro Studio • https://ponte.ozpro.com.br
+  </text>
+</svg>`;
+}

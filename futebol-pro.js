@@ -158,6 +158,61 @@ export class FutebolPro {
   }
 
   /**
+   * Gera artigo jornalístico de resumo da partida em tempo real
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getNoticiaPartida(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/noticia`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao gerar notícia da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém retrospecto histórico de clássicos mundiais
+   * @param {string} [slug] - Ex: 'flamengo-palmeiras', 'real-madrid-barcelona'
+   * @returns {Promise<Object>}
+   */
+  static async getClassicos(slug) {
+    const url = slug 
+      ? `${this.baseUrl}/api/futebol/classicos/${slug}`
+      : `${this.baseUrl}/api/futebol/classicos`;
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter clássicos: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Compara dois jogadores em métricas estatísticas e médias
+   * @param {string} id1
+   * @param {string} id2
+   * @returns {Promise<Object>}
+   */
+  static async compararJogadores(id1, id2) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/jogadores/comparar/${id1}/${id2}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao comparar jogadores: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Gráfico Radar SVG de atributos do atleta
+   * @param {string} jogadorId
+   * @returns {string}
+   */
+  static getRadarJogadorUrl(jogadorId) {
+    return `${this.baseUrl}/api/futebol/jogadores/${jogadorId}/radar.svg`;
+  }
+
+  /**
    * Lista jogadores cadastrados com filtros
    * @param {Object} [filtros] - { clube?: string, posicao?: string, busca?: string }
    * @returns {Promise<Object>}
