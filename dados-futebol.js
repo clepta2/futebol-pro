@@ -115,6 +115,85 @@ export const COMPETICOES = {
     pais: 'Alemanha',
     tipo: 'pontos_corridos',
     totalClubes: 18
+  },
+  'ligue-1': {
+    slug: 'ligue-1',
+    codigoEspn: 'fra.1',
+    nome: 'Ligue 1 McDonald\'s',
+    temporada: '2026-2027',
+    pais: 'França',
+    tipo: 'pontos_corridos',
+    totalClubes: 18
+  },
+  'eredivisie': {
+    slug: 'eredivisie',
+    codigoEspn: 'ned.1',
+    nome: 'Eredivisie',
+    temporada: '2026-2027',
+    pais: 'Holanda',
+    tipo: 'pontos_corridos',
+    totalClubes: 18
+  },
+  'primeira-liga': {
+    slug: 'primeira-liga',
+    codigoEspn: 'por.1',
+    nome: 'Liga Portugal Betclic',
+    temporada: '2026-2027',
+    pais: 'Portugal',
+    tipo: 'pontos_corridos',
+    totalClubes: 18
+  },
+  'mls': {
+    slug: 'mls',
+    codigoEspn: 'usa.1',
+    nome: 'Major League Soccer (MLS)',
+    temporada: '2026',
+    pais: 'Estados Unidos',
+    tipo: 'misto',
+    totalClubes: 29
+  },
+  'saudi-league': {
+    slug: 'saudi-league',
+    codigoEspn: 'sau.1',
+    nome: 'Roshn Saudi League',
+    temporada: '2026-2027',
+    pais: 'Arábia Saudita',
+    tipo: 'pontos_corridos',
+    totalClubes: 18
+  },
+  'liga-argentina': {
+    slug: 'liga-argentina',
+    codigoEspn: 'arg.1',
+    nome: 'Liga Profesional de Fútbol',
+    temporada: '2026',
+    pais: 'Argentina',
+    tipo: 'pontos_corridos',
+    totalClubes: 28
+  },
+  'championship': {
+    slug: 'championship',
+    codigoEspn: 'eng.2',
+    nome: 'EFL Championship',
+    temporada: '2026-2027',
+    pais: 'Inglaterra',
+    tipo: 'pontos_corridos',
+    totalClubes: 24
+  },
+  'uefa-nations': {
+    slug: 'uefa-nations',
+    codigoEspn: 'uefa.nations',
+    nome: 'UEFA Nations League',
+    temporada: '2026-2027',
+    pais: 'Europa (Seleções)',
+    tipo: 'misto'
+  },
+  'fifa-eliminatorias': {
+    slug: 'fifa-eliminatorias',
+    codigoEspn: 'fifa.worldq.conmebol',
+    nome: 'Eliminatórias da Copa do Mundo FIFA',
+    temporada: '2026',
+    pais: 'Global',
+    tipo: 'pontos_corridos'
   }
 };
 

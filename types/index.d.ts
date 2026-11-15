@@ -139,6 +139,7 @@ export declare class FutebolPro {
   static configure(config?: { apiKey?: string; baseUrl?: string }): void;
   static getHealth(): Promise<{ ok: boolean; servico: string; versao: string; latenciaEdgeMs: number }>;
   static getCompeticoes(): Promise<{ ok: boolean; totalCompeticoes: number; competicoes: Competicao[] }>;
+  static getJogosMundo(filtros?: { data?: string; status?: 'ao_vivo' | 'encerrado' | 'agendado'; liga?: string; busca?: string; agrupadoPorLiga?: boolean }): Promise<{ ok: boolean; escopo: string; dataConsultada: string; totalJogos: number; totalAoVivo: number; totalEncerrados: number; totalAgendados: number; jogos: PartidaAoVivo[] | Record<string, PartidaAoVivo[]> }>;
   static getTabela(campeonato?: string, formato?: 'json'): Promise<TabelaResponse>;
   static getTabela(campeonato?: string, formato?: 'csv' | 'xml'): Promise<string>;
   static getJogos(campeonato?: string): Promise<{ ok: boolean; totalJogos: number; jogos: PartidaAoVivo[] }>;

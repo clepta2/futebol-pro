@@ -81,8 +81,30 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém todos os jogos do mundo (Global World Hub) com filtros de data, status e liga
+   * @param {Object} [filtros] - { data?: string, status?: 'ao_vivo'|'encerrado'|'agendado', liga?: string, busca?: string, agrupadoPorLiga?: boolean }
+   * @returns {Promise<Object>}
+   */
+  static async getJogosMundo(filtros = {}) {
+    const params = new URLSearchParams();
+    if (filtros.data) params.set('data', filtros.data);
+    if (filtros.status) params.set('status', filtros.status);
+    if (filtros.liga) params.set('liga', filtros.liga);
+    if (filtros.busca) params.set('busca', filtros.busca);
+    if (filtros.agrupadoPorLiga) params.set('agrupadoPorLiga', 'true');
+
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const resp = await fetch(`${this.baseUrl}/api/futebol/mundo${query}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter jogos do mundo: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
    * Obtém jogos e rodadas de uma competição
-   * @param {string} campeonato - Ex: 'brasileirao-a'
+   * @param {string} campeonato - Ex: 'brasileirao-a' ou 'mundo'
    * @returns {Promise<Object>}
    */
   static async getJogos(campeonato = 'brasileirao-a') {

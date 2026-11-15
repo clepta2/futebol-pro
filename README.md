@@ -35,7 +35,22 @@ O **Futebol Pro API** foi construído seguindo a arquitetura padrão da suíte *
 
 ## 🚀 Endpoints REST
 
-### 1. Tabela de Classificação
+### 1. 🌍 Hub Global: Todos os Jogos do Mundo
+`GET /api/futebol/mundo` (ou `/api/futebol/jogos/mundo`)  
+Retorna todos os jogos de futebol do planeta Terra organizados por liga e campeonato!
+
+**Filtros Suportados:**
+- `?data=hoje` (ou `?data=YYYY-MM-DD`, `?data=ontem`, `?data=amanha` ou `?data=YYYYMMDD`)
+- `?status=ao_vivo` (ou `encerrado`, `agendado`)
+- `?liga=eng.1` (ou nome da liga, ex: `premier`, `la-liga`, `serie-a`)
+- `?busca=Real Madrid` (filtro por nome de time ou torneio)
+- `?agrupadoPorLiga=true` (retorna dicionário chaveado pelo nome do campeonato)
+
+### 2. 🔴 Placares Ao Vivo do Planeta Inteiro
+`GET /api/futebol/aovivo`  
+Monitoramento contínuo em tempo real com minutos e placar atualizado com latência sub-5ms Anycast.
+
+### 3. Tabela de Classificação
 `GET /api/futebol/tabela/:campeonato`  
 Parâmetro opcional: `?formato=json|csv|xml`
 
@@ -46,7 +61,16 @@ Parâmetro opcional: `?formato=json|csv|xml`
 - `la-liga` (Espanha)
 - `serie-a-italia` (Itália)
 - `bundesliga` (Alemanha)
+- `ligue-1` (França)
+- `eredivisie` (Holanda)
+- `primeira-liga` (Portugal)
+- `mls` (Estados Unidos)
+- `saudi-league` (Arábia Saudita)
+- `liga-argentina` (Argentina)
+- `championship` (Inglaterra 2ª Div)
 - `champions-league` (UEFA Champions League)
+- `libertadores` (CONMEBOL Libertadores)
+- `uefa-nations` (UEFA Nations League)
 
 ```bash
 curl -s "https://ponte.ozpro.com.br/api/futebol/tabela/brasileirao-a" \

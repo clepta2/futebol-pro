@@ -110,16 +110,48 @@
 
     <!-- Navegação por Abas -->
     <div style="display:flex; gap:10px; margin: 24px 0 16px; border-bottom:1px solid var(--line); padding-bottom:12px; overflow-x:auto;">
-      <button class="ponte-btn" id="tab-btn-tabela" onclick="switchTab('tabela')" style="border-color:var(--mint);">📊 Tabelas &amp; Classificação</button>
-      <button class="ponte-btn secondary" id="tab-btn-aovivo" onclick="switchTab('aovivo')">🔴 Jogos &amp; Ao Vivo</button>
+      <button class="ponte-btn" id="tab-btn-mundo" onclick="switchTab('mundo')" style="border-color:var(--mint);">🌍 Jogos do Mundo (Global)</button>
+      <button class="ponte-btn secondary" id="tab-btn-tabela" onclick="switchTab('tabela')">📊 Tabelas &amp; Classificação</button>
+      <button class="ponte-btn secondary" id="tab-btn-aovivo" onclick="switchTab('aovivo')">🔴 Ao Vivo (Tempo Real)</button>
       <button class="ponte-btn secondary" id="tab-btn-clubes" onclick="switchTab('clubes')">🛡️ Clubes &amp; Estádios</button>
       <button class="ponte-btn secondary" id="tab-btn-confronto" onclick="switchTab('confronto')">⚔️ Simulador Elo</button>
       <button class="ponte-btn secondary" id="tab-btn-cardsvg" onclick="switchTab('cardsvg')">🎨 Card SVG Dinâmico</button>
       <button class="ponte-btn secondary" id="tab-btn-playground" onclick="switchTab('playground')">💻 Sandbox &amp; Snippets</button>
     </div>
 
+    <!-- ABA 0: TODOS OS JOGOS DO MUNDO (GLOBAL HUB) -->
+    <section id="section-mundo">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button class="ponte-btn secondary" style="padding:6px 12px; font-size:12px;" onclick="setMundoData('ontem')">Ontem</button>
+          <button class="ponte-btn" style="padding:6px 14px; font-size:12px; border-color:var(--mint);" id="btn-mundo-hoje" onclick="setMundoData('hoje')">Hoje (Ao Vivo)</button>
+          <button class="ponte-btn secondary" style="padding:6px 12px; font-size:12px;" onclick="setMundoData('amanha')">Amanhã</button>
+          <input type="date" id="mundo-data-input" class="ponte-input" style="padding:4px 8px; font-size:12px; width:135px;" onchange="setMundoData(this.value)">
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span id="mundo-counter-badge" class="ponte-badge blue">0 jogos carregados</span>
+          <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadJogosMundo()">🔄 Atualizar</button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+        <input type="text" id="filtro-mundo-busca" class="ponte-input" placeholder="Buscar clube, seleção ou torneio (ex: Real Madrid, City, Flamengo, França...)" style="flex:1; min-width:260px;" oninput="filtrarJogosMundo()">
+        <select id="filtro-mundo-status" class="ponte-select" style="width:160px;" onchange="filtrarJogosMundo()">
+          <option value="">Todos os Status</option>
+          <option value="ao_vivo">🔴 Apenas Ao Vivo</option>
+          <option value="encerrado">✅ Finalizados</option>
+          <option value="agendado">⏳ Agendados</option>
+        </select>
+      </div>
+
+      <div id="grid-mundo">
+        <div style="text-align:center; padding:30px; color:var(--muted);">Carregando jogos do mundo na borda Anycast...</div>
+      </div>
+    </section>
+
     <!-- ABA 1: TABELAS DE CLASSIFICAÇÃO -->
-    <section id="section-tabela">
+    <section id="section-tabela" style="display:none;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
         <div style="display:flex; gap:8px;">
           <button class="ponte-btn" style="padding:6px 14px; font-size:12px;" onclick="loadTabela('brasileirao-a')">Brasileirão Série A</button>
@@ -334,9 +366,11 @@
 
     let currentCampeonato = 'brasileirao-a';
     let currentLang = 'curl';
+    let currentMundoData = 'hoje';
+    let cacheJogosMundo = [];
 
     window.switchTab = function(tabName) {
-      const tabs = ['tabela', 'aovivo', 'clubes', 'confronto', 'cardsvg', 'playground'];
+      const tabs = ['mundo', 'tabela', 'aovivo', 'clubes', 'confronto', 'cardsvg', 'playground'];
       tabs.forEach(t => {
         const sec = document.getElementById(`section-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
@@ -351,10 +385,108 @@
           }
         }
       });
+      if (tabName === 'mundo') loadJogosMundo();
+      if (tabName === 'tabela') loadTabela(currentCampeonato);
+      if (tabName === 'aovivo') loadAoVivo();
       if (tabName === 'clubes') renderClubes(Object.values(CLUBES));
       if (tabName === 'cardsvg') atualizarCardSvg();
       if (tabName === 'playground') updateSnippets();
     };
+
+    window.setMundoData = function(dataVal) {
+      currentMundoData = dataVal;
+      loadJogosMundo();
+    };
+
+    window.loadJogosMundo = async function() {
+      const container = document.getElementById('grid-mundo');
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Consultando feeds mundiais na borda Anycast...</div>';
+
+      try {
+        const res = await fetch(`/api/futebol/mundo?data=${currentMundoData}`);
+        const data = await res.json();
+        cacheJogosMundo = data.jogos || [];
+
+        const badge = document.getElementById('mundo-counter-badge');
+        if (badge) {
+          badge.textContent = `${cacheJogosMundo.length} jogos no mundo (${data.totalAoVivo || 0} ao vivo)`;
+        }
+
+        filtrarJogosMundo();
+      } catch (err) {
+        container.innerHTML = '<div style="color:#ef4444; padding:20px; text-align:center;">Erro ao carregar dados mundiais.</div>';
+      }
+    };
+
+    window.filtrarJogosMundo = function() {
+      const busca = (document.getElementById('filtro-mundo-busca')?.value || '').toLowerCase();
+      const status = (document.getElementById('filtro-mundo-status')?.value || '').toLowerCase();
+
+      let filtrados = cacheJogosMundo;
+      if (status) {
+        filtrados = filtrados.filter(j => j.status === status);
+      }
+      if (busca) {
+        filtrados = filtrados.filter(j => 
+          (j.mandante?.nome || '').toLowerCase().includes(busca) ||
+          (j.visitante?.nome || '').toLowerCase().includes(busca) ||
+          (j.campeonato || '').toLowerCase().includes(busca)
+        );
+      }
+
+      renderJogosMundo(filtrados);
+    };
+
+    function renderJogosMundo(jogos) {
+      const container = document.getElementById('grid-mundo');
+      if (!jogos || jogos.length === 0) {
+        container.innerHTML = '<div class="ponte-card" style="padding:28px; text-align:center; color:var(--muted);">Nenhuma partida encontrada com os filtros selecionados.</div>';
+        return;
+      }
+
+      const porLiga = {};
+      jogos.forEach(j => {
+        const liga = j.campeonato || 'Outras Ligas';
+        if (!porLiga[liga]) porLiga[liga] = [];
+        porLiga[liga].push(j);
+      });
+
+      let html = '';
+      for (const [liga, partidas] of Object.entries(porLiga)) {
+        html += `<div style="margin-bottom:24px;">
+          <h4 style="margin:0 0 10px; font-size:14px; color:var(--mint); display:flex; align-items:center; gap:8px;">
+            <span>⚽</span> ${liga} <small style="color:var(--muted); font-size:11px;">(${partidas.length} jogos)</small>
+          </h4>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:12px;">
+            ${partidas.map(p => `
+              <div class="match-card" style="margin-bottom:0;">
+                <div class="match-header">
+                  <span>${p.horaUtc ? p.horaUtc + ' UTC' : ''}</span>
+                  <span>${p.status === 'ao_vivo' 
+                    ? `<span class="live-pulse"></span> <strong style="color:#ef4444;">AO VIVO ${p.tempoJogo || ''}</strong>` 
+                    : p.statusDescricao}</span>
+                </div>
+                <div class="match-body">
+                  <div class="match-team">
+                    ${p.mandante.logo ? `<img src="${p.mandante.logo}" style="width:30px; height:30px; object-fit:contain;">` : ''}
+                    <strong style="font-size:13px;">${p.mandante.nome}</strong>
+                  </div>
+                  <div class="match-score" style="font-size:22px; padding:4px 12px;">
+                    ${p.mandante.placar !== null ? p.mandante.placar : '-'} : ${p.visitante.placar !== null ? p.visitante.placar : '-'}
+                  </div>
+                  <div class="match-team">
+                    ${p.visitante.logo ? `<img src="${p.visitante.logo}" style="width:30px; height:30px; object-fit:contain;">` : ''}
+                    <strong style="font-size:13px;">${p.visitante.nome}</strong>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+      }
+
+      container.innerHTML = html;
+    }
 
     window.loadTabela = async function(campSlug) {
       currentCampeonato = campSlug;
@@ -600,7 +732,7 @@
     });
 
     // Inicialização
-    loadTabela('brasileirao-a');
+    loadJogosMundo();
   </script>
 </body>
 </html>

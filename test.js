@@ -172,4 +172,37 @@ assert(svgContent.includes('<svg') && svgContent.includes('FUTEBOL PRO ANYCAST')
 const svgUrl = FutebolPro.getCardSvgUrl('Flamengo', 2, 'Palmeiras', 1);
 assert(svgUrl.includes('Flamengo/2/Palmeiras/1.svg'), 'Helper do SDK gera URL de card SVG corretamente');
 
+// ─── 7. TODOS OS JOGOS DO MUNDO (GLOBAL WORLD HUB) ───
+console.log('\n--- 7. Hub Global: Todos os Jogos do Mundo ---');
+
+// 7.1 Consulta global de partidas do dia
+const resMundo = await worker.fetch(new Request('https://api.test/api/futebol/mundo'), {});
+assert(resMundo.status === 200, 'Endpoint /api/futebol/mundo responde HTTP 200');
+const dataMundo = await resMundo.json();
+assert(dataMundo.ok === true, 'Mundo reporta ok: true');
+assert(dataMundo.totalJogos > 0, 'Jogos do mundo retornam partidas ativas');
+assert(dataMundo.escopo.includes('Global'), 'Escopo global validado');
+
+// 7.2 Rota alias /api/futebol/jogos/mundo
+const resAlias = await worker.fetch(new Request('https://api.test/api/futebol/jogos/mundo'), {});
+assert(resAlias.status === 200, 'Rota alias /api/futebol/jogos/mundo responde 200');
+const dataAlias = await resAlias.json();
+assert(dataAlias.totalJogos > 0, 'Alias retorna jogos com sucesso');
+
+// 7.3 Agrupamento por Liga
+const resAgrupado = await worker.fetch(new Request('https://api.test/api/futebol/mundo?agrupadoPorLiga=true'), {});
+const dataAgrupado = await resAgrupado.json();
+assert(typeof dataAgrupado.jogos === 'object' && !Array.isArray(dataAgrupado.jogos), 'Parâmetro agrupadoPorLiga retorna dicionário de ligas');
+
+// 7.4 Filtro por Status
+const resStatus = await worker.fetch(new Request('https://api.test/api/futebol/mundo?status=encerrado'), {});
+const dataStatus = await resStatus.json();
+assert(dataStatus.jogos.every(j => j.status === 'encerrado'), 'Filtro status=encerrado respeitado');
+
+// 7.5 Ao Vivo Global
+const resAoVivoGlobal = await worker.fetch(new Request('https://api.test/api/futebol/aovivo'), {});
+assert(resAoVivoGlobal.status === 200, 'Endpoint /api/futebol/aovivo responde HTTP 200');
+const dataAoVivoGlobal = await resAoVivoGlobal.json();
+assert(dataAoVivoGlobal.escopo.includes('Global') || dataAoVivoGlobal.ok === true, 'Ao vivo global validado');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
