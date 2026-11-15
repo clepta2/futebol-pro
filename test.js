@@ -286,11 +286,21 @@ assert(resRadar.headers.get('Content-Type').includes('image/svg+xml'), 'Header i
 const svgRadar = await resRadar.text();
 assert(svgRadar.includes('<polygon') && svgRadar.includes('FINALIZAÇÃO'), 'Polígono radar com habilidades gerado no SVG');
 
-// 9.5 Gerador de Notícia da Partida
-const resNoticia = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/noticia'), {});
-assert(resNoticia.status === 200, 'Endpoint /partida/:id/noticia responde HTTP 200');
-const dataNoticia = await resNoticia.json();
-assert(dataNoticia.noticia.titulo.length > 10, 'Título jornalístico gerado');
-assert(dataNoticia.noticia.artigo.includes('Flamengo'), 'Corpo da matéria gerado com contexto da partida');
+// 9.5 Estatísticas Oficiais Reais da Partida
+const resStats = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/stats', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resStats.status === 200, 'Endpoint /partida/:id/stats responde HTTP 200');
+const dataStats = await resStats.json();
+assert(dataStats.ok === true, 'Stats oficiais reportam ok: true');
+
+// 9.6 Gráfico Comparativo SVG da Partida em Tempo Real
+const resGraficoPartida = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/grafico.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resGraficoPartida.status === 200, 'Endpoint /partida/:id/grafico.svg responde HTTP 200');
+assert(resGraficoPartida.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para gráfico da partida');
+const textGrafico = await resGraficoPartida.text();
+assert(textGrafico.includes('<svg') && textGrafico.includes('ANÁLISE ESTATÍSTICA OFICIAL'), 'Gráfico SVG contém barras e estatísticas reais');
 
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);

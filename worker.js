@@ -28,7 +28,7 @@ import {
   RETROSPECTO_CLASSICOS,
   calcularProbabilidadeConfronto,
   compararJogadores,
-  gerarNoticiaPartida,
+  renderGraficoEstatisticoPartidaSvg,
   renderCardPartidaSvg,
   renderRadarAtletaSvg,
   exportarTabelaCsv,
@@ -530,31 +530,35 @@ async function fetchJogosMundoLive(dataParam) {
 }
 
 const MAPA_ESPN_TEAMS = {
-  'flamengo': '819',
-  'palmeiras': '2029',
-  'sao-paulo': '2026',
-  'corinthians': '874',
-  'santos': '2674',
-  'cruzeiro': '2022',
-  'atletico-mg': '7632',
-  'fluminense': '3445',
-  'botafogo': '6086',
-  'vasco': '3454',
-  'gremio': '6273',
-  'internacional': '1936',
-  'bahia': '9967',
-  'athletico-pr': '3458',
-  'red-bull-bragantino': '6079',
-  'coritiba': '3456',
-  'real-madrid': '86',
-  'barcelona': '83',
-  'manchester-city': '382',
-  'arsenal': '359',
-  'liverpool': '364'
+  'flamengo': { league: 'bra.1', id: '819' },
+  'palmeiras': { league: 'bra.1', id: '2029' },
+  'sao-paulo': { league: 'bra.1', id: '2026' },
+  'corinthians': { league: 'bra.1', id: '874' },
+  'santos': { league: 'bra.1', id: '2674' },
+  'cruzeiro': { league: 'bra.1', id: '2022' },
+  'atletico-mg': { league: 'bra.1', id: '7632' },
+  'fluminense': { league: 'bra.1', id: '3445' },
+  'botafogo': { league: 'bra.1', id: '6086' },
+  'vasco': { league: 'bra.1', id: '3454' },
+  'gremio': { league: 'bra.1', id: '6273' },
+  'internacional': { league: 'bra.1', id: '1936' },
+  'bahia': { league: 'bra.1', id: '9967' },
+  'athletico-pr': { league: 'bra.1', id: '3458' },
+  'red-bull-bragantino': { league: 'bra.1', id: '6079' },
+  'coritiba': { league: 'bra.1', id: '3456' },
+  'mirassol': { league: 'bra.1', id: '9169' },
+  'vitoria': { league: 'bra.1', id: '3457' },
+  'remo': { league: 'bra.1', id: '4936' },
+  'chapecoense': { league: 'bra.1', id: '9318' },
+  'real-madrid': { league: 'esp.1', id: '86' },
+  'barcelona': { league: 'esp.1', id: '83' },
+  'manchester-city': { league: 'eng.1', id: '382' },
+  'arsenal': { league: 'eng.1', id: '359' },
+  'liverpool': { league: 'eng.1', id: '364' }
 };
 
 async function fetchRosterLive(clubeSlug) {
-  const espnId = MAPA_ESPN_TEAMS[clubeSlug];
+  const teamInfo = MAPA_ESPN_TEAMS[clubeSlug] || { league: 'bra.1', id: clubeSlug };
   const cacheKey = `roster_${clubeSlug}`;
   const cached = edgeCache.get(cacheKey);
   const now = Date.now();
@@ -562,11 +566,11 @@ async function fetchRosterLive(clubeSlug) {
     return cached.data;
   }
 
-  if (espnId) {
+  if (teamInfo && teamInfo.id) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4000);
-      const resp = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/${espnId}/roster`, {
+      const timeout = setTimeout(() => controller.abort(), 4500);
+      const resp = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${teamInfo.league}/teams/${teamInfo.id}/roster`, {
         signal: controller.signal,
         headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-RosterWorker/2.0' }
       });
@@ -574,18 +578,41 @@ async function fetchRosterLive(clubeSlug) {
 
       if (resp.ok) {
         const json = await resp.json();
-        const athletes = (json.athletes || []).map(a => ({
-          id: a.id,
-          nome: a.displayName || a.fullName,
-          camisa: a.jersey || null,
-          posicao: a.position?.displayName || 'Jogador',
-          posicaoSigla: a.position?.abbreviation || 'J',
-          idade: a.age || null,
-          nacionalidade: a.citizenship || 'Brasil',
-          altura: a.displayHeight || null,
-          peso: a.displayWeight || null,
-          foto: a.headshot?.href || ''
-        }));
+        const athletes = (json.athletes || []).map(a => {
+          const statsMap = {};
+          for (const cat of a.statistics?.splits?.categories || []) {
+            for (const st of cat.stats || []) {
+              statsMap[st.name] = { valor: st.value, texto: st.displayValue, desc: st.displayName };
+            }
+          }
+
+          return {
+            id: a.id,
+            nome: a.displayName || a.fullName,
+            nomeCompleto: a.fullName,
+            camisa: a.jersey ? parseInt(a.jersey, 10) : null,
+            posicao: a.position?.displayName || 'Jogador',
+            posicaoSigla: a.position?.abbreviation || 'J',
+            idade: a.age || null,
+            nacionalidade: a.citizenship || 'Brasil',
+            altura: a.displayHeight || null,
+            peso: a.displayWeight || null,
+            foto: a.headshot?.href || '',
+            clube: json.team?.displayName || '',
+            clubeSlug: clubeSlug,
+            estatisticasReais: {
+              jogos: statsMap.appearances?.valor || 0,
+              gols: statsMap.totalGoals?.valor || 0,
+              assistencias: statsMap.goalAssists?.valor || 0,
+              finalizacoes: statsMap.totalShots?.valor || 0,
+              finalizacoesNoAlvo: statsMap.shotsOnTarget?.valor || 0,
+              cartoesAmarelos: statsMap.yellowCards?.valor || 0,
+              cartoesVermelhos: statsMap.redCards?.valor || 0,
+              faltasCometidas: statsMap.foulsCommitted?.valor || 0,
+              faltasSofridas: statsMap.foulsSuffered?.valor || 0
+            }
+          };
+        });
 
         if (athletes.length > 0) {
           edgeCache.set(cacheKey, {
@@ -599,9 +626,7 @@ async function fetchRosterLive(clubeSlug) {
   }
 
   const soberanos = JOGADORES_CONSOLIDADOS.filter(j => j.clubeSlug === clubeSlug);
-  return soberanos.length > 0 ? soberanos : [
-    { id: 'p_01', nome: 'Jogador Titular', camisa: '10', posicao: 'Meia', nacionalidade: 'Brasil' }
-  ];
+  return soberanos;
 }
 
 async function fetchPartidaDetalheLive(partidaId, ligaSlug = 'all') {
@@ -985,10 +1010,12 @@ export default {
       });
     }
 
-    // 6.5 DETALHES DE UMA PARTIDA ESPECÍFICA (Lances, Jogadores, Escalações, Boxscore, Notícia)
+    // 6.5 DETALHES DE UMA PARTIDA ESPECÍFICA (Lances, Boxscore Real, Gráfico SVG, Escalações)
     if (path.startsWith('/api/futebol/partida/')) {
       const parts = path.split('/');
-      const partidaId = parts[4];
+      let partidaId = parts[4];
+      const isGraficoSvg = partidaId.endsWith('.svg') || parts[5] === 'grafico.svg';
+      partidaId = partidaId.replace(/\.svg$/, '');
       const subAcao = parts[5];
 
       const detalhe = await fetchPartidaDetalheLive(partidaId);
@@ -1003,13 +1030,41 @@ export default {
         });
       }
 
-      // Geração de Notícia Automatizada da Partida
-      if (subAcao === 'noticia') {
-        const artigo = gerarNoticiaPartida(detalhe.partida || detalhe);
+      // Renderizador de Gráfico Estatístico Comparativo SVG em Tempo Real
+      if (isGraficoSvg || subAcao === 'grafico.svg') {
+        const svg = renderGraficoEstatisticoPartidaSvg(detalhe.partida || detalhe);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=30',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      // Estatísticas Oficiais Puras para Análise em Tempo Real
+      if (subAcao === 'stats' || subAcao === 'estatisticas') {
+        const part = detalhe.partida || detalhe;
         return new Response(JSON.stringify({
           ok: true,
           partidaId,
-          noticia: artigo
+          campeonato: part.campeonato,
+          mandante: part.mandante,
+          visitante: part.visitante,
+          estatisticasOficiais: part.estatisticas || []
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Escalações Oficiais de Jogadores
+      if (subAcao === 'escalacoes' || subAcao === 'rosters') {
+        const part = detalhe.partida || detalhe;
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          escalacoes: part.escalacoes || []
         }, null, 2), {
           headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
         });
