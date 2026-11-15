@@ -110,13 +110,15 @@
 
     <!-- Navegação por Abas -->
     <div style="display:flex; gap:10px; margin: 24px 0 16px; border-bottom:1px solid var(--line); padding-bottom:12px; overflow-x:auto;">
-      <button class="ponte-btn" id="tab-btn-mundo" onclick="switchTab('mundo')" style="border-color:var(--mint);">🌍 Jogos do Mundo (Global)</button>
-      <button class="ponte-btn secondary" id="tab-btn-tabela" onclick="switchTab('tabela')">📊 Tabelas &amp; Classificação</button>
-      <button class="ponte-btn secondary" id="tab-btn-aovivo" onclick="switchTab('aovivo')">🔴 Ao Vivo (Tempo Real)</button>
+      <button class="ponte-btn" id="tab-btn-mundo" onclick="switchTab('mundo')" style="border-color:var(--mint);">🌍 Jogos do Mundo (Hoje/Live)</button>
+      <button class="ponte-btn secondary" id="tab-btn-futuro" onclick="switchTab('futuro')">📅 Jogos Futuros (Calendário)</button>
+      <button class="ponte-btn secondary" id="tab-btn-antigos" onclick="switchTab('antigos')">📜 Jogos Antigos &amp; Históricos</button>
+      <button class="ponte-btn secondary" id="tab-btn-jogadores" onclick="switchTab('jogadores')">🏃 Jogadores &amp; Elencos</button>
+      <button class="ponte-btn secondary" id="tab-btn-tabela" onclick="switchTab('tabela')">📊 Classificação</button>
       <button class="ponte-btn secondary" id="tab-btn-clubes" onclick="switchTab('clubes')">🛡️ Clubes &amp; Estádios</button>
       <button class="ponte-btn secondary" id="tab-btn-confronto" onclick="switchTab('confronto')">⚔️ Simulador Elo</button>
-      <button class="ponte-btn secondary" id="tab-btn-cardsvg" onclick="switchTab('cardsvg')">🎨 Card SVG Dinâmico</button>
-      <button class="ponte-btn secondary" id="tab-btn-playground" onclick="switchTab('playground')">💻 Sandbox &amp; Snippets</button>
+      <button class="ponte-btn secondary" id="tab-btn-cardsvg" onclick="switchTab('cardsvg')">🎨 Card SVG</button>
+      <button class="ponte-btn secondary" id="tab-btn-playground" onclick="switchTab('playground')">💻 Sandbox</button>
     </div>
 
     <!-- ABA 0: TODOS OS JOGOS DO MUNDO (GLOBAL HUB) -->
@@ -147,6 +149,55 @@
 
       <div id="grid-mundo">
         <div style="text-align:center; padding:30px; color:var(--muted);">Carregando jogos do mundo na borda Anycast...</div>
+      </div>
+    </section>
+
+    <!-- ABA: JOGOS DO FUTURO / PRÓXIMAS RODADAS -->
+    <section id="section-futuro" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px;">📅 Calendário de Jogos do Futuro &amp; Próximas Rodadas</h3>
+        <span class="ponte-badge blue">Temporada 2026-2027</span>
+      </div>
+      <div class="ponte-grid-2" id="grid-futuro" style="margin-bottom:20px;">
+        <!-- Renderizado dinamicamente -->
+      </div>
+    </section>
+
+    <!-- ABA: JOGOS ANTIGOS & CONFRONTOS HISTÓRICOS -->
+    <section id="section-antigos" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px;">📜 Jogos Antigos, Finais Históricas &amp; Súmula com Lances</h3>
+        <span class="ponte-badge purple">Histórico Lendário</span>
+      </div>
+      <div id="grid-antigos">
+        <!-- Renderizado dinamicamente -->
+      </div>
+    </section>
+
+    <!-- ABA: JOGADORES & ELENCOS -->
+    <section id="section-jogadores" style="display:none;">
+      <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+        <input type="text" id="filtro-jogador-busca" class="ponte-input" placeholder="Buscar jogador (ex: Pedro, Estêvão, Vini Jr, Mbappe, Haaland...)" style="flex:1; min-width:260px;" oninput="filtrarJogadores()">
+        <select id="filtro-jogador-posicao" class="ponte-select" style="width:160px;" onchange="filtrarJogadores()">
+          <option value="">Todas as Posições</option>
+          <option value="Ataque">Atacantes / Pontas</option>
+          <option value="Meio-Campo">Meias / Volantes</option>
+          <option value="Defesa">Zagueiros / Laterais</option>
+          <option value="Goleiro">Goleiros</option>
+        </select>
+        <select id="filtro-jogador-clube" class="ponte-select" style="width:160px;" onchange="filtrarJogadores()">
+          <option value="">Todos os Clubes</option>
+          <option value="flamengo">Flamengo</option>
+          <option value="palmeiras">Palmeiras</option>
+          <option value="sao-paulo">São Paulo</option>
+          <option value="corinthians">Corinthians</option>
+          <option value="real-madrid">Real Madrid</option>
+          <option value="barcelona">Barcelona</option>
+          <option value="manchester-city">Manchester City</option>
+        </select>
+      </div>
+      <div class="ponte-grid-3" id="grid-jogadores">
+        <!-- Renderizado dinamicamente -->
       </div>
     </section>
 
@@ -362,7 +413,16 @@
   </main>
 
   <script type="module">
-    import { CLUBES, TABELAS_SOBERANAS, ESTADIOS, calcularProbabilidadeConfronto, renderCardPartidaSvg } from './dados-futebol.js';
+    import { 
+      CLUBES, 
+      TABELAS_SOBERANAS, 
+      ESTADIOS, 
+      JOGADORES_CONSOLIDADOS, 
+      JOGOS_ANTIGOS_HISTORICOS, 
+      JOGOS_FUTUROS_CALENDARIO, 
+      calcularProbabilidadeConfronto, 
+      renderCardPartidaSvg 
+    } from './dados-futebol.js';
 
     let currentCampeonato = 'brasileirao-a';
     let currentLang = 'curl';
@@ -370,7 +430,7 @@
     let cacheJogosMundo = [];
 
     window.switchTab = function(tabName) {
-      const tabs = ['mundo', 'tabela', 'aovivo', 'clubes', 'confronto', 'cardsvg', 'playground'];
+      const tabs = ['mundo', 'futuro', 'antigos', 'jogadores', 'tabela', 'clubes', 'confronto', 'cardsvg', 'playground'];
       tabs.forEach(t => {
         const sec = document.getElementById(`section-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
@@ -386,11 +446,115 @@
         }
       });
       if (tabName === 'mundo') loadJogosMundo();
+      if (tabName === 'futuro') renderJogosFuturos();
+      if (tabName === 'antigos') renderJogosAntigos();
+      if (tabName === 'jogadores') renderJogadores(JOGADORES_CONSOLIDADOS);
       if (tabName === 'tabela') loadTabela(currentCampeonato);
-      if (tabName === 'aovivo') loadAoVivo();
       if (tabName === 'clubes') renderClubes(Object.values(CLUBES));
       if (tabName === 'cardsvg') atualizarCardSvg();
       if (tabName === 'playground') updateSnippets();
+    };
+
+    window.renderJogosFuturos = function() {
+      const container = document.getElementById('grid-futuro');
+      container.innerHTML = JOGOS_FUTUROS_CALENDARIO.map(j => `
+        <div class="match-card">
+          <div class="match-header">
+            <span><strong>${j.campeonato}</strong> • ${j.rodada}</span>
+            <span style="color:var(--mint); font-weight:600;">${j.dataExtenso}</span>
+          </div>
+          <div class="match-body">
+            <div class="match-team">
+              <img src="${j.mandante.logo}" style="width:36px; height:36px; object-fit:contain;">
+              <strong>${j.mandante.nome}</strong>
+              <small style="color:var(--muted); font-size:11px;">Mandante</small>
+            </div>
+            <div class="match-score" style="font-size:14px; padding:6px 14px; color:var(--muted);">
+              VS
+            </div>
+            <div class="match-team">
+              <img src="${j.visitante.logo}" style="width:36px; height:36px; object-fit:contain;">
+              <strong>${j.visitante.nome}</strong>
+              <small style="color:var(--muted); font-size:11px;">Visitante</small>
+            </div>
+          </div>
+          <div style="margin-top:12px; font-size:12px; color:var(--muted); border-top:1px solid var(--line-light); padding-top:8px;">
+            🏟️ <strong>Local:</strong> ${j.estadio}<br>
+            🎯 <strong>Importância:</strong> ${j.importancia}
+          </div>
+        </div>
+      `).join('');
+    };
+
+    window.renderJogosAntigos = function() {
+      const container = document.getElementById('grid-antigos');
+      container.innerHTML = JOGOS_ANTIGOS_HISTORICOS.map(j => `
+        <div class="match-card" style="margin-bottom:16px;">
+          <div class="match-header">
+            <span><strong>${j.campeonato}</strong> • ${j.data}</span>
+            <span style="color:#10b981; font-weight:700;">FINAL HISTÓRICA ENCERRADA</span>
+          </div>
+          <div class="match-body">
+            <div class="match-team">
+              <img src="${j.mandante.logo}" style="width:40px; height:40px; object-fit:contain;">
+              <strong>${j.mandante.nome}</strong>
+            </div>
+            <div class="match-score">
+              ${j.mandante.placar} : ${j.visitante.placar}
+            </div>
+            <div class="match-team">
+              <img src="${j.visitante.logo}" style="width:40px; height:40px; object-fit:contain;">
+              <strong>${j.visitante.nome}</strong>
+            </div>
+          </div>
+          <div style="margin-top:14px; background:var(--paper-elevated); padding:12px; border-radius:var(--radius-md); font-size:12px; border:1px solid var(--line-light);">
+            <div style="margin-bottom:6px; color:var(--ink);"><strong>⚽ Gols da Partida:</strong></div>
+            ${j.gols.map(g => `<div style="color:var(--ink-secondary); margin-bottom:2px;">• <strong>${g.minuto}</strong> ${g.jogador} (${g.time}) - <em>${g.tipo}</em> ${g.assistencia ? `(Assistência: ${g.assistencia})` : ''}</div>`).join('')}
+            <div style="margin-top:8px; color:var(--muted); font-size:11px;">
+              🏟️ ${j.estadio} • Público: ${(j.publico || 0).toLocaleString('pt-BR')} • Árbitro: ${j.arbitro}
+            </div>
+            <div style="margin-top:4px; color:var(--mint); font-weight:600; font-size:11px;">
+              ✨ ${j.destaque}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    window.renderJogadores = function(jogadores) {
+      const container = document.getElementById('grid-jogadores');
+      container.innerHTML = jogadores.map(jg => `
+        <div class="club-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <img src="${jg.foto}" style="width:44px; height:44px; border-radius:50%; object-fit:cover; background:var(--paper-elevated);" onerror="this.src='https://a.espncdn.com/i/headshots/nophoto.png'">
+              <div>
+                <h4 style="margin:0; font-size:15px; color:var(--ink);">${jg.nome} <span style="font-size:12px; color:var(--mint);">#${jg.camisa || ''}</span></h4>
+                <small style="color:var(--muted);">${jg.clube} • ${jg.posicao}</small>
+              </div>
+            </div>
+            <span class="ponte-badge mint" style="font-size:10px;">${jg.valorMercado || 'Ativo'}</span>
+          </div>
+          <div style="font-size:12px; color:var(--ink-secondary); margin-bottom:12px; line-height:1.6;">
+            <strong>🌍 País:</strong> ${jg.nacionalidade} | <strong>Idade:</strong> ${jg.idade} anos<br>
+            <strong>📐 Físico:</strong> ${jg.altura || '-'} • ${jg.peso || '-'}<br>
+            <strong>⚽ Carreira:</strong> ${jg.golsCarreira || 0} gols, ${jg.assistenciasCarreira || 0} assistências em ${jg.jogosCarreira || 0} jogos
+          </div>
+        </div>
+      `).join('');
+    };
+
+    window.filtrarJogadores = function() {
+      const busca = (document.getElementById('filtro-jogador-busca')?.value || '').toLowerCase();
+      const pos = document.getElementById('filtro-jogador-posicao')?.value || '';
+      const clube = document.getElementById('filtro-jogador-clube')?.value || '';
+
+      let filtrados = JOGADORES_CONSOLIDADOS;
+      if (pos) filtrados = filtrados.filter(j => j.posicaoGeral === pos || j.posicao.includes(pos));
+      if (clube) filtrados = filtrados.filter(j => j.clubeSlug.includes(clube));
+      if (busca) filtrados = filtrados.filter(j => j.nome.toLowerCase().includes(busca) || j.nomeCompleto.toLowerCase().includes(busca) || j.nacionalidade.toLowerCase().includes(busca));
+
+      renderJogadores(filtrados);
     };
 
     window.setMundoData = function(dataVal) {

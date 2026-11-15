@@ -103,6 +103,95 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém jogos de hoje no mundo
+   * @returns {Promise<Object>}
+   */
+  static async getJogosHoje() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/mundo/hoje`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter jogos de hoje: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém jogos do futuro e próximas rodadas
+   * @param {string} [data] - 'amanha' ou 'YYYY-MM-DD'
+   * @returns {Promise<Object>}
+   */
+  static async getJogosFuturo(data = 'amanha') {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/mundo/futuro?data=${data}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter jogos do futuro: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém jogos antigos e resultados históricos
+   * @param {string} [data] - 'ontem' ou 'YYYY-MM-DD'
+   * @returns {Promise<Object>}
+   */
+  static async getJogosAntigos(data = 'ontem') {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/mundo/antigos?data=${data}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter jogos antigos: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém detalhes completos de uma partida (lances, escalações, boxscore, gols)
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPartidaDetalhe(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter detalhes da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Lista jogadores cadastrados com filtros
+   * @param {Object} [filtros] - { clube?: string, posicao?: string, busca?: string }
+   * @returns {Promise<Object>}
+   */
+  static async getJogadores(filtros = {}) {
+    const params = new URLSearchParams();
+    if (filtros.clube) params.set('clube', filtros.clube);
+    if (filtros.posicao) params.set('posicao', filtros.posicao);
+    if (filtros.busca) params.set('busca', filtros.busca);
+
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const resp = await fetch(`${this.baseUrl}/api/futebol/jogadores${query}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao listar jogadores: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o elenco de jogadores de um clube específico
+   * @param {string} clubeSlug - Ex: 'flamengo', 'palmeiras'
+   * @returns {Promise<Object>}
+   */
+  static async getElencoClube(clubeSlug) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/clubes/${clubeSlug}/elenco`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter elenco (${clubeSlug}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
    * Obtém jogos e rodadas de uma competição
    * @param {string} campeonato - Ex: 'brasileirao-a' ou 'mundo'
    * @returns {Promise<Object>}

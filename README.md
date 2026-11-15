@@ -50,7 +50,21 @@ Retorna todos os jogos de futebol do planeta Terra organizados por liga e campeo
 `GET /api/futebol/aovivo`  
 Monitoramento contínuo em tempo real com minutos e placar atualizado com latência sub-5ms Anycast.
 
-### 3. Tabela de Classificação
+### 3. 📅 Jogos de Hoje, do Futuro e Antigos
+- `GET /api/futebol/mundo/hoje`: Todas as partidas programadas e em andamento para hoje no mundo.
+- `GET /api/futebol/mundo/futuro`: Calendário de próximas rodadas e confrontos agendados nos próximos dias e semanas.
+- `GET /api/futebol/mundo/antigos`: Resultados de partidas passadas recentes e histórico de finais lendárias com súmula completa de gols e cartões.
+
+### 4. 📋 Detalhes da Partida com Escalação & Lances
+`GET /api/futebol/partida/:id`  
+Retorna a súmula detalhada do jogo: minuto a minuto de gols, cartões, pênaltis, escalações titulares com números de camisa e capitão, reservas e estatísticas completas de finalizações, posse de bola, desarmes e escanteios.
+
+### 5. 🏃 Jogadores & Elencos de Clubes
+- `GET /api/futebol/clubes/:slug/elenco`: Lista completa de jogadores do clube com posição, camisa, idade, altura, peso, nacionalidade e foto.
+- `GET /api/futebol/jogadores?busca=Pedro`: Busca de jogadores por nome, clube ou posição.
+- `GET /api/futebol/jogadores/:id`: Perfil e histórico de carreira de um atleta.
+
+### 6. 📊 Tabela de Classificação
 `GET /api/futebol/tabela/:campeonato`  
 Parâmetro opcional: `?formato=json|csv|xml`
 
@@ -72,39 +86,18 @@ Parâmetro opcional: `?formato=json|csv|xml`
 - `libertadores` (CONMEBOL Libertadores)
 - `uefa-nations` (UEFA Nations League)
 
-```bash
-curl -s "https://ponte.ozpro.com.br/api/futebol/tabela/brasileirao-a" \
-  -H "Authorization: Bearer pnt_live_..."
-```
-
-### 2. Placares Ao Vivo & Em Andamento
-`GET /api/futebol/aovivo`
-
-```bash
-curl -s "https://ponte.ozpro.com.br/api/futebol/aovivo" \
-  -H "Authorization: Bearer pnt_live_..."
-```
-
-### 3. Cadastro Oficial de Clubes
+### 7. 🛡️ Cadastro Oficial de Clubes
 `GET /api/futebol/clubes`  
 Filtros opcionais: `?estado=SP`, `?pais=Brasil`, `?busca=flamengo`
 
-```bash
-curl -s "https://ponte.ozpro.com.br/api/futebol/clubes?estado=SP" \
-  -H "Authorization: Bearer pnt_live_..."
-```
-
-### 4. Detalhes de um Clube Específico
-`GET /api/futebol/clubes/:slug` (ex: `flamengo`, `palmeiras`, `real-madrid`)
-
-### 5. Estádios Oficiais
+### 8. 🏟️ Estádios Oficiais
 `GET /api/futebol/estadios`  
 Filtros opcionais: `?uf=RJ`, `?cidade=Rio de Janeiro`
 
-### 6. Artilharia & Estatísticas
+### 9. 🎯 Artilharia & Estatísticas
 `GET /api/futebol/artilharia/:campeonato`
 
-### 7. Simulador de Confronto (Rating Elo)
+### 10. ⚔️ Simulador de Confronto (Rating Elo)
 `GET /api/futebol/confronto/:clubeCasa/:clubeVisitante`
 
 ```bash

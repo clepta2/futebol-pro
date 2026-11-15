@@ -140,6 +140,12 @@ export declare class FutebolPro {
   static getHealth(): Promise<{ ok: boolean; servico: string; versao: string; latenciaEdgeMs: number }>;
   static getCompeticoes(): Promise<{ ok: boolean; totalCompeticoes: number; competicoes: Competicao[] }>;
   static getJogosMundo(filtros?: { data?: string; status?: 'ao_vivo' | 'encerrado' | 'agendado'; liga?: string; busca?: string; agrupadoPorLiga?: boolean }): Promise<{ ok: boolean; escopo: string; dataConsultada: string; totalJogos: number; totalAoVivo: number; totalEncerrados: number; totalAgendados: number; jogos: PartidaAoVivo[] | Record<string, PartidaAoVivo[]> }>;
+  static getJogosHoje(): Promise<{ ok: boolean; totalJogos: number; jogos: PartidaAoVivo[] }>;
+  static getJogosFuturo(data?: string): Promise<{ ok: boolean; totalJogosFuturos: number; proximasRodadasDestaque: any[]; jogosAgendados: any[] }>;
+  static getJogosAntigos(data?: string): Promise<{ ok: boolean; totalHistoricosLendarios: number; totalRecentesFinalizados: number; jogosHistoricosLendarios: any[]; jogosPassadosRecentes: any[] }>;
+  static getPartidaDetalhe(partidaId: string): Promise<any>;
+  static getJogadores(filtros?: { clube?: string; posicao?: string; busca?: string }): Promise<{ ok: boolean; totalJogadores: number; jogadores: any[] }>;
+  static getElencoClube(clubeSlug: string): Promise<{ ok: boolean; clube: string; totalJogadores: number; elenco: any[] }>;
   static getTabela(campeonato?: string, formato?: 'json'): Promise<TabelaResponse>;
   static getTabela(campeonato?: string, formato?: 'csv' | 'xml'): Promise<string>;
   static getJogos(campeonato?: string): Promise<{ ok: boolean; totalJogos: number; jogos: PartidaAoVivo[] }>;

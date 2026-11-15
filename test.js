@@ -205,4 +205,54 @@ assert(resAoVivoGlobal.status === 200, 'Endpoint /api/futebol/aovivo responde HT
 const dataAoVivoGlobal = await resAoVivoGlobal.json();
 assert(dataAoVivoGlobal.escopo.includes('Global') || dataAoVivoGlobal.ok === true, 'Ao vivo global validado');
 
+// ─── 8. JOGOS DE HOJE, FUTUROS, ANTIGOS E JOGADORES ───
+console.log('\n--- 8. Jogos de Hoje, Futuros, Antigos & Dados de Jogadores ---');
+
+// 8.1 Jogos de Hoje
+const resHoje = await worker.fetch(new Request('https://api.test/api/futebol/mundo/hoje'), {});
+assert(resHoje.status === 200, 'Endpoint /api/futebol/mundo/hoje responde HTTP 200');
+const dataHoje = await resHoje.json();
+assert(dataHoje.totalJogos > 0, 'Jogos de hoje retornados com sucesso');
+
+// 8.2 Jogos do Futuro / Próximas Rodadas
+const resFuturo = await worker.fetch(new Request('https://api.test/api/futebol/mundo/futuro'), {});
+assert(resFuturo.status === 200, 'Endpoint /api/futebol/mundo/futuro responde HTTP 200');
+const dataFuturo = await resFuturo.json();
+assert(dataFuturo.totalJogosFuturos > 0, 'Jogos futuros retornados com sucesso');
+assert(dataFuturo.proximasRodadasDestaque.length > 0, 'Destaques do futuro encontrados no calendário');
+
+// 8.3 Jogos Antigos e Históricos
+const resAntigos = await worker.fetch(new Request('https://api.test/api/futebol/mundo/antigos'), {});
+assert(resAntigos.status === 200, 'Endpoint /api/futebol/mundo/antigos responde HTTP 200');
+const dataAntigos = await resAntigos.json();
+assert(dataAntigos.totalHistoricosLendarios >= 5, 'Mínimo de 5 confrontos históricos lendários cadastrados');
+assert(dataAntigos.jogosHistoricosLendarios[0].gols.length > 0, 'Gols históricos com minutos presentes');
+
+// 8.4 Detalhes de Partida Antiga (hist_001 - Final Libertadores 2019)
+const resPartidaHist = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001'), {});
+assert(resPartidaHist.status === 200, 'Endpoint /api/futebol/partida/hist_001 responde HTTP 200');
+const dataPartidaHist = await resPartidaHist.json();
+assert(dataPartidaHist.partida.mandante.nome === 'Flamengo', 'Mandante da final histórica é o Flamengo');
+assert(dataPartidaHist.partida.gols.some(g => g.jogador.includes('Gabigol')), 'Gols históricos do Gabigol registrados');
+
+// 8.5 Elenco de Jogadores do Clube (/clubes/flamengo/elenco)
+const resElenco = await worker.fetch(new Request('https://api.test/api/futebol/clubes/flamengo/elenco'), {});
+assert(resElenco.status === 200, 'Endpoint /api/futebol/clubes/flamengo/elenco responde HTTP 200');
+const dataElenco = await resElenco.json();
+assert(dataElenco.totalJogadores > 0, 'Elenco do clube possui jogadores');
+assert(dataElenco.elenco[0].nome, 'Nome de jogador do elenco validado');
+
+// 8.6 Catálogo de Jogadores
+const resJogadores = await worker.fetch(new Request('https://api.test/api/futebol/jogadores?busca=Pedro'), {});
+assert(resJogadores.status === 200, 'Endpoint /api/futebol/jogadores responde HTTP 200');
+const dataJogadores = await resJogadores.json();
+assert(dataJogadores.jogadores.some(j => j.nome === 'Pedro'), 'Jogador Pedro encontrado na busca');
+
+// 8.7 Perfil Específico de Jogador
+const resPed = await worker.fetch(new Request('https://api.test/api/futebol/jogadores/pedro-9'), {});
+assert(resPed.status === 200, 'Endpoint /api/futebol/jogadores/pedro-9 responde HTTP 200');
+const dataPed = await resPed.json();
+assert(dataPed.jogador.clube === 'Flamengo', 'Clube do Pedro validado');
+assert(dataPed.jogador.posicao === 'Atacante', 'Posição do jogador validada');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);

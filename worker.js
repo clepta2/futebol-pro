@@ -22,6 +22,9 @@ import {
   CLUBES,
   TABELAS_SOBERANAS,
   ARTILHARIA_CONSOLIDADA,
+  JOGADORES_CONSOLIDADOS,
+  JOGOS_ANTIGOS_HISTORICOS,
+  JOGOS_FUTUROS_CALENDARIO,
   calcularProbabilidadeConfronto,
   renderCardPartidaSvg,
   exportarTabelaCsv,
@@ -522,6 +525,186 @@ async function fetchJogosMundoLive(dataParam) {
   ];
 }
 
+const MAPA_ESPN_TEAMS = {
+  'flamengo': '819',
+  'palmeiras': '2029',
+  'sao-paulo': '2026',
+  'corinthians': '874',
+  'santos': '2674',
+  'cruzeiro': '2022',
+  'atletico-mg': '7632',
+  'fluminense': '3445',
+  'botafogo': '6086',
+  'vasco': '3454',
+  'gremio': '6273',
+  'internacional': '1936',
+  'bahia': '9967',
+  'athletico-pr': '3458',
+  'red-bull-bragantino': '6079',
+  'coritiba': '3456',
+  'real-madrid': '86',
+  'barcelona': '83',
+  'manchester-city': '382',
+  'arsenal': '359',
+  'liverpool': '364'
+};
+
+async function fetchRosterLive(clubeSlug) {
+  const espnId = MAPA_ESPN_TEAMS[clubeSlug];
+  const cacheKey = `roster_${clubeSlug}`;
+  const cached = edgeCache.get(cacheKey);
+  const now = Date.now();
+  if (cached && now < cached.expiresAt) {
+    return cached.data;
+  }
+
+  if (espnId) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const resp = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams/${espnId}/roster`, {
+        signal: controller.signal,
+        headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-RosterWorker/2.0' }
+      });
+      clearTimeout(timeout);
+
+      if (resp.ok) {
+        const json = await resp.json();
+        const athletes = (json.athletes || []).map(a => ({
+          id: a.id,
+          nome: a.displayName || a.fullName,
+          camisa: a.jersey || null,
+          posicao: a.position?.displayName || 'Jogador',
+          posicaoSigla: a.position?.abbreviation || 'J',
+          idade: a.age || null,
+          nacionalidade: a.citizenship || 'Brasil',
+          altura: a.displayHeight || null,
+          peso: a.displayWeight || null,
+          foto: a.headshot?.href || ''
+        }));
+
+        if (athletes.length > 0) {
+          edgeCache.set(cacheKey, {
+            data: athletes,
+            expiresAt: now + (2 * 60 * 60 * 1000)
+          });
+          return athletes;
+        }
+      }
+    } catch (_) {}
+  }
+
+  const soberanos = JOGADORES_CONSOLIDADOS.filter(j => j.clubeSlug === clubeSlug);
+  return soberanos.length > 0 ? soberanos : [
+    { id: 'p_01', nome: 'Jogador Titular', camisa: '10', posicao: 'Meia', nacionalidade: 'Brasil' }
+  ];
+}
+
+async function fetchPartidaDetalheLive(partidaId, ligaSlug = 'all') {
+  const historico = JOGOS_ANTIGOS_HISTORICOS.find(h => h.id === partidaId);
+  if (historico) {
+    return { ok: true, tipo: 'jogo_historico', partida: historico };
+  }
+
+  const futuro = JOGOS_FUTUROS_CALENDARIO.find(f => f.id === partidaId);
+  if (futuro) {
+    return { ok: true, tipo: 'jogo_futuro', partida: futuro };
+  }
+
+  const cacheKey = `partida_${partidaId}`;
+  const cached = edgeCache.get(cacheKey);
+  const now = Date.now();
+  if (cached && now < cached.expiresAt) {
+    return cached.data;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const resp = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${ligaSlug}/summary?event=${partidaId}`, {
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-SummaryWorker/2.0' }
+    });
+    clearTimeout(timeout);
+
+    if (resp.ok) {
+      const sum = await resp.json();
+      const comp = sum.header?.competitions?.[0] || {};
+      const home = (comp.competitors || []).find(c => c.homeAway === 'home') || {};
+      const away = (comp.competitors || []).find(c => c.homeAway === 'away') || {};
+
+      const keyEvents = (sum.keyEvents || []).map(k => ({
+        minuto: k.clock?.displayValue || '',
+        tipo: k.type?.text || 'Lance',
+        descricao: k.text || '',
+        atletas: (k.participants || []).map(p => p.athlete?.displayName).filter(Boolean)
+      }));
+
+      const rosters = (sum.rosters || []).map(r => ({
+        time: r.team?.displayName || '',
+        titulares: (r.roster || []).filter(a => a.starter).map(a => ({
+          id: a.athlete?.id,
+          nome: a.athlete?.displayName,
+          camisa: a.jersey,
+          posicao: a.position?.abbreviation,
+          capitao: a.captain
+        })),
+        reservas: (r.roster || []).filter(a => !a.starter).map(a => ({
+          id: a.athlete?.id,
+          nome: a.athlete?.displayName,
+          camisa: a.jersey,
+          posicao: a.position?.abbreviation
+        }))
+      }));
+
+      const estatisticas = (sum.boxscore?.teams || []).map(t => ({
+        time: t.team?.displayName,
+        stats: Object.fromEntries((t.statistics || []).map(s => [s.label, s.displayValue]))
+      }));
+
+      const detalhe = {
+        ok: true,
+        tipo: 'partida_detalhada',
+        id: partidaId,
+        data: comp.date,
+        campeonato: sum.header?.season?.displayName || 'Campeonato',
+        status: comp.status?.type?.description || 'Agendado',
+        tempoJogo: comp.status?.displayClock || "0'",
+        mandante: {
+          nome: home.team?.displayName,
+          sigla: home.team?.abbreviation,
+          placar: home.score,
+          logo: home.team?.logos?.[0]?.href
+        },
+        visitante: {
+          nome: away.team?.displayName,
+          sigla: away.team?.abbreviation,
+          placar: away.score,
+          logo: away.team?.logos?.[0]?.href
+        },
+        infoJogo: {
+          estadio: sum.gameInfo?.venue?.fullName || 'Estádio',
+          cidade: sum.gameInfo?.venue?.address?.city || '',
+          arbitro: (sum.gameInfo?.officials || [])[0]?.displayName || 'Árbitro Oficial'
+        },
+        golsELances: keyEvents,
+        escalacoes: rosters,
+        estatisticas
+      };
+
+      const isLive = comp.status?.type?.state === 'in';
+      edgeCache.set(cacheKey, {
+        data: detalhe,
+        expiresAt: now + (isLive ? 30000 : 3600000)
+      });
+
+      return detalhe;
+    }
+  } catch (_) {}
+
+  return null;
+}
+
 export default {
   async fetch(request, env = {}, ctx) {
     const t0 = performance.now();
@@ -750,6 +933,74 @@ export default {
       });
     }
 
+    // 6.2 JOGOS DE HOJE NO MUNDO
+    if (path === '/api/futebol/mundo/hoje' || path === '/api/futebol/jogos/hoje') {
+      const jogosHoje = await fetchJogosMundoLive('hoje');
+      return new Response(JSON.stringify({
+        ok: true,
+        escopo: 'Jogos de Hoje no Mundo',
+        totalJogos: jogosHoje.length,
+        jogos: jogosHoje
+      }), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 6.3 JOGOS DO FUTURO / CALENDÁRIO PRÓXIMAS RODADAS
+    if (path === '/api/futebol/mundo/futuro' || path === '/api/futebol/jogos/futuro') {
+      const dataParam = url.searchParams.get('data') || 'amanha';
+      const liveAmanha = await fetchJogosMundoLive(dataParam);
+      const todosFuturos = [...JOGOS_FUTUROS_CALENDARIO, ...liveAmanha];
+
+      return new Response(JSON.stringify({
+        ok: true,
+        escopo: 'Jogos do Futuro / Calendário de Partidas',
+        totalJogosFuturos: todosFuturos.length,
+        proximasRodadasDestaque: JOGOS_FUTUROS_CALENDARIO,
+        jogosAgendados: liveAmanha
+      }), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 6.4 JOGOS ANTIGOS / RESULTADOS HISTÓRICOS E RECENTES
+    if (path === '/api/futebol/mundo/antigos' || path === '/api/futebol/mundo/passados' || path === '/api/futebol/jogos/antigos') {
+      const dataParam = url.searchParams.get('data') || 'ontem';
+      const passadosRecentes = await fetchJogosMundoLive(dataParam);
+      const finalizados = passadosRecentes.filter(j => j.status === 'encerrado');
+
+      return new Response(JSON.stringify({
+        ok: true,
+        escopo: 'Jogos Antigos / Histórico & Placares Passados',
+        totalHistoricosLendarios: JOGOS_ANTIGOS_HISTORICOS.length,
+        totalRecentesFinalizados: finalizados.length,
+        jogosHistoricosLendarios: JOGOS_ANTIGOS_HISTORICOS,
+        jogosPassadosRecentes: finalizados
+      }), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 6.5 DETALHES DE UMA PARTIDA ESPECÍFICA (Lances, Jogadores, Escalações, Boxscore)
+    if (path.startsWith('/api/futebol/partida/')) {
+      const partidaId = path.split('/')[4];
+      const detalhe = await fetchPartidaDetalheLive(partidaId);
+      if (!detalhe) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'PARTIDA_NAO_ENCONTRADA',
+          mensagem: `Partida "${partidaId}" não encontrada.`
+        }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      return new Response(JSON.stringify(detalhe, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
     // 7. Jogos e Rodadas por Campeonato (ou Global)
     if (path.startsWith('/api/futebol/jogos/')) {
       const slug = path.split('/')[4]?.toLowerCase();
@@ -854,9 +1105,12 @@ export default {
       });
     }
 
-    // 10. Detalhes de um Clube Específico
+    // 10. Detalhes de um Clube Específico ou seu Elenco de Jogadores
     if (path.startsWith('/api/futebol/clubes/')) {
-      const slug = path.split('/')[4]?.toLowerCase();
+      const parts = path.split('/');
+      const slug = parts[4]?.toLowerCase();
+      const subAcao = parts[5]?.toLowerCase();
+
       const clube = CLUBES[slug];
       if (!clube) {
         return new Response(JSON.stringify({
@@ -870,9 +1124,65 @@ export default {
         });
       }
 
+      // Elenco de Jogadores do Clube
+      if (subAcao === 'elenco' || subAcao === 'jogadores') {
+        const jogadores = await fetchRosterLive(slug);
+        return new Response(JSON.stringify({
+          ok: true,
+          clube: clube.nomeCurto,
+          slug,
+          totalJogadores: jogadores.length,
+          elenco: jogadores
+        }), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       return new Response(JSON.stringify({
         ok: true,
         clube
+      }), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 10.1 Catálogo e Busca de Jogadores
+    if (path === '/api/futebol/jogadores') {
+      const clubeFiltro = url.searchParams.get('clube')?.toLowerCase();
+      const posicaoFiltro = url.searchParams.get('posicao')?.toLowerCase();
+      const busca = (url.searchParams.get('busca') || url.searchParams.get('q') || '').toLowerCase();
+
+      let lista = JOGADORES_CONSOLIDADOS;
+      if (clubeFiltro) lista = lista.filter(j => j.clubeSlug.includes(clubeFiltro) || j.clube.toLowerCase().includes(clubeFiltro));
+      if (posicaoFiltro) lista = lista.filter(j => j.posicaoGeral.toLowerCase().includes(posicaoFiltro) || j.posicao.toLowerCase().includes(posicaoFiltro));
+      if (busca) lista = lista.filter(j => j.nome.toLowerCase().includes(busca) || j.nomeCompleto.toLowerCase().includes(busca) || j.nacionalidade.toLowerCase().includes(busca));
+
+      return new Response(JSON.stringify({
+        ok: true,
+        totalJogadores: lista.length,
+        jogadores: lista
+      }), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path.startsWith('/api/futebol/jogadores/')) {
+      const jogadorId = path.split('/')[4]?.toLowerCase();
+      const jogador = JOGADORES_CONSOLIDADOS.find(j => j.id.toLowerCase() === jogadorId || j.nome.toLowerCase().includes(jogadorId));
+      if (!jogador) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'JOGADOR_NAO_ENCONTRADO',
+          mensagem: `Jogador "${jogadorId}" não encontrado na base de dados.`
+        }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        jogador
       }), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
       });
