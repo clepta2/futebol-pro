@@ -55,14 +55,16 @@ Monitoramento contínuo em tempo real com minutos e placar atualizado com latên
 - `GET /api/futebol/mundo/futuro`: Calendário de próximas rodadas e confrontos agendados nos próximos dias e semanas.
 - `GET /api/futebol/mundo/antigos`: Resultados de partidas passadas recentes e histórico de finais lendárias com súmula completa de gols e cartões.
 
-### 4. 📋 Detalhes da Partida com Escalação & Lances
-`GET /api/futebol/partida/:id`  
-Retorna a súmula detalhada do jogo: minuto a minuto de gols, cartões, pênaltis, escalações titulares com números de camisa e capitão, reservas e estatísticas completas de finalizações, posse de bola, desarmes e escanteios.
+### 4. 📊 Análise Estatística & Gráficos em Tempo Real
+- `GET /api/futebol/partida/:id/stats`: Estatísticas oficiais verídicas da partida para analistas e apostas (Posse %, Finalizações, Chutes a Gol, Passes %, Faltas, Escanteios, Desarmes e Defesas).
+- `GET /api/futebol/partida/:id/grafico.svg`: Gráfico de barras bi-direcional vetorial SVG renderizado na borda com os dados reais do boxscore oficial.
+- `GET /api/futebol/partida/:id/escalacoes`: Escalações oficiais completas com titulares, posições de campo, reservas e capitães.
 
-### 5. 🏃 Jogadores & Elencos de Clubes
-- `GET /api/futebol/clubes/:slug/elenco`: Lista completa de jogadores do clube com posição, camisa, idade, altura, peso, nacionalidade e foto.
-- `GET /api/futebol/jogadores?busca=Pedro`: Busca de jogadores por nome, clube ou posição.
-- `GET /api/futebol/jogadores/:id`: Perfil e histórico de carreira de um atleta.
+### 5. 🏃 Dados de Todos os Jogadores & Gráfico Radar SVG
+- `GET /api/futebol/clubes/:slug/elenco`: Elenco completo de todos os jogadores do time (40+ atletas reais) com foto oficial, número da camisa, idade, peso, altura, nacionalidade e estatísticas reais da temporada (gols, assistências, finalizações, faltas, desarmes).
+- `GET /api/futebol/jogadores/:id`: Perfil e métricas oficiais de desempenho do atleta na temporada.
+- `GET /api/futebol/jogadores/:id/grafico.svg`: Gráfico de radar hexagonal SVG de atributos verídicos do atleta.
+- `GET /api/futebol/jogadores/comparar/:id1/:id2`: Comparação estatística direta entre dois atletas com veredito analítico de participações em gol e médias.
 
 ### 6. 📊 Tabela de Classificação
 `GET /api/futebol/tabela/:campeonato`  

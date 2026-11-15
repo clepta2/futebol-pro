@@ -158,16 +158,39 @@ export class FutebolPro {
   }
 
   /**
-   * Gera artigo jornalístico de resumo da partida em tempo real
+   * Obtém as estatísticas oficiais da partida (posse de bola, finalizações, faltas, escanteios)
    * @param {string} partidaId
    * @returns {Promise<Object>}
    */
-  static async getNoticiaPartida(partidaId) {
-    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/noticia`, {
+  static async getPartidaStats(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/stats`, {
       method: 'GET',
       headers: this._getHeaders()
     });
-    if (!resp.ok) throw new Error(`Erro ao gerar notícia da partida (${partidaId}): HTTP ${resp.status}`);
+    if (!resp.ok) throw new Error(`Erro ao obter estatísticas da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Gráfico Estatístico Comparativo SVG em Tempo Real da Partida
+   * @param {string} partidaId
+   * @returns {string}
+   */
+  static getGraficoPartidaUrl(partidaId) {
+    return `${this.baseUrl}/api/futebol/partida/${partidaId}/grafico.svg`;
+  }
+
+  /**
+   * Obtém as escalações oficiais com titulares, reservas e capitão
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPartidaEscalacoes(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/escalacoes`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter escalações da partida (${partidaId}): HTTP ${resp.status}`);
     return await resp.json();
   }
 

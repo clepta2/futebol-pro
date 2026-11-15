@@ -542,7 +542,7 @@
               ✨ ${j.destaque}
             </div>
             <div style="margin-top:10px;">
-              <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="abrirNoticiaPartida('${j.id}')">📰 Ler Artigo Jornalístico do Jogo</button>
+              <button class="ponte-btn" style="padding:4px 12px; font-size:11px;" onclick="abrirGraficoEstatisticoPartida('${j.id}')">📊 Ver Gráfico &amp; Análise Estatística Real</button>
             </div>
           </div>
         </div>
@@ -610,26 +610,43 @@
       window.open(`/api/futebol/jogadores/${id}/radar.svg`, '_blank');
     };
 
-    window.abrirNoticiaPartida = async function(id) {
+    window.abrirGraficoEstatisticoPartida = async function(id) {
       try {
-        const res = await fetch(`/api/futebol/partida/${id}/noticia`);
-        const data = await res.json();
-        const n = data.noticia;
         const modal = document.getElementById('modal-partida');
         const conteudo = document.getElementById('modal-partida-conteudo');
+        conteudo.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Carregando análise e gráfico estatístico oficial em tempo real...</div>';
+        modal.style.display = 'flex';
+
+        const res = await fetch(`/api/futebol/partida/${id}`);
+        const data = await res.json();
+        const p = data.partida || data;
+
         conteudo.innerHTML = `
-          <h2 style="margin-top:0; color:var(--ink); font-size:1.4rem;">${n.titulo}</h2>
-          <p style="color:var(--mint); font-weight:600; font-size:13px; margin-bottom:14px;">${n.subtitulo}</p>
-          <div style="font-size:11px; color:var(--muted); margin-bottom:16px;">
-            ✍️ ${n.autor} • 🏟️ ${n.estadio} • 🏆 ${n.campeonato}
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <h3 style="margin:0; font-size:1.2rem; color:var(--ink);">${p.mandante?.nome} (${p.mandante?.placar !== null ? p.mandante.placar : '-'}) vs (${p.visitante?.placar !== null ? p.visitante.placar : '-'}) ${p.visitante?.nome}</h3>
+              <small style="color:var(--muted);">${p.campeonato} • ${p.infoJogo?.estadio || p.estadio || 'Estádio Oficial'}</small>
+            </div>
+            <span class="ponte-badge mint">Dados Verídicos Oficiais</span>
           </div>
-          <div style="background:var(--canvas); padding:16px; border-radius:var(--radius-md); font-size:13px; line-height:1.7; color:var(--ink-secondary); white-space:pre-line; border:1px solid var(--line);">
-            ${n.artigo}
+
+          <!-- Embed do Gráfico SVG Comparativo em Tempo Real -->
+          <div style="text-align:center; margin-bottom:20px; overflow-x:auto;">
+            <img src="/api/futebol/partida/${id}/grafico.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Gráfico Comparativo da Partida">
+          </div>
+
+          <!-- Súmula Real de Gols e Lances -->
+          <div style="background:var(--paper-elevated); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line-light); font-size:12px;">
+            <strong style="color:var(--mint); font-size:13px; display:block; margin-bottom:8px;">⏱️ Linha do Tempo Oficial de Gols e Eventos Chave:</strong>
+            ${(p.golsELances || p.gols || []).map(l => `
+              <div style="padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--ink-secondary);">
+                <strong style="color:var(--ink);">${l.minuto || '-'}</strong> ${l.descricao || `${l.jogador} (${l.time}) - ${l.tipo}`}
+              </div>
+            `).join('')}
           </div>
         `;
-        modal.style.display = 'flex';
       } catch (err) {
-        alert('Erro ao carregar notícia da partida.');
+        document.getElementById('modal-partida-conteudo').innerHTML = `<div style="color:#ef4444; padding:20px;">Erro ao carregar gráfico estatístico: ${err.message}</div>`;
       }
     };
 
@@ -735,6 +752,9 @@
                     ${p.visitante.logo ? `<img src="${p.visitante.logo}" style="width:30px; height:30px; object-fit:contain;">` : ''}
                     <strong style="font-size:13px;">${p.visitante.nome}</strong>
                   </div>
+                </div>
+                <div style="margin-top:8px; text-align:center;">
+                  <button class="ponte-btn secondary" style="width:100%; padding:3px 8px; font-size:10.5px;" onclick="abrirGraficoEstatisticoPartida('${p.id}')">📊 Análise &amp; Gráfico Oficial</button>
                 </div>
               </div>
             `).join('')}
