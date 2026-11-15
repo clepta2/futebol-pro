@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Futebol Pro Studio — Dados em Tempo Real, Tabelas &amp; Ao Vivo Anycast</title>
+  <meta name="description" content="API Anycast de Dados Esportivos: Brasileirão Série A, Champions League, Premier League, Placares Ao Vivo, Clubes, Estádios e Simulador de Confrontos.">
+  <link rel="stylesheet" href="ponte-suite.css">
+  <style>
+    .futebol-badge-libertadores { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+    .futebol-badge-pre { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+    .futebol-badge-sula { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+    .futebol-badge-z4 { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+    .table-container { width: 100%; overflow-x: auto; margin-top: 16px; border: 1px solid var(--line); border-radius: var(--radius-md); }
+    .table-futebol { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    .table-futebol th { background: var(--paper-elevated); color: var(--muted); font-weight: 600; padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .table-futebol td { padding: 12px 14px; border-bottom: 1px solid var(--line-light); color: var(--ink); white-space: nowrap; }
+    .table-futebol tr:hover { background: rgba(255, 255, 255, 0.02); }
+    .team-cell { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    .team-logo { width: 24px; height: 24px; object-fit: contain; }
+    .live-pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px #ef4444; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+    .match-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 14px; transition: transform 0.2s, border-color 0.2s; }
+    .match-card:hover { border-color: var(--mint); transform: translateY(-2px); }
+    .match-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+    .match-body { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; text-align: center; }
+    .match-team { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .match-score { font-family: var(--font-mono); font-size: 28px; font-weight: 800; color: var(--ink); background: var(--paper-elevated); padding: 6px 18px; border-radius: var(--radius-md); border: 1px solid var(--line); }
+    .club-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+    .club-card:hover { border-color: var(--mint); box-shadow: var(--shadow-md); }
+  </style>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('ponte.theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Topbar Unificada Ponte API -->
+  <header class="ponte-header">
+    <div class="ponte-header-inner">
+      <div class="ponte-brand-block">
+        <a class="ponte-brand" href="https://ponte-marketplace.maputo2.workers.dev/#catalogo">
+          <svg class="ponte-brand-logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="10" fill="#a3e635"/>
+            <path d="M12 28V12L28 20L12 28Z" fill="#0c1715"/>
+          </svg>
+          <div class="ponte-brand-copy">
+            <strong>ponte</strong>
+            <small>API MARKET · OZPRO</small>
+          </div>
+        </a>
+        <div class="ponte-breadcrumb">
+          <a href="https://ponte-marketplace.maputo2.workers.dev/#catalogo">Workspace</a>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          <a href="https://ponte-marketplace.maputo2.workers.dev/#catalogo">Dados &amp; Esportes</a>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          <strong>Futebol Pro Studio</strong>
+        </div>
+      </div>
+      <div class="ponte-topbar-actions">
+        <span class="ponte-status-edge"><span class="ponte-status-dot"></span> Cloudflare Anycast &lt;5ms</span>
+        <a href="https://ponte-marketplace.maputo2.workers.dev/#catalogo" class="ponte-btn-marketplace">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+          Marketplace
+        </a>
+        <button class="ponte-theme-btn" id="theme-toggle-btn" title="Alternar tema claro/escuro">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="ponte-container">
+    <div class="ponte-hero">
+      <div class="ponte-badges-bar">
+        <span class="ponte-badge mint">● Brasileirão &amp; Europa Live</span>
+        <span class="ponte-badge blue">⚡ 86.400 req/dia (1 req/s)</span>
+        <span class="ponte-badge purple">⚽ Tabelas &amp; Placares Ao Vivo</span>
+        <span class="ponte-badge amber">🏟️ Clubes &amp; Estádios Soberanos</span>
+      </div>
+      <h1>Futebol Pro Studio</h1>
+      <p>Terminal Anycast de Inteligência Esportiva com dados em tempo real do Brasileirão Série A/B, Copa do Brasil, Libertadores, Champions League e ligas europeias. Tabelas dinâmicas, placares ao vivo, confrontos com rating Elo e cards SVG.</p>
+    </div>
+
+    <!-- Ticker de Métricas em Destaque -->
+    <div class="ponte-grid-4">
+      <div class="ponte-stat-box">
+        <div class="ponte-stat-label">🏆 Líder Brasileirão Série A</div>
+        <div class="ponte-stat-val" style="color:var(--mint);">Flamengo (76 pts)</div>
+        <span style="font-size:11px;color:#10b981;">34 Jogos • 23 Vitórias • +42 SG</span>
+      </div>
+      <div class="ponte-stat-box">
+        <div class="ponte-stat-label">🥈 Vice-Líder na Caça</div>
+        <div class="ponte-stat-val" style="color:#60a5fa;">Palmeiras (73 pts)</div>
+        <span style="font-size:11px;color:#60a5fa;">34 Jogos • 21 Vitórias • +39 SG</span>
+      </div>
+      <div class="ponte-stat-box">
+        <div class="ponte-stat-label">🎯 Artilheiro da Série A</div>
+        <div class="ponte-stat-val" style="color:#fbbf24;">Pedro (21 gols)</div>
+        <span style="font-size:11px;color:#94a3b8;">Flamengo • 0.72 gols/jogo</span>
+      </div>
+      <div class="ponte-stat-box">
+        <div class="ponte-stat-label">⚡ Latência Edge Anycast</div>
+        <div class="ponte-stat-val" style="color:var(--mint);">&lt; 3.2 ms</div>
+        <span style="font-size:11px;color:#10b981;">Sub-5ms RAM Anycast • GRU</span>
+      </div>
+    </div>
+
+    <!-- Navegação por Abas -->
+    <div style="display:flex; gap:10px; margin: 24px 0 16px; border-bottom:1px solid var(--line); padding-bottom:12px; overflow-x:auto;">
+      <button class="ponte-btn" id="tab-btn-tabela" onclick="switchTab('tabela')" style="border-color:var(--mint);">📊 Tabelas &amp; Classificação</button>
+      <button class="ponte-btn secondary" id="tab-btn-aovivo" onclick="switchTab('aovivo')">🔴 Jogos &amp; Ao Vivo</button>
+      <button class="ponte-btn secondary" id="tab-btn-clubes" onclick="switchTab('clubes')">🛡️ Clubes &amp; Estádios</button>
+      <button class="ponte-btn secondary" id="tab-btn-confronto" onclick="switchTab('confronto')">⚔️ Simulador Elo</button>
+      <button class="ponte-btn secondary" id="tab-btn-cardsvg" onclick="switchTab('cardsvg')">🎨 Card SVG Dinâmico</button>
+      <button class="ponte-btn secondary" id="tab-btn-playground" onclick="switchTab('playground')">💻 Sandbox &amp; Snippets</button>
+    </div>
+
+    <!-- ABA 1: TABELAS DE CLASSIFICAÇÃO -->
+    <section id="section-tabela">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+        <div style="display:flex; gap:8px;">
+          <button class="ponte-btn" style="padding:6px 14px; font-size:12px;" onclick="loadTabela('brasileirao-a')">Brasileirão Série A</button>
+          <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadTabela('premier-league')">Premier League</button>
+          <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadTabela('la-liga')">LaLiga</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="ponte-btn secondary" style="padding:6px 12px; font-size:12px;" onclick="downloadTabela('csv')">📥 Exportar CSV</button>
+          <button class="ponte-btn secondary" style="padding:6px 12px; font-size:12px;" onclick="downloadTabela('xml')">📥 Exportar XML</button>
+          <button class="ponte-btn secondary" style="padding:6px 12px; font-size:12px;" onclick="downloadTabela('json')">📥 JSON REST</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="table-futebol">
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th>Clube</th>
+              <th style="text-align:center;">PTS</th>
+              <th style="text-align:center;">J</th>
+              <th style="text-align:center;">V</th>
+              <th style="text-align:center;">E</th>
+              <th style="text-align:center;">D</th>
+              <th style="text-align:center;">GP</th>
+              <th style="text-align:center;">GC</th>
+              <th style="text-align:center;">SG</th>
+              <th style="text-align:center;">%</th>
+              <th>Zona / Situação</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-body">
+            <tr>
+              <td colspan="12" style="text-align:center; padding:30px; color:var(--muted);">Carregando tabela Anycast...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ABA 2: JOGOS & AO VIVO -->
+    <section id="section-aovivo" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px;">Placares em Tempo Real &amp; Rodada Vigente</h3>
+        <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadAoVivo()">🔄 Atualizar Agora</button>
+      </div>
+      <div id="grid-aovivo">
+        <div style="text-align:center; padding:30px; color:var(--muted);">Consultando feeds esportivos...</div>
+      </div>
+    </section>
+
+    <!-- ABA 3: CLUBES & ESTÁDIOS -->
+    <section id="section-clubes" style="display:none;">
+      <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+        <input type="text" id="filtro-clube" class="ponte-input" placeholder="Buscar clube por nome, sigla ou cidade..." style="flex:1; min-width:260px;" oninput="filtrarClubes()">
+        <select id="filtro-estado" class="ponte-select" onchange="filtrarClubes()" style="width:140px;">
+          <option value="">Todos Estados</option>
+          <option value="SP">São Paulo (SP)</option>
+          <option value="RJ">Rio de Janeiro (RJ)</option>
+          <option value="MG">Minas Gerais (MG)</option>
+          <option value="RS">Rio Grande do Sul (RS)</option>
+          <option value="BA">Bahia (BA)</option>
+          <option value="PR">Paraná (PR)</option>
+        </select>
+      </div>
+      <div class="ponte-grid-3" id="grid-clubes">
+        <!-- Renderizado dinamicamente -->
+      </div>
+    </section>
+
+    <!-- ABA 4: SIMULADOR ELO DE CONFRONTO -->
+    <section id="section-confronto" style="display:none;">
+      <div class="ponte-card" style="padding:24px;">
+        <h3 style="margin-top:0;">Simulador Estatístico de Confronto Direto</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:20px;">
+          Utiliza o modelo matemático de Rating Elo relativo calibrado para o futebol brasileiro e europeu, aplicando acréscimo de +65 pontos de Elo para mando de campo.
+        </p>
+
+        <div style="display:grid; grid-template-columns: 1fr auto 1fr; gap:16px; align-items:center; margin-bottom:20px;">
+          <div>
+            <label style="font-size:12px; font-weight:600; color:var(--muted); display:block; margin-bottom:6px;">MANDANTE (CASA)</label>
+            <select id="sim-mandante" class="ponte-select" style="width:100%;">
+              <option value="flamengo">Flamengo (Maracanã)</option>
+              <option value="palmeiras">Palmeiras (Allianz Parque)</option>
+              <option value="sao-paulo">São Paulo (MorumBIS)</option>
+              <option value="corinthians">Corinthians (Neo Química Arena)</option>
+              <option value="cruzeiro">Cruzeiro (Mineirão)</option>
+              <option value="atletico-mg">Atlético-MG (Arena MRV)</option>
+              <option value="fluminense">Fluminense (Maracanã)</option>
+              <option value="botafogo">Botafogo (Nilton Santos)</option>
+              <option value="vasco">Vasco da Gama (São Januário)</option>
+              <option value="gremio">Grêmio (Arena do Grêmio)</option>
+              <option value="internacional">Internacional (Beira-Rio)</option>
+              <option value="bahia">Bahia (Arena Fonte Nova)</option>
+              <option value="real-madrid">Real Madrid (Santiago Bernabéu)</option>
+              <option value="barcelona">Barcelona (Camp Nou)</option>
+              <option value="manchester-city">Manchester City (Etihad Stadium)</option>
+              <option value="liverpool">Liverpool (Anfield)</option>
+            </select>
+          </div>
+
+          <div style="font-weight:800; font-size:20px; color:var(--mint); margin-top:20px;">VS</div>
+
+          <div>
+            <label style="font-size:12px; font-weight:600; color:var(--muted); display:block; margin-bottom:6px;">VISITANTE (FORA)</label>
+            <select id="sim-visitante" class="ponte-select" style="width:100%;">
+              <option value="palmeiras">Palmeiras</option>
+              <option value="flamengo">Flamengo</option>
+              <option value="sao-paulo">São Paulo</option>
+              <option value="corinthians">Corinthians</option>
+              <option value="cruzeiro">Cruzeiro</option>
+              <option value="atletico-mg">Atlético-MG</option>
+              <option value="fluminense">Fluminense</option>
+              <option value="botafogo">Botafogo</option>
+              <option value="vasco">Vasco da Gama</option>
+              <option value="gremio">Grêmio</option>
+              <option value="internacional">Internacional</option>
+              <option value="bahia">Bahia</option>
+              <option value="real-madrid">Real Madrid</option>
+              <option value="barcelona">Barcelona</option>
+              <option value="manchester-city">Manchester City</option>
+              <option value="liverpool">Liverpool</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="ponte-btn" style="width:100%;" onclick="executarSimulador()">⚡ Calcular Probabilidades e Gols Esperados</button>
+
+        <div id="resultado-simulacao" style="margin-top:24px; display:none; background:var(--paper-elevated); padding:20px; border-radius:var(--radius-md); border:1px solid var(--line);">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 5: CARD SVG DINÂMICO -->
+    <section id="section-cardsvg" style="display:none;">
+      <div class="ponte-card" style="padding:24px;">
+        <h3 style="margin-top:0;">Gerador de Cards Vetoriais SVG Anycast</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:20px;">
+          Gera cards vetoriais SVG de altíssima definição renderizados na borda Anycast (<3ms). Prontos para embeds em blogs, sites esportivos e redes sociais.
+        </p>
+
+        <div style="display:grid; grid-template-columns: 2fr 1fr 2fr 1fr; gap:12px; margin-bottom:16px;">
+          <div>
+            <label style="font-size:11px; color:var(--muted);">Mandante</label>
+            <input type="text" id="svg-casa" class="ponte-input" value="Flamengo" style="width:100%;">
+          </div>
+          <div>
+            <label style="font-size:11px; color:var(--muted);">Gols</label>
+            <input type="number" id="svg-placar-casa" class="ponte-input" value="2" min="0" style="width:100%;">
+          </div>
+          <div>
+            <label style="font-size:11px; color:var(--muted);">Visitante</label>
+            <input type="text" id="svg-visitante" class="ponte-input" value="Palmeiras" style="width:100%;">
+          </div>
+          <div>
+            <label style="font-size:11px; color:var(--muted);">Gols</label>
+            <input type="number" id="svg-placar-visitante" class="ponte-input" value="1" min="0" style="width:100%;">
+          </div>
+        </div>
+
+        <button class="ponte-btn" onclick="atualizarCardSvg()">🎨 Atualizar Visualização do Card</button>
+
+        <div style="margin-top:24px; text-align:center;">
+          <div id="svg-preview-container" style="background:#05080f; padding:24px; border-radius:var(--radius-lg); border:1px solid var(--line); display:inline-block; max-width:100%; overflow-x:auto;">
+            <!-- Renderizado via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 6: SANDBOX & SNIPPETS MULTI-LINGUAGEM -->
+    <section id="section-playground" style="display:none;">
+      <div class="ponte-card" style="padding:24px;">
+        <h3 style="margin-top:0;">Sandbox Interativo REST &amp; Gerador de Código</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">
+          Copie snippets prontos para produção ou execute requisições HTTP diretamente pelo browser.
+        </p>
+
+        <div style="display:flex; gap:10px; margin-bottom:14px;">
+          <select id="sandbox-endpoint" class="ponte-select" style="flex:1;" onchange="updateSnippets()">
+            <option value="/api/futebol/tabela/brasileirao-a">GET /api/futebol/tabela/brasileirao-a (Classificação)</option>
+            <option value="/api/futebol/aovivo">GET /api/futebol/aovivo (Placares em Tempo Real)</option>
+            <option value="/api/futebol/clubes/flamengo">GET /api/futebol/clubes/flamengo (Cadastro do Clube)</option>
+            <option value="/api/futebol/confronto/flamengo/palmeiras">GET /api/futebol/confronto/flamengo/palmeiras (Simulador Elo)</option>
+            <option value="/api/futebol/artilharia/brasileirao-a">GET /api/futebol/artilharia/brasileirao-a (Artilheiros)</option>
+            <option value="/api/futebol/health">GET /api/futebol/health (Healthcheck Anycast)</option>
+          </select>
+          <button class="ponte-btn" onclick="executarSandbox()">▶ Executar</button>
+        </div>
+
+        <!-- Seletor de Linguagem -->
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('curl')">cURL</button>
+          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('node')">Node.js</button>
+          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('python')">Python</button>
+          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('php')">PHP</button>
+          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('csharp')">C#</button>
+        </div>
+
+        <pre id="snippet-display" class="ponte-code" style="padding:14px; background:var(--canvas); border-radius:var(--radius-md); font-family:var(--font-mono); font-size:12px; overflow-x:auto;"></pre>
+
+        <h4 style="margin:20px 0 8px;">Resposta HTTP em Tempo Real:</h4>
+        <pre id="sandbox-response" class="ponte-code" style="max-height:280px; padding:14px; background:var(--canvas); border-radius:var(--radius-md); font-family:var(--font-mono); font-size:12px; overflow:auto; color:var(--mint);">Clique em "▶ Executar" para testar a chamada ao vivo.</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module">
+    import { CLUBES, TABELAS_SOBERANAS, ESTADIOS, calcularProbabilidadeConfronto, renderCardPartidaSvg } from './dados-futebol.js';
+
+    let currentCampeonato = 'brasileirao-a';
+    let currentLang = 'curl';
+
+    window.switchTab = function(tabName) {
+      const tabs = ['tabela', 'aovivo', 'clubes', 'confronto', 'cardsvg', 'playground'];
+      tabs.forEach(t => {
+        const sec = document.getElementById(`section-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (sec) sec.style.display = t === tabName ? 'block' : 'none';
+        if (btn) {
+          if (t === tabName) {
+            btn.className = 'ponte-btn';
+            btn.style.borderColor = 'var(--mint)';
+          } else {
+            btn.className = 'ponte-btn secondary';
+            btn.style.borderColor = 'transparent';
+          }
+        }
+      });
+      if (tabName === 'clubes') renderClubes(Object.values(CLUBES));
+      if (tabName === 'cardsvg') atualizarCardSvg();
+      if (tabName === 'playground') updateSnippets();
+    };
+
+    window.loadTabela = async function(campSlug) {
+      currentCampeonato = campSlug;
+      const tbody = document.getElementById('tabela-body');
+      tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:30px; color:var(--muted);">Carregando dados na borda Anycast...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/futebol/tabela/${campSlug}`);
+        const data = await res.json();
+        const lista = data.tabela || TABELAS_SOBERANAS[campSlug] || [];
+        renderTabela(lista);
+      } catch (err) {
+        // Fallback local soberano
+        renderTabela(TABELAS_SOBERANAS[campSlug] || []);
+      }
+    };
+
+    function renderTabela(lista) {
+      const tbody = document.getElementById('tabela-body');
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:20px;">Nenhum dado disponível.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = lista.map(t => {
+        let badgeClass = '';
+        if (t.zona && t.zona.includes('Libertadores (G4)')) badgeClass = 'futebol-badge-libertadores';
+        else if (t.zona && t.zona.includes('Pré-Libertadores')) badgeClass = 'futebol-badge-pre';
+        else if (t.zona && t.zona.includes('Sul-Americana')) badgeClass = 'futebol-badge-sula';
+        else if (t.zona && t.zona.includes('Rebaixamento')) badgeClass = 'futebol-badge-z4';
+
+        const logoImg = t.logo ? `<img class="team-logo" src="${t.logo}" alt="${t.time}">` : '';
+
+        return `<tr>
+          <td style="font-weight:700; color:var(--muted);">${t.pos}</td>
+          <td>
+            <div class="team-cell">
+              ${logoImg}
+              <span>${t.time}</span>
+              ${t.sigla ? `<small style="color:var(--muted); font-size:11px;">${t.sigla}</small>` : ''}
+            </div>
+          </td>
+          <td style="text-align:center; font-weight:800; color:var(--ink);">${t.pts}</td>
+          <td style="text-align:center;">${t.j}</td>
+          <td style="text-align:center; color:#10b981;">${t.v}</td>
+          <td style="text-align:center; color:var(--muted);">${t.e}</td>
+          <td style="text-align:center; color:#ef4444;">${t.d}</td>
+          <td style="text-align:center;">${t.gp}</td>
+          <td style="text-align:center;">${t.gc}</td>
+          <td style="text-align:center; font-weight:700; color:${t.sg >= 0 ? '#10b981' : '#ef4444'};">${t.sg > 0 ? '+' + t.sg : t.sg}</td>
+          <td style="text-align:center;">${t.aproveitamento}%</td>
+          <td>${t.zona ? `<span class="${badgeClass}">${t.zona}</span>` : '-'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    window.downloadTabela = function(formato) {
+      window.open(`/api/futebol/tabela/${currentCampeonato}?formato=${formato}`, '_blank');
+    };
+
+    window.loadAoVivo = async function() {
+      const container = document.getElementById('grid-aovivo');
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Carregando placares...</div>';
+
+      try {
+        const res = await fetch('/api/futebol/aovivo');
+        const data = await res.json();
+        const jogos = data.todosJogos || [];
+
+        if (jogos.length === 0) {
+          container.innerHTML = '<div class="ponte-card" style="padding:24px; text-align:center; color:var(--muted);">Nenhuma partida agendada ou ao vivo nos próximos minutos.</div>';
+          return;
+        }
+
+        container.innerHTML = jogos.map(j => `
+          <div class="match-card">
+            <div class="match-header">
+              <span><strong>${j.campeonato}</strong> • ${j.estadio} (${j.cidade})</span>
+              <span>${j.status === 'ao_vivo' ? `<span class="live-pulse"></span> <strong style="color:#ef4444;">AO VIVO ${j.tempoJogo}</strong>` : j.statusDescricao}</span>
+            </div>
+            <div class="match-body">
+              <div class="match-team">
+                ${j.mandante.logo ? `<img src="${j.mandante.logo}" style="width:36px; height:36px; object-fit:contain;">` : ''}
+                <strong>${j.mandante.nome}</strong>
+                <small style="color:var(--muted); font-size:11px;">Mandante</small>
+              </div>
+              <div class="match-score">
+                ${j.mandante.placar} : ${j.visitante.placar}
+              </div>
+              <div class="match-team">
+                ${j.visitante.logo ? `<img src="${j.visitante.logo}" style="width:36px; height:36px; object-fit:contain;">` : ''}
+                <strong>${j.visitante.nome}</strong>
+                <small style="color:var(--muted); font-size:11px;">Visitante</small>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = '<div style="color:#ef4444; padding:20px;">Erro ao carregar feeds ao vivo.</div>';
+      }
+    };
+
+    function renderClubes(clubes) {
+      const container = document.getElementById('grid-clubes');
+      container.innerHTML = clubes.map(c => `
+        <div class="club-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <img src="${c.escudo}" style="width:40px; height:40px; object-fit:contain;" alt="${c.nome}">
+              <div>
+                <h4 style="margin:0; font-size:15px; color:var(--ink);">${c.nomeCurto}</h4>
+                <small style="color:var(--muted);">${c.cidade} - ${c.estado || c.pais}</small>
+              </div>
+            </div>
+            <span class="ponte-badge blue" style="font-size:10px;">Elo ${c.forcaElo}</span>
+          </div>
+          <div style="font-size:12px; color:var(--ink-secondary); margin-bottom:12px;">
+            <strong>🏟️ Estádio:</strong> ${c.estadio} (${(c.capacidadeEstadio || 0).toLocaleString('pt-BR')} pessoas)<br>
+            <strong>📅 Fundação:</strong> ${c.fundacao}<br>
+            <strong>🏆 Títulos:</strong> ${Object.entries(c.titulosPrincipais || {}).map(([k, v]) => `${v}x ${k}`).join(', ')}
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="ponte-btn secondary" style="flex:1; padding:6px; font-size:11px;" onclick="abrirSimuladorCom('${c.slug}')">⚔️ Simular Jogo</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.filtrarClubes = function() {
+      const busca = document.getElementById('filtro-clube').value.toLowerCase();
+      const estado = document.getElementById('filtro-estado').value;
+
+      let filtrados = Object.values(CLUBES);
+      if (estado) filtrados = filtrados.filter(c => c.estado === estado);
+      if (busca) {
+        filtrados = filtrados.filter(c => 
+          c.nome.toLowerCase().includes(busca) ||
+          c.nomeCurto.toLowerCase().includes(busca) ||
+          c.sigla.toLowerCase().includes(busca) ||
+          c.cidade.toLowerCase().includes(busca)
+        );
+      }
+      renderClubes(filtrados);
+    };
+
+    window.abrirSimuladorCom = function(slug) {
+      document.getElementById('sim-mandante').value = slug;
+      switchTab('confronto');
+      executarSimulador();
+    };
+
+    window.executarSimulador = function() {
+      const mandante = document.getElementById('sim-mandante').value;
+      const visitante = document.getElementById('sim-visitante').value;
+
+      const cCasa = CLUBES[mandante];
+      const cFora = CLUBES[visitante];
+      if (!cCasa || !cFora) return;
+
+      const analise = calcularProbabilidadeConfronto(cCasa, cFora);
+      const resDiv = document.getElementById('resultado-simulacao');
+      resDiv.style.display = 'block';
+
+      resDiv.innerHTML = `
+        <h4 style="margin-top:0; color:var(--mint); font-size:15px;">📊 Análise Probabilística: ${analise.mandante.nome} vs ${analise.visitante.nome}</h4>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:14px; text-align:center; margin:16px 0;">
+          <div style="background:var(--paper); padding:14px; border-radius:var(--radius-md); border:1px solid var(--line);">
+            <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Vitória do ${analise.mandante.nome}</div>
+            <div style="font-size:24px; font-weight:800; color:#10b981;">${analise.mandante.probabilidadeVitoria}</div>
+            <small style="color:var(--muted);">Gols esperados: ${analise.mandante.expectativaGols}</small>
+          </div>
+          <div style="background:var(--paper); padding:14px; border-radius:var(--radius-md); border:1px solid var(--line);">
+            <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Empate</div>
+            <div style="font-size:24px; font-weight:800; color:#fbbf24;">${analise.empate.probabilidade}</div>
+            <small style="color:var(--muted);">Taxa histórica</small>
+          </div>
+          <div style="background:var(--paper); padding:14px; border-radius:var(--radius-md); border:1px solid var(--line);">
+            <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Vitória do ${analise.visitante.nome}</div>
+            <div style="font-size:24px; font-weight:800; color:#60a5fa;">${analise.visitante.probabilidadeVitoria}</div>
+            <small style="color:var(--muted);">Gols esperados: ${analise.visitante.expectativaGols}</small>
+          </div>
+        </div>
+        <div style="font-size:13px; color:var(--ink-secondary);">
+          <strong>🎯 Palpite do Algoritmo:</strong> ${analise.palpiteMaisProvavel}<br>
+          <strong>🏟️ Local:</strong> ${analise.mandante.estadio} (${analise.fatorCampo})
+        </div>
+      `;
+    };
+
+    window.atualizarCardSvg = function() {
+      const casa = document.getElementById('svg-casa').value || 'Flamengo';
+      const placarCasa = document.getElementById('svg-placar-casa').value || '2';
+      const visitante = document.getElementById('svg-visitante').value || 'Palmeiras';
+      const placarVisitante = document.getElementById('svg-placar-visitante').value || '1';
+
+      const svgHtml = renderCardPartidaSvg(casa, placarCasa, visitante, placarVisitante, 'Brasileirão Série A', 'ENCERRADO');
+      document.getElementById('svg-preview-container').innerHTML = svgHtml;
+    };
+
+    window.selectLang = function(lang) {
+      currentLang = lang;
+      updateSnippets();
+    };
+
+    window.updateSnippets = function() {
+      const ep = document.getElementById('sandbox-endpoint').value;
+      const url = `https://ponte.ozpro.com.br${ep}`;
+      const display = document.getElementById('snippet-display');
+
+      if (currentLang === 'curl') {
+        display.textContent = `curl -X GET "${url}" \\\n  -H "Authorization: Bearer pnt_live_89f2a7..." \\\n  -H "Accept: application/json"`;
+      } else if (currentLang === 'node') {
+        display.textContent = `import { FutebolPro } from 'futebol-pro';\n\nFutebolPro.configure({ apiKey: 'pnt_live_89f2a7...' });\nconst data = await fetch('${url}', {\n  headers: { 'Authorization': 'Bearer pnt_live_...' }\n}).then(r => r.json());\nconsole.log(data);`;
+      } else if (currentLang === 'python') {
+        display.textContent = `import requests\n\nheaders = {'Authorization': 'Bearer pnt_live_...'}\nresp = requests.get('${url}', headers=headers)\nprint(resp.json())`;
+      } else if (currentLang === 'php') {
+        display.textContent = `<?php\n$ch = curl_init('${url}');\ncurl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer pnt_live_...']);\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n$res = curl_exec($ch);\nprint_r(json_decode($res, true));`;
+      } else if (currentLang === 'csharp') {
+        display.textContent = `using System.Net.Http;\nusing System.Net.Http.Headers;\n\nvar client = new HttpClient();\nclient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "pnt_live_...");\nvar response = await client.GetStringAsync("${url}");\nConsole.WriteLine(response);`;
+      }
+    };
+
+    window.executarSandbox = async function() {
+      const ep = document.getElementById('sandbox-endpoint').value;
+      const respBox = document.getElementById('sandbox-response');
+      respBox.textContent = 'Executando requisição Anycast...';
+
+      try {
+        const res = await fetch(ep);
+        const json = await res.json();
+        respBox.textContent = JSON.stringify(json, null, 2);
+      } catch (err) {
+        respBox.textContent = `Erro ao executar chamada: ${err.message}`;
+      }
+    };
+
+    // Toggle de Tema
+    document.getElementById('theme-toggle-btn').addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('ponte.theme', next);
+    });
+
+    // Inicialização
+    loadTabela('brasileirao-a');
+  </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "futebol-pro",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "SDK e API Oficial de Dados de Futebol Brasileiro e Internacional na borda Cloudflare Anycast (<5ms): Tabelas em tempo real, Jogos e Placares ao vivo, Clubes, Estádios, Artilharia, Confronto Direto e Cards SVG.",
+  "main": "futebol-pro.js",
+  "module": "futebol-pro.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "test": "node test.js",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [
+    "futebol",
+    "brasileirao",
+    "copa-do-brasil",
+    "libertadores",
+    "champions-league",
+    "premier-league",
+    "la-liga",
+    "live-scores",
+    "placar-ao-vivo",
+    "tabela-classificacao",
+    "clubes-brasileiros",
+    "estadios",
+    "cloudflare-worker",
+    "edge-computing",
+    "sdk"
+  ],
+  "author": "clepta2 <clepta2@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clepta2/futebol-pro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/clepta2/futebol-pro/issues"
+  },
+  "homepage": "https://github.com/clepta2/futebol-pro#readme"
+}
