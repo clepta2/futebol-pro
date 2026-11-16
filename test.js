@@ -596,4 +596,58 @@ const dataSync = await resSync.json();
 assert(dataSync.ok === true, 'Sincronização reporta ok: true');
 assert(dataSync.armazenamentoPersistente !== undefined, 'Armazenamento persistente reportado');
 
+
+// ─── 17. MATA-MATA BRACKETS, ÁRBITROS FIFA, HANDICAP & CLÁSSICO GAUGE ───
+console.log('\n--- 17. Mata-Mata Brackets, Árbitros FIFA, Handicap & Clássico Gauge ---');
+
+// 17.1 Torneio Mata-Mata JSON (Libertadores)
+const resMata = await worker.fetch(new Request('https://api.test/api/futebol/matamata/libertadores', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resMata.status === 200, 'Endpoint /matamata/:torneio responde 200');
+const dataMata = await resMata.json();
+assert(dataMata.chaveamento.semifinais.length === 2, 'Semifinais do mata-mata retornadas');
+
+// 17.2 Chaveamento Mata-Mata SVG
+const resChaveSvg = await worker.fetch(new Request('https://api.test/api/futebol/matamata/libertadores/chaveamento.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resChaveSvg.status === 200, 'Endpoint /chaveamento.svg responde 200');
+assert(resChaveSvg.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para chaveamento');
+const textChave = await resChaveSvg.text();
+assert(textChave.includes('CHAVEAMENTO OFICIAL MATA-MATA'), 'Chaveamento SVG gerado');
+
+// 17.3 Catálogo de Árbitros Oficiais
+const resArb = await worker.fetch(new Request('https://api.test/api/futebol/arbitros', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resArb.status === 200, 'Endpoint /arbitros responde 200');
+const dataArb = await resArb.json();
+assert(dataArb.totalArbitros >= 4, 'Mínimo de 4 árbitros oficiais FIFA cadastrados');
+
+// 17.4 Árbitro Específico (Wilton Sampaio)
+const resWilton = await worker.fetch(new Request('https://api.test/api/futebol/arbitros/wilton-sampaio', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resWilton.status === 200, 'Endpoint /arbitros/:id responde 200');
+const dataWilton = await resWilton.json();
+assert(dataWilton.arbitro.mediaFaltasPorJogo > 20, 'Média de faltas do árbitro validada');
+
+// 17.5 Linhas de Handicap Asiático
+const resHandicap = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/handicap', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resHandicap.status === 200, 'Endpoint /partida/:id/handicap responde 200');
+const dataHandicap = await resHandicap.json();
+assert(dataHandicap.handicapAsiatico.linhasHandicapAsiatico.length >= 4, 'Linhas de handicap asiático calculadas');
+
+// 17.6 Clássico Gauge SVG
+const resGauge = await worker.fetch(new Request('https://api.test/api/futebol/classicos/flamengo-palmeiras/gauge.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resGauge.status === 200, 'Endpoint /classicos/:slug/gauge.svg responde 200');
+assert(resGauge.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para gauge');
+const textGauge = await resGauge.text();
+assert(textGauge.includes('CONFRONTOS HISTÓRICOS OFICIAIS'), 'Gauge SVG do clássico gerado');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
