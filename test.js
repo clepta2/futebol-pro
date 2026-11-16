@@ -372,4 +372,33 @@ const dataPremios = await resPremios.json();
 assert(dataPremios.rankingMelhoresDaTemporada.length >= 5, 'Mínimo de 5 postulantes na corrida de melhor da temporada');
 assert(dataPremios.selecaoIdealDaTemporada.titulares.length === 11, 'Seleção ideal da temporada possui exatamente 11 titulares');
 
+
+// ─── 12. LANCE A LANCE MINUTO A MINUTO, FALTAS, CARTÕES E POSIÇÃO DA BOLA ───
+console.log('\n--- 12. Lance a Lance Minuto a Minuto, Faltas, Cartões & Posição da Bola ---');
+
+// 12.1 Lance a Lance Minuto a Minuto com Coordenadas
+const resLances = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/lance-a-lance', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resLances.status === 200, 'Endpoint /partida/:id/lance-a-lance responde 200');
+const dataLances = await resLances.json();
+assert(dataLances.ok === true, 'Lance a lance reporta ok: true');
+
+// 12.2 Posição da Bola e Zona Tática em Tempo Real
+const resBola = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/posicao-bola', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resBola.status === 200, 'Endpoint /partida/:id/posicao-bola responde 200');
+const dataBola = await resBola.json();
+assert(dataBola.posicaoAtualBola !== undefined, 'Posição da bola calculada e retornada');
+
+// 12.3 Campo 2D SVG Espacial com Coordenadas de Lances
+const resCampoSvg = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/campo.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resCampoSvg.status === 200, 'Endpoint /partida/:id/campo.svg responde 200');
+assert(resCampoSvg.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para campo 2d');
+const textCampoSvg = await resCampoSvg.text();
+assert(textCampoSvg.includes('RASTREAMENTO ESPACIAL DE CAMPO'), 'Campo 2D SVG gerado com sucesso');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);

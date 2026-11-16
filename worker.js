@@ -35,6 +35,7 @@ import {
   analisarJogadorComMotor,
   renderDashboardAtletaSvg,
   renderComparacaoCarreirasSvg,
+  renderCampo2dPosicaoBolaSvg,
   renderGraficoEstatisticoPartidaSvg,
   renderCardPartidaSvg,
   renderRadarAtletaSvg,
@@ -698,6 +699,27 @@ async function fetchPartidaDetalheLive(partidaId, ligaSlug = 'all') {
         stats: Object.fromEntries((t.statistics || []).map(s => [s.label, s.displayValue]))
       }));
 
+      const lanceALance = (sum.commentary || []).map(c => {
+        const play = c.play || {};
+        return {
+          sequencia: c.sequence,
+          minuto: c.time?.displayValue || '',
+          segundos: c.time?.value || 0,
+          tipo: play.type?.text || 'Lance',
+          tipoCodigo: play.type?.type || 'play',
+          descricao: c.text || '',
+          equipe: play.team?.displayName || null,
+          atletas: (play.participants || []).map(p => p.athlete?.displayName).filter(Boolean),
+          coordenadasCampo: play.fieldPositionX !== undefined ? {
+            x: play.fieldPositionX,
+            y: play.fieldPositionY,
+            vetorDestinoX: play.fieldPosition2X !== undefined ? play.fieldPosition2X : null,
+            vetorDestinoY: play.fieldPosition2Y !== undefined ? play.fieldPosition2Y : null,
+            alturaGolY: play.goalPositionY !== undefined ? play.goalPositionY : null
+          } : null
+        };
+      });
+
       const detalhe = {
         ok: true,
         tipo: 'partida_detalhada',
@@ -724,6 +746,7 @@ async function fetchPartidaDetalheLive(partidaId, ligaSlug = 'all') {
           arbitro: (sum.gameInfo?.officials || [])[0]?.displayName || 'Árbitro Oficial'
         },
         golsELances: keyEvents,
+        lanceALance,
         escalacoes: rosters,
         estatisticas
       };
@@ -1047,6 +1070,90 @@ export default {
             ...CORS_HEADERS,
             ...rateHeaders
           }
+        });
+      }
+
+      // Renderizador 2D do Campo de Futebol com Posição da Bola e Lances
+      if (subAcao === 'campo.svg') {
+        const part = detalhe.partida || detalhe;
+        const svg = renderCampo2dPosicaoBolaSvg(part.lanceALance || [], part.mandante?.nome, part.visitante?.nome);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=15',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      // Lance a Lance Oficial Minuto a Minuto com Coordenadas (x, y) de Faltas, Cartões e Chutes
+      if (subAcao === 'lance-a-lance' || subAcao === 'minuto-a-minuto') {
+        const part = detalhe.partida || detalhe;
+        const tipoFiltro = url.searchParams.get('tipo')?.toLowerCase();
+        let lances = part.lanceALance || [];
+
+        if (tipoFiltro) {
+          lances = lances.filter(l => 
+            l.tipo.toLowerCase().includes(tipoFiltro) || 
+            l.descricao.toLowerCase().includes(tipoFiltro)
+          );
+        }
+
+        const totalFaltas = lances.filter(l => l.tipo.toLowerCase().includes('foul') || l.descricao.toLowerCase().includes('foul')).length;
+        const totalCartoes = lances.filter(l => l.descricao.toLowerCase().includes('card') || l.tipo.toLowerCase().includes('card')).length;
+        const totalFinalizacoes = lances.filter(l => l.tipo.toLowerCase().includes('shot') || l.descricao.toLowerCase().includes('shot')).length;
+
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          partida: `${part.mandante?.nome} vs ${part.visitante?.nome}`,
+          totalLancesRegistrados: lances.length,
+          resumoDisciplinar: {
+            totalFaltas,
+            totalCartoes,
+            totalFinalizacoes
+          },
+          lancesMinutoAMinuto: lances
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Localização Exata da Bola e Último Lance em Tempo Real
+      if (subAcao === 'posicao-bola' || subAcao === 'bola') {
+        const part = detalhe.partida || detalhe;
+        const lances = (part.lanceALance || []).filter(l => l.coordenadasCampo && l.coordenadasCampo.x !== undefined);
+        const ultimo = lances[lances.length - 1] || null;
+
+        let zonaDoCampo = 'Meio-Campo Neutro';
+        if (ultimo && ultimo.coordenadasCampo) {
+          const x = ultimo.coordenadasCampo.x;
+          if (x < 30) zonaDoCampo = 'Terço Defensivo do Mandante / Área de Perigo';
+          else if (x > 70) zonaDoCampo = 'Terço Ofensivo / Ataque Promissor no Gol';
+          else zonaDoCampo = 'Intermediária e Construção de Jogada';
+        }
+
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          tempoJogo: part.tempoJogo || "0'",
+          status: part.status,
+          posicaoAtualBola: ultimo ? {
+            coordenadaX: ultimo.coordenadasCampo.x,
+            coordenadaY: ultimo.coordenadasCampo.y,
+            zonaTaticaDoCampo: zonaDoCampo,
+            lanceAtivo: ultimo.descricao,
+            tipoLance: ultimo.tipo,
+            equipeComPosse: ultimo.equipe,
+            minuto: ultimo.minuto,
+            segundosDecorridos: ultimo.segundos
+          } : {
+            mensagem: 'Aguardando próximo lance com coordenadas telemétricas ativas.'
+          },
+          campoSvgUrl: `/api/futebol/partida/${partidaId}/campo.svg`
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
         });
       }
 

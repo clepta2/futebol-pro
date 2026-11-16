@@ -55,7 +55,10 @@ Monitoramento contínuo em tempo real com minutos e placar atualizado com latên
 - `GET /api/futebol/mundo/futuro`: Calendário de próximas rodadas e confrontos agendados nos próximos dias e semanas.
 - `GET /api/futebol/mundo/antigos`: Resultados de partidas passadas recentes e histórico de finais lendárias com súmula completa de gols e cartões.
 
-### 4. 📊 Análise Estatística & Gráficos em Tempo Real
+### 4. 📊 Análise Estatística, Posição da Bola & Gráficos em Tempo Real
+- `GET /api/futebol/partida/:id/lance-a-lance`: Linha do tempo minuto a minuto com descrição, tipo de lance e **coordenadas de campo $(X, Y)$ exatas de cada falta, cartão, chute e gol**.
+- `GET /api/futebol/partida/:id/posicao-bola`: Rastreamento em tempo real da posição atual da bola no gramado com zona tática de perigo.
+- `GET /api/futebol/partida/:id/campo.svg`: Visualização 2D espacial do campo em SVG com todos os eventos plotados nas coordenadas $(X, Y)$ reais e a bola pulsando.
 - `GET /api/futebol/partida/:id/stats`: Estatísticas oficiais verídicas da partida para analistas e apostas (Posse %, Finalizações, Chutes a Gol, Passes %, Faltas, Escanteios, Desarmes e Defesas).
 - `GET /api/futebol/partida/:id/grafico.svg`: Gráfico de barras bi-direcional vetorial SVG renderizado na borda com os dados reais do boxscore oficial.
 - `GET /api/futebol/partida/:id/escalacoes`: Escalações oficiais completas com titulares, posições de campo, reservas e capitães.

@@ -158,6 +158,45 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém o lance a lance minuto a minuto com coordenadas (x, y) de faltas, cartões e chutes
+   * @param {string} partidaId
+   * @param {string} [tipo] - Filtro opcional ('foul', 'card', 'shot', 'goal')
+   * @returns {Promise<Object>}
+   */
+  static async getLanceALance(partidaId, tipo) {
+    const query = tipo ? `?tipo=${encodeURIComponent(tipo)}` : '';
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/lance-a-lance${query}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter lance a lance (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a localização exata da bola em tempo real e zona tática
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPosicaoBola(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/posicao-bola`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter posição da bola (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Campo 2D SVG com plotagem espacial dos lances e da bola
+   * @param {string} partidaId
+   * @returns {string}
+   */
+  static getCampoSvgUrl(partidaId) {
+    return `${this.baseUrl}/api/futebol/partida/${partidaId}/campo.svg`;
+  }
+
+  /**
    * Obtém as estatísticas oficiais da partida (posse de bola, finalizações, faltas, escanteios)
    * @param {string} partidaId
    * @returns {Promise<Object>}

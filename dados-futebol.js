@@ -2468,3 +2468,173 @@ export function renderComparacaoCarreirasSvg(j1, j2) {
 </svg>`;
 }
 
+/**
+ * Renderiza o Campo de Futebol 2D com Coordenadas Exatas (x, y) de Lances e Posição da Bola em Tempo Real
+ */
+export function renderCampo2dPosicaoBolaSvg(lancesComCoords = [], mandante = 'Mandante', visitante = 'Visitante') {
+  const fX = 50;
+  const fY = 50;
+  const fW = 700;
+  const fH = 400;
+
+  // Renderiza trajetórias de chutes
+  let trajectoriesSvg = '';
+  // Renderiza pontos de eventos (faltas, cartões, chutes, gols)
+  let markersSvg = '';
+
+  const lancesValidos = lancesComCoords.filter(l => l.coordenadasCampo && l.coordenadasCampo.x !== undefined);
+  const ultimoLance = lancesValidos[lancesValidos.length - 1];
+
+  lancesValidos.forEach(l => {
+    const coords = l.coordenadasCampo;
+    const px = fX + (coords.x / 100) * fW;
+    const py = fY + (coords.y / 100) * fH;
+
+    // Trajetória de chute ou passe até o gol se existir vetor destino
+    if (coords.vetorDestinoX !== null && coords.vetorDestinoY !== null) {
+      const p2x = fX + (coords.vetorDestinoX / 100) * fW;
+      const p2y = fY + (coords.vetorDestinoY / 100) * fH;
+      trajectoriesSvg += `
+        <line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${p2x.toFixed(1)}" y2="${p2y.toFixed(1)}" 
+          stroke="#a3e635" stroke-width="2" stroke-dasharray="4,4" opacity="0.8"/>
+      `;
+    }
+
+    let cor = '#3b82f6'; // Chute normal / lance
+    let raio = 5;
+    const tipo = (l.tipo || '').toLowerCase();
+    const desc = (l.descricao || '').toLowerCase();
+
+    if (tipo.includes('goal') || desc.includes('goal!')) {
+      cor = '#10b981';
+      raio = 8;
+    } else if (desc.includes('red card') || tipo.includes('red')) {
+      cor = '#ef4444';
+      raio = 6;
+    } else if (desc.includes('yellow card') || tipo.includes('yellow')) {
+      cor = '#fbbf24';
+      raio = 6;
+    } else if (tipo.includes('foul') || desc.includes('foul')) {
+      cor = '#f97316';
+      raio = 5;
+    }
+
+    markersSvg += `
+      <g>
+        <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${raio}" fill="${cor}" stroke="#ffffff" stroke-width="1.5" opacity="0.9"/>
+      </g>
+    `;
+  });
+
+  // Marcador de Última Posição Conhecida da Bola com Efeito Pulso
+  let bolaSvg = '';
+  if (ultimoLance && ultimoLance.coordenadasCampo) {
+    const bx = fX + (ultimoLance.coordenadasCampo.x / 100) * fW;
+    const by = fY + (ultimoLance.coordenadasCampo.y / 100) * fH;
+    bolaSvg = `
+      <!-- Posição da Bola em Tempo Real -->
+      <circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="14" fill="none" stroke="#a3e635" stroke-width="2" opacity="0.8">
+        <animate attributeName="r" values="8;20;8" dur="1.8s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="7" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+      <text x="${bx.toFixed(1)}" y="${(by - 12).toFixed(1)}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="800" fill="#a3e635">
+        ⚽ BOLA (${ultimoLance.minuto || 'Agora'})
+      </text>
+    `;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="800" height="520">
+  <defs>
+    <linearGradient id="grassBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0e3a24"/>
+      <stop offset="100%" stop-color="#0a2a1a"/>
+    </linearGradient>
+    <filter id="fieldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Fundo do Estádio -->
+  <rect width="800" height="520" rx="16" fill="#040b08" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Título e Placas de Mandante / Visitante -->
+  <text x="400" y="32" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="800" fill="#a3e635" letter-spacing="1">
+    RASTREAMENTO ESPACIAL DE CAMPO EM TEMPO REAL (COORDENADAS X, Y)
+  </text>
+  <text x="50" y="42" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#f8fafc">◀ ${mandante.toUpperCase()}</text>
+  <text x="750" y="42" text-anchor="end" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#f8fafc">${visitante.toUpperCase()} ▶</text>
+
+  <!-- Gramado do Campo (700 x 400) -->
+  <rect x="50" y="50" width="700" height="400" fill="url(#grassBg)" stroke="#ffffff" stroke-width="2.5" opacity="0.95"/>
+
+  <!-- Listras do Gramado -->
+  <g fill="rgba(255, 255, 255, 0.03)">
+    <rect x="120" y="50" width="70" height="400"/>
+    <rect x="260" y="50" width="70" height="400"/>
+    <rect x="400" y="50" width="70" height="400"/>
+    <rect x="540" y="50" width="70" height="400"/>
+    <rect x="680" y="50" width="70" height="400"/>
+  </g>
+
+  <!-- Linha Central e Círculo Central -->
+  <line x1="400" y1="50" x2="400" y2="450" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <circle cx="400" cy="250" r="55" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <circle cx="400" cy="250" r="3" fill="#ffffff"/>
+
+  <!-- Grande Área Esquerda -->
+  <rect x="50" y="140" width="115" height="220" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <!-- Pequena Área Esquerda -->
+  <rect x="50" y="195" width="40" height="110" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <!-- Ponto Penal Esquerdo -->
+  <circle cx="125" cy="250" r="3" fill="#ffffff"/>
+  <!-- Meia Lua Esquerda -->
+  <path d="M 165 215 A 55 55 0 0 1 165 285" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+
+  <!-- Grande Área Direita -->
+  <rect x="635" y="140" width="115" height="220" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <!-- Pequena Área Direita -->
+  <rect x="710" y="195" width="40" height="110" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <!-- Ponto Penal Direito -->
+  <circle cx="675" cy="250" r="3" fill="#ffffff"/>
+  <!-- Meia Lua Direita -->
+  <path d="M 635 215 A 55 55 0 0 0 635 285" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+
+  <!-- Trajetórias de Chutes -->
+  ${trajectoriesSvg}
+
+  <!-- Marcadores de Lances (Faltas, Cartões, Chutes e Gols) -->
+  ${markersSvg}
+
+  <!-- Bola com Pulso em Tempo Real -->
+  ${bolaSvg}
+
+  <!-- Legenda de Cores -->
+  <g transform="translate(100, 475)" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">
+    <circle cx="0" cy="0" r="5" fill="#10b981"/>
+    <text x="12" y="4" fill="#f8fafc">Gol</text>
+
+    <circle cx="80" cy="0" r="5" fill="#3b82f6"/>
+    <text x="92" y="4" fill="#f8fafc">Finalização</text>
+
+    <circle cx="180" cy="0" r="5" fill="#f97316"/>
+    <text x="192" y="4" fill="#f8fafc">Falta</text>
+
+    <circle cx="260" cy="0" r="5" fill="#fbbf24"/>
+    <text x="272" y="4" fill="#f8fafc">Cartão Amarelo</text>
+
+    <circle cx="390" cy="0" r="5" fill="#ef4444"/>
+    <text x="402" y="4" fill="#f8fafc">Cartão Vermelho</text>
+
+    <line x1="510" y1="0" x2="535" y2="0" stroke="#a3e635" stroke-width="2" stroke-dasharray="3,3"/>
+    <text x="542" y="4" fill="#a3e635">Trajetória Chute</text>
+  </g>
+
+  <!-- Watermark -->
+  <text x="400" y="508" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">
+    Futebol Pro Anycast • Coordenadas Oficiais SA.ENVOY Field Tracking • https://ponte.ozpro.com.br
+  </text>
+</svg>`;
+}
+
