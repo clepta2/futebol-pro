@@ -1261,6 +1261,11 @@ export const JOGADORES_CONSOLIDADOS = [
       { ano: '2024', gols: 11, assist: 5, jogos: 26 },
       { ano: '2025', gols: 12, assist: 6, jogos: 19 },
       { ano: '2026', gols: 20, assist: 6, jogos: 34 }
+    ],
+    historicoClubesAnos: [
+      { anos: '2016-2019', clube: 'Fluminense', jogos: 93, gols: 31, titulos: ['Primeira Liga 2016'] },
+      { anos: '2019-2020', clube: 'Fiorentina (Itália)', jogos: 4, gols: 0, titulos: [] },
+      { anos: '2020-2026', clube: 'Flamengo', jogos: 270, gols: 142, titulos: ['Libertadores 2022', 'Brasileirão 2020', 'Copa do Brasil 2022/2024'] }
     ]
   },
   {
@@ -1299,6 +1304,11 @@ export const JOGADORES_CONSOLIDADOS = [
       { ano: '2024', gols: 10, assist: 12, jogos: 43 },
       { ano: '2025', gols: 7, assist: 10, jogos: 38 },
       { ano: '2026', gols: 8, assist: 14, jogos: 31 }
+    ],
+    historicoClubesAnos: [
+      { anos: '2012-2015', clube: 'Defensor Sporting (Uruguai)', jogos: 65, gols: 18, titulos: ['Clausura 2013'] },
+      { anos: '2015-2018', clube: 'Cruzeiro', jogos: 188, gols: 50, titulos: ['Copa do Brasil 2017/2018'] },
+      { anos: '2019-2026', clube: 'Flamengo', jogos: 285, gols: 72, titulos: ['Libertadores 2019/2022', 'Brasileirão 2019/2020', 'Copa do Brasil 2022/2024'] }
     ]
   },
   {
