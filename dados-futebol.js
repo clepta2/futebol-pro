@@ -457,6 +457,30 @@ export const CLUBES = {
     corPrimaria: '#C3281E',
     corSecundaria: '#000000',
     escudo: 'https://a.espncdn.com/i/teamlogos/soccer/500/819.png',
+    brasoes: {
+      oficialPng: 'https://a.espncdn.com/i/teamlogos/soccer/500/819.png',
+      darkPng: 'https://a.espncdn.com/i/teamlogos/soccer/500-dark/819.png',
+      svgOficial: 'https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/brazil/flamengo.svg'
+    },
+    tecnicoAtual: {
+      nome: 'Filipe Luís',
+      nacionalidade: 'Brasil',
+      idade: 41,
+      esquemaPreferido: '4-2-3-1',
+      inicioMandato: '2024-09-30',
+      titulosNoClube: ['Copa do Brasil 2024'],
+      aproveitamento: '72.4%'
+    },
+    tecnicosHistoricos: [
+      { nome: 'Jorge Jesus', periodo: '2019-2020', titulos: ['Libertadores 2019', 'Brasileirão 2019', 'Supercopa 2020', 'Recopa 2020'] },
+      { nome: 'Paulo César Carpegiani', periodo: '1981-1983', titulos: ['Mundial Interclubes 1981', 'Libertadores 1981', 'Brasileirão 1982'] },
+      { nome: 'Dorival Júnior', periodo: '2022', titulos: ['Libertadores 2022', 'Copa do Brasil 2022'] }
+    ],
+    uniformes: {
+      titular: { ano: '2026', descricao: 'Manto Tradicional com listras horizontais rubro-negras', corPrincipal: '#C3281E', corSecundaria: '#000000', fornecedor: 'Adidas', patrocinador: 'Pixbet' },
+      reserva: { ano: '2026', descricao: 'Manto Branco com detalhes em dourado e escudo em relevo', corPrincipal: '#FFFFFF', corSecundaria: '#C3281E', fornecedor: 'Adidas' },
+      terceiro: { ano: '2026', descricao: 'Manto All-Black com detalhes em neon', corPrincipal: '#0F172A', corSecundaria: '#A3E635', fornecedor: 'Adidas' }
+    },
     titulosPrincipais: {
       mundialInterclubes: 1,
       libertadores: 3,
@@ -482,6 +506,29 @@ export const CLUBES = {
     corPrimaria: '#006437',
     corSecundaria: '#FFFFFF',
     escudo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2029.png',
+    brasoes: {
+      oficialPng: 'https://a.espncdn.com/i/teamlogos/soccer/500/2029.png',
+      darkPng: 'https://a.espncdn.com/i/teamlogos/soccer/500-dark/2029.png',
+      svgOficial: 'https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/brazil/palmeiras.svg'
+    },
+    tecnicoAtual: {
+      nome: 'Abel Ferreira',
+      nacionalidade: 'Portugal',
+      idade: 47,
+      esquemaPreferido: '3-4-2-1 / 4-3-3',
+      inicioMandato: '2020-10-30',
+      titulosNoClube: ['Libertadores 2020', 'Libertadores 2021', 'Brasileirão 2022', 'Brasileirão 2023', 'Copa do Brasil 2020', 'Recopa 2022'],
+      aproveitamento: '66.8%'
+    },
+    tecnicosHistoricos: [
+      { nome: 'Luiz Felipe Scolari (Felipão)', periodo: '1997-2000, 2010-2012, 2018', titulos: ['Libertadores 1999', 'Copa do Brasil 1998/2012', 'Brasileirão 2018'] },
+      { nome: 'Vanderlei Luxemburgo', periodo: '1993-1994, 1996, 2008, 2020', titulos: ['Brasileirão 1993/1994', 'Paulistão 1993/1994/1996/2008/2020'] },
+      { nome: 'Oswaldo Brandão', periodo: '1971-1975', titulos: ['Brasileirão 1972/1973 (Segunda Academia)'] }
+    ],
+    uniformes: {
+      titular: { ano: '2026', descricao: 'Verde Esmeralda tradicional com texturas inspiradas na Academia', corPrincipal: '#006437', corSecundaria: '#FFFFFF', fornecedor: 'Puma', patrocinador: 'Crefisa' },
+      reserva: { ano: '2026', descricao: 'Branco clássico com detalhes verdes nas mangas', corPrincipal: '#FFFFFF', corSecundaria: '#006437', fornecedor: 'Puma' }
+    },
     titulosPrincipais: {
       libertadores: 3,
       brasileirao: 12,
@@ -3059,6 +3106,89 @@ export const SCOUTING_SUB21_TALENTOS = [
     }
   }
 ];
+
+/**
+ * Renderiza o Manto Oficial / Camisa de Futebol Vetorial em SVG
+ */
+export function renderCamisaSvg(clubeNome = 'Clube', corPrimaria = '#c3281e', corSecundaria = '#ffffff', numero = 10, nomeAtleta = 'MANTO', tipo = 'titular') {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 400" width="340" height="400">
+  <defs>
+    <linearGradient id="jerseyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${corPrimaria}"/>
+      <stop offset="100%" stop-color="${corPrimaria}" stop-opacity="0.88"/>
+    </linearGradient>
+    <filter id="jerseyShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <rect width="340" height="400" rx="16" fill="#080e1a" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Corpo do Manto -->
+  <g filter="url(#jerseyShadow)">
+    <path d="M 110 50 L 70 95 L 15 75 L 5 130 L 50 150 L 50 330 L 290 330 L 290 150 L 335 130 L 325 75 L 270 95 L 230 50 Z" 
+      fill="url(#jerseyGrad)" stroke="${corSecundaria}" stroke-width="3"/>
+
+    <!-- Gola V -->
+    <path d="M 110 50 Q 170 100 230 50 Z" fill="#080e1a" stroke="${corSecundaria}" stroke-width="3"/>
+
+    <!-- Detalhes de Listras / Textura -->
+    <rect x="50" y="170" width="240" height="28" fill="${corSecundaria}" opacity="0.25"/>
+    <rect x="50" y="250" width="240" height="28" fill="${corSecundaria}" opacity="0.25"/>
+
+    <!-- Nome nas Costas -->
+    <text x="170" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" font-weight="900" fill="${corSecundaria}" letter-spacing="2">
+      ${String(nomeAtleta).toUpperCase()}
+    </text>
+
+    <!-- Número Oficial -->
+    <text x="170" y="250" text-anchor="middle" font-family="ui-monospace, monospace" font-size="88" font-weight="900" fill="${corSecundaria}">
+      ${numero}
+    </text>
+  </g>
+
+  <!-- Rodapé -->
+  <text x="170" y="375" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">
+    ${clubeNome} • Manto Oficial ${String(tipo).toUpperCase()} 2026
+  </text>
+</svg>`;
+}
+
+/**
+ * Renderiza o Avatar Vetorial de Jogador em SVG de Alta Resolução
+ */
+export function renderAvatarJogadorSvg(jogador) {
+  const nome = (jogador.nome || 'Atleta').toUpperCase();
+  const camisa = jogador.camisa || '10';
+  const cor = jogador.corPrimaria || '#10b981';
+  const pos = jogador.posicao || 'Jogador';
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <linearGradient id="avBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="240" height="240" rx="120" fill="url(#avBg)" stroke="#334155" stroke-width="2.5"/>
+  
+  <!-- Cabeça e Silhueta -->
+  <circle cx="120" cy="80" r="38" fill="#e2e8f0"/>
+  <path d="M 45 210 C 45 145 80 135 120 135 C 160 135 195 145 195 210 Z" fill="${cor}"/>
+
+  <!-- Camisa e Número -->
+  <text x="120" y="195" text-anchor="middle" font-family="ui-monospace, monospace" font-size="34" font-weight="900" fill="#ffffff">
+    ${camisa}
+  </text>
+  
+  <!-- Nome -->
+  <text x="120" y="232" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="800" fill="#a3e635">
+    ${nome} (${pos})
+  </text>
+</svg>`;
+}
+
 
 
 
