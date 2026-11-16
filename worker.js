@@ -39,6 +39,8 @@ import {
   renderGraficoEstatisticoPartidaSvg,
   renderCardPartidaSvg,
   renderRadarAtletaSvg,
+  renderCamisaSvg,
+  renderAvatarJogadorSvg,
   analisarXgPartida,
   renderShotMapSvg,
   renderHeatmapSvg,
