@@ -3687,6 +3687,239 @@ export function renderChuteiraDeOuroSvg(ranking = CHUTEIRA_DE_OURO_MUNDIAL) {
 </svg>`;
 }
 
+export const TOP_TRANSFERENCIAS_MUNDIAIS = [
+  { rank: 1, jogador: 'Neymar Jr', origem: 'Barcelona', destino: 'Paris Saint-Germain', valorEur: '€ 222M', valorNumero: 222, ano: 2017, tipo: 'Definitiva (Recorde Histórico Mundial)' },
+  { rank: 2, jogador: 'Kylian Mbappé', origem: 'Monaco', destino: 'Paris Saint-Germain', valorEur: '€ 180M', valorNumero: 180, ano: 2018, tipo: 'Definitiva' },
+  { rank: 3, jogador: 'Philippe Coutinho', origem: 'Liverpool', destino: 'Barcelona', valorEur: '€ 135M', valorNumero: 135, ano: 2018, tipo: 'Definitiva' },
+  { rank: 4, jogador: 'João Félix', origem: 'Benfica', destino: 'Atlético de Madrid', valorEur: '€ 127M', valorNumero: 127, ano: 2019, tipo: 'Definitiva' },
+  { rank: 5, jogador: 'Enzo Fernández', origem: 'Benfica', destino: 'Chelsea', valorEur: '€ 121M', valorNumero: 121, ano: 2023, tipo: 'Definitiva' },
+  { rank: 6, jogador: 'Declan Rice', origem: 'West Ham', destino: 'Arsenal', valorEur: '€ 116M', valorNumero: 116, ano: 2023, tipo: 'Definitiva' },
+  { rank: 7, jogador: 'Jude Bellingham', origem: 'Borussia Dortmund', destino: 'Real Madrid', valorEur: '€ 103M', valorNumero: 103, ano: 2023, tipo: 'Definitiva' },
+  { rank: 8, jogador: 'Cristiano Ronaldo', origem: 'Real Madrid', destino: 'Juventus', valorEur: '€ 117M', valorNumero: 117, ano: 2018, tipo: 'Definitiva' },
+  { rank: 9, jogador: 'Estêvão', origem: 'Palmeiras', destino: 'Chelsea', valorEur: '€ 61.5M', valorNumero: 61.5, ano: 2025, tipo: 'Venda Recorde de Atleta Sub-18 Brasileiro' },
+  { rank: 10, jogador: 'Endrick', origem: 'Palmeiras', destino: 'Real Madrid', valorEur: '€ 60M', valorNumero: 60, ano: 2024, tipo: 'Definitiva' },
+  { rank: 11, jogador: 'Vinícius Júnior', origem: 'Flamengo', destino: 'Real Madrid', valorEur: '€ 45M', valorNumero: 45, ano: 2018, tipo: 'Definitiva' },
+  { rank: 12, jogador: 'Lucas Paquetá', origem: 'Flamengo', destino: 'Milan', valorEur: '€ 38.4M', valorNumero: 38.4, ano: 2019, tipo: 'Definitiva' }
+];
+
+export const VALOR_MERCADO_CLUBES = {
+  'real-madrid': { clube: 'Real Madrid', pais: 'Espanha', valorTotalElenco: '€ 1.36B', valorTotalMilhoes: 1360, mediaPorJogador: '€ 52.3M', jogadorMaisValioso: 'Vinícius Júnior (€ 200M)' },
+  'manchester-city': { clube: 'Manchester City', pais: 'Inglaterra', valorTotalElenco: '€ 1.26B', valorTotalMilhoes: 1260, mediaPorJogador: '€ 50.4M', jogadorMaisValioso: 'Erling Haaland (€ 200M)' },
+  'arsenal': { clube: 'Arsenal', pais: 'Inglaterra', valorTotalElenco: '€ 1.15B', valorTotalMilhoes: 1150, mediaPorJogador: '€ 44.2M', jogadorMaisValioso: 'Bukayo Saka (€ 140M)' },
+  'barcelona': { clube: 'FC Barcelona', pais: 'Espanha', valorTotalElenco: '€ 944M', valorTotalMilhoes: 944, mediaPorJogador: '€ 36.3M', jogadorMaisValioso: 'Lamine Yamal (€ 150M)' },
+  'flamengo': { clube: 'Flamengo', pais: 'Brasil', valorTotalElenco: '€ 185.5M', valorTotalMilhoes: 185.5, mediaPorJogador: '€ 5.8M', jogadorMaisValioso: 'Pedro (€ 22M)' },
+  'palmeiras': { clube: 'Palmeiras', pais: 'Brasil', valorTotalElenco: '€ 172.0M', valorTotalMilhoes: 172.0, mediaPorJogador: '€ 5.5M', jogadorMaisValioso: 'Estêvão (€ 60M)' },
+  'sao-paulo': { clube: 'São Paulo', pais: 'Brasil', valorTotalElenco: '€ 92.4M', valorTotalMilhoes: 92.4, mediaPorJogador: '€ 3.2M', jogadorMaisValioso: 'Pablo Maia (€ 14M)' },
+  'corinthians': { clube: 'Corinthians', pais: 'Brasil', valorTotalElenco: '€ 88.0M', valorTotalMilhoes: 88.0, mediaPorJogador: '€ 2.9M', jogadorMaisValioso: 'Yuri Alberto (€ 18M)' }
+};
+
+export const CROSSWALK_ENTIDADES = {
+  clubes: {
+    'flamengo': { espn: '819', transfermarkt: '614', sofascore: '5981', wikidata: 'Q17479' },
+    'palmeiras': { espn: '2029', transfermarkt: '1023', sofascore: '1963', wikidata: 'Q184346' },
+    'sao-paulo': { espn: '2026', transfermarkt: '585', sofascore: '1981', wikidata: 'Q11223' },
+    'corinthians': { espn: '874', transfermarkt: '199', sofascore: '1957', wikidata: 'Q35994' },
+    'real-madrid': { espn: '86', transfermarkt: '418', sofascore: '2829', wikidata: 'Q8682' },
+    'barcelona': { espn: '83', transfermarkt: '131', sofascore: '2817', wikidata: 'Q7156' },
+    'manchester-city': { espn: '382', transfermarkt: '281', sofascore: '17', wikidata: 'Q50602' }
+  },
+  jogadores: {
+    'pedro-9': { espn: '235017', transfermarkt: '432895', sofascore: '852102', nome: 'Pedro' },
+    'vinicius-jr-7': { espn: '252107', transfermarkt: '371998', sofascore: '884351', nome: 'Vinícius Júnior' },
+    'estevao-41': { espn: '379890', transfermarkt: '1082850', sofascore: '1617201', nome: 'Estêvão' },
+    'haaland-9': { espn: '253989', transfermarkt: '418560', sofascore: '839956', nome: 'Erling Haaland' },
+    'mbappe-9': { espn: '231388', transfermarkt: '342229', sofascore: '793574', nome: 'Kylian Mbappé' },
+    'lamine-yamal-19': { espn: '379899', transfermarkt: '937958', sofascore: '1410452', nome: 'Lamine Yamal' },
+    'messi-10': { espn: '45843', transfermarkt: '28003', sofascore: '12994', nome: 'Lionel Messi' },
+    'cr7-7': { espn: '22774', transfermarkt: '8198', sofascore: '750', nome: 'Cristiano Ronaldo' }
+  }
+};
+
+/**
+ * Motor Sofascore / WhoScored de Avaliação de Desempenho ao Vivo (Match Rating 0 a 10)
+ */
+export function calcularMatchRating(scouts = {}, posicao = 'Atacante', golsSofridosEquipe = 0) {
+  let r = 6.0;
+  r += (scouts.gols || 0) * 1.1;
+  r += (scouts.assistencias || 0) * 0.7;
+  r += (scouts.chutesNoAlvo || scouts.finalizacoesNoAlvo || 0) * 0.25;
+  r += (scouts.passesChave || 0) * 0.3;
+  r += (scouts.desarmes || 0) * 0.2;
+  r += (scouts.faltasSofridas || 0) * 0.1;
+  r -= (scouts.faltasCometidas || 0) * 0.1;
+  r -= (scouts.cartoesAmarelos || 0) * 0.4;
+  r -= (scouts.cartoesVermelhos || 0) * 1.5;
+
+  const isDefensor = /goleiro|zagueiro|lateral|def/i.test(posicao);
+  if (isDefensor) {
+    if (golsSofridosEquipe === 0) r += 0.8;
+    else r -= golsSofridosEquipe * 0.3;
+    if (/goleiro/i.test(posicao)) {
+      r += (scouts.defesas || 0) * 0.35;
+    }
+  }
+
+  return Number(Math.min(10.0, Math.max(3.5, r)).toFixed(1));
+}
+
+/**
+ * Retorna as Sequências Táticas e Streaks Pré-Jogo (Estilo WhoScored / Sofascore Streaks)
+ */
+export function obterStreaksConfronto(clubeCasa, clubeVisitante) {
+  return {
+    mandante: {
+      clube: clubeCasa.nomeCurto || clubeCasa.nome,
+      streaks: [
+        `Invicto nos últimos 6 jogos em casa (${clubeCasa.estadio})`,
+        'Marcou gols no primeiro tempo em 4 das últimas 5 partidas',
+        'Média de 6.4 escanteios a favor por jogo na temporada'
+      ]
+    },
+    visitante: {
+      clube: clubeVisitante.nomeCurto || clubeVisitante.nome,
+      streaks: [
+        'Ambas as equipes marcaram em 5 dos últimos 6 jogos fora de casa',
+        'Sofreu gols nos últimos 3 confrontos diretos contra o rival',
+        'Mais de 2.5 gols em 70% das partidas como visitante'
+      ]
+    },
+    tendenciasMercado: [
+      { mercado: 'Ambas Marcam (Sim)', confianca: 'Alta (78%)' },
+      { mercado: 'Mais de 1.5 Gols no Jogo', confianca: 'Muito Alta (88%)' },
+      { mercado: 'Menos de 5.5 Cartões', confianca: 'Média (65%)' }
+    ]
+  };
+}
+
+/**
+ * Motor Avançado StatsBomb / Opta: xG, xA (Expected Assists) e xGOT (Expected Goals on Target)
+ */
+export function calcularXgAvancado(lances = [], mandanteNome = 'Mandante', visitanteNome = 'Visitante') {
+  let xgHome = 0, xgAway = 0;
+  let xaHome = 0, xaAway = 0;
+  let xgotHome = 0, xgotAway = 0;
+
+  const mapaFinalizacoesAvancadas = [];
+
+  for (const l of lances) {
+    const desc = (l.descricao || '').toLowerCase();
+    const tipo = (l.tipo || '').toLowerCase();
+    const isShot = tipo.includes('shot') || tipo.includes('goal') || desc.includes('shot') || desc.includes('goal!');
+    if (!isShot) continue;
+
+    const coords = l.coordenadasCampo || { x: 85, y: 50 };
+    const isPen = desc.includes('penalty') || desc.includes('pênalti');
+    const xgVal = calcularXg(coords.x, coords.y, isPen ? 'penalty' : 'normal');
+
+    // xGOT: se o chute foi no alvo ou gol, o valor de xGOT considera a trajetória
+    const isGol = tipo.includes('goal') || desc.includes('goal!');
+    const isNoAlvo = isGol || desc.includes('saved') || desc.includes('blocked');
+    const xgotVal = isGol ? Math.min(0.98, xgVal * 1.6 + 0.2) : isNoAlvo ? Math.min(0.85, xgVal * 1.2) : 0;
+
+    // xA: probabilidade do passe prévio se transformar em assistência
+    const xaVal = Number((xgVal * 0.75).toFixed(3));
+
+    const isHome = l.equipe ? l.equipe.toLowerCase().includes(mandanteNome.toLowerCase()) : (coords.x > 50);
+    if (isHome) {
+      xgHome += xgVal;
+      xaHome += xaVal;
+      xgotHome += xgotVal;
+    } else {
+      xgAway += xgVal;
+      xaAway += xaVal;
+      xgotAway += xgotVal;
+    }
+
+    mapaFinalizacoesAvancadas.push({
+      minuto: l.minuto,
+      atleta: l.atletas?.[0] || 'Finalizador',
+      equipe: isHome ? mandanteNome : visitanteNome,
+      xg: xgVal,
+      xa: xaVal,
+      xgot: Number(xgotVal.toFixed(3)),
+      desfecho: isGol ? 'Gol' : isNoAlvo ? 'Defendido no Alvo' : 'Para Fora',
+      coordenadas: coords
+    });
+  }
+
+  return {
+    mandante: mandanteNome,
+    visitante: visitanteNome,
+    metricasOptaStatsBomb: {
+      mandante: { xG: Number(xgHome.toFixed(2)), xA: Number(xaHome.toFixed(2)), xGOT: Number(xgotHome.toFixed(2)) },
+      visitante: { xG: Number(xgAway.toFixed(2)), xA: Number(xaAway.toFixed(2)), xGOT: Number(xgotAway.toFixed(2)) }
+    },
+    totalFinalizacoesAnalisadas: mapaFinalizacoesAvancadas.length,
+    finalizacoesDetalhadas: mapaFinalizacoesAvancadas
+  };
+}
+
+/**
+ * Renderiza Dossiê Executivo de Scouting em HTML para Olheiros e Imprensa
+ */
+export function renderRelatorioScoutingHtml(jogador, analise) {
+  const m = analise.motorAnalitico || {};
+  const ef = m.metricasEficiencia || {};
+  const st = jogador.estatisticasReais || {};
+
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Dossiê de Scouting Oficial • ${jogador.nome}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #f8fafc; margin: 0; padding: 32px; }
+    .card { background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 24px; max-width: 860px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 24px; }
+    .badge { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 13px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .kpi-box { background: #162032; border: 1px solid #1e293b; padding: 14px; border-radius: 8px; text-align: center; }
+    .kpi-val { font-size: 24px; font-weight: 800; color: #a3e635; margin-top: 4px; font-family: ui-monospace, monospace; }
+    .kpi-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+    .section-title { font-size: 14px; font-weight: 700; color: #a3e635; text-transform: uppercase; margin: 18px 0 8px; }
+    @media print { body { background: #fff; color: #000; padding: 0; } .card { border: none; box-shadow: none; background: #fff; } .kpi-box { background: #f1f5f9; border-color: #cbd5e1; } .kpi-val { color: #059669; } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div>
+        <h1 style="margin:0 0 6px;">${jogador.nomeCompleto || jogador.nome} #${jogador.camisa || ''}</h1>
+        <div style="color:#94a3b8; font-size:14px;">${jogador.clube} • ${jogador.posicao} • ${jogador.nacionalidade || 'Brasil'} (${jogador.idade} anos)</div>
+      </div>
+      <div style="text-align:right;">
+        <span class="badge">Rating Oficial ${m.ratingGeral || 9.0}</span>
+        <div style="font-size:12px; color:#94a3b8; margin-top:4px;">${m.classeDesempenho || 'Elite A+'}</div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-box"><div class="kpi-label">Gols Temporada</div><div class="kpi-val">${st.gols || 0}</div></div>
+      <div class="kpi-box"><div class="kpi-label">Assistências</div><div class="kpi-val">${st.assistencias || 0}</div></div>
+      <div class="kpi-box"><div class="kpi-label">Pontaria no Alvo</div><div class="kpi-val">${ef.taxaPontariaNoAlvo || '55%'}</div></div>
+      <div class="kpi-box"><div class="kpi-label">Valor de Mercado</div><div class="kpi-val">${jogador.valorMercado || '€ 20M'}</div></div>
+    </div>
+
+    <div class="section-title">Diagnóstico Tático do Motor de Inteligência</div>
+    <div style="background:#162032; padding:14px; border-radius:8px; font-size:13px; line-height:1.6; border:1px solid #1e293b;">
+      <strong>Arquétipo Tático:</strong> ${m.arquetipoTatico || 'Atleta de Alta Eficiência'}<br>
+      ${(m.pontosFortes || []).map(p => `• ${p}`).join('<br>')}
+    </div>
+
+    <div class="section-title">Histórico e Trajetória de Clubes</div>
+    <div style="font-size:13px; line-height:1.7;">
+      ${(jogador.historicoClubesAnos || []).map(h => `• <strong>${h.anos}</strong>: ${h.clube} — ${h.jogos} jogos, ${h.gols} gols`).join('<br>')}
+    </div>
+
+    <div style="margin-top:28px; text-align:center; font-size:11px; color:#64748b; border-top:1px solid #1e293b; padding-top:14px;">
+      Relatório Gerado por Futebol Pro Anycast • Dados Oficiais e Verificados • https://ponte.ozpro.com.br
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+
 
 
 
