@@ -119,6 +119,9 @@
     <div style="display:flex; gap:10px; margin: 24px 0 16px; border-bottom:1px solid var(--line); padding-bottom:12px; overflow-x:auto;">
       <button class="ponte-btn" id="tab-btn-mundo" onclick="switchTab('mundo')" style="border-color:var(--mint);">🌍 Jogos do Mundo (Hoje/Live)</button>
       <button class="ponte-btn secondary" id="tab-btn-premios" onclick="switchTab('premios')">👑 Melhores do Ano &amp; Seleção</button>
+      <button class="ponte-btn secondary" id="tab-btn-chuteira" onclick="switchTab('chuteira')">🏆 Chuteira de Ouro &amp; FIFA</button>
+      <button class="ponte-btn secondary" id="tab-btn-noticias" onclick="switchTab('noticias')">📰 Notícias ESPN &amp; Globo</button>
+      <button class="ponte-btn secondary" id="tab-btn-dossie" onclick="switchTab('dossie')">📋 Dossiê Scouting HTML</button>
       <button class="ponte-btn secondary" id="tab-btn-carreiras" onclick="switchTab('carreiras')">⚖️ Comparar Carreiras (GOAT)</button>
       <button class="ponte-btn secondary" id="tab-btn-futuro" onclick="switchTab('futuro')">📅 Jogos Futuros (Calendário)</button>
       <button class="ponte-btn secondary" id="tab-btn-antigos" onclick="switchTab('antigos')">📜 Jogos Antigos &amp; Históricos</button>
@@ -186,6 +189,86 @@
             <span class="ponte-badge blue">Ratings Analíticos Reais</span>
           </div>
           <div id="lista-selecao-ano"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA: CHUTEIRA DE OURO & RANKING FIFA -->
+    <section id="section-chuteira" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px;">🏆 Chuteira de Ouro Mundial &amp; Ranking Oficial FIFA</h3>
+        <span class="ponte-badge amber">Temporada 2026</span>
+      </div>
+
+      <div class="ponte-grid-2" style="margin-bottom:24px;">
+        <!-- Card Chuteira de Ouro -->
+        <div class="ponte-card" style="padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h4 style="margin:0; font-size:14px; color:#fbbf24;">👟 Chuteira de Ouro Mundial (Top Artilheiros)</h4>
+            <a href="/api/futebol/premios/chuteira-de-ouro.svg" target="_blank" class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;">Ver Troféu SVG</a>
+          </div>
+          <p style="font-size:11.5px; color:var(--muted); margin-bottom:12px;">Gols multiplicados pelo coeficiente de dificuldade da liga (UEFA / CONMEBOL x2.0 ou x1.5).</p>
+          <div id="lista-chuteira-ouro">
+            <div style="text-align:center; padding:20px; color:var(--muted);">Carregando ranking da Chuteira de Ouro...</div>
+          </div>
+        </div>
+
+        <!-- Card Ranking FIFA -->
+        <div class="ponte-card" style="padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h4 style="margin:0; font-size:14px; color:var(--mint);">🌍 Ranking Mundial de Seleções da FIFA</h4>
+            <span class="ponte-badge blue">Top 10 Oficial</span>
+          </div>
+          <div id="lista-ranking-fifa">
+            <div style="text-align:center; padding:20px; color:var(--muted);">Consultando ranking FIFA...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA: NOTÍCIAS ESPN & GLOBO CARTOLA -->
+    <section id="section-noticias" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button class="ponte-btn" style="padding:6px 14px; font-size:12px;" onclick="loadEspnNoticias('bra.1')">Brasileirão (ESPN)</button>
+          <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadEspnNoticias('eng.1')">Premier League</button>
+          <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadEspnNoticias('esp.1')">LaLiga</button>
+          <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadEspnNoticias('uefa.champions')">Champions League</button>
+          <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadGloboMercado()">🛒 Mercado Cartola FC (Globo)</button>
+        </div>
+        <button class="ponte-btn secondary" style="padding:6px 12px; font-size:12px;" onclick="loadEspnNoticias(currentNoticiaLiga)">🔄 Atualizar Feeds</button>
+      </div>
+
+      <div id="grid-noticias" class="ponte-grid-2">
+        <div style="text-align:center; padding:30px; color:var(--muted); grid-column:1/-1;">Carregando notícias oficiais em tempo real...</div>
+      </div>
+    </section>
+
+    <!-- ABA: DOSSIÊ EXECUTIVO DE SCOUTING HTML -->
+    <section id="section-dossie" style="display:none;">
+      <div class="ponte-card" style="padding:24px; margin-bottom:20px;">
+        <h3 style="margin-top:0;">📋 Dossiê Executivo de Relatório de Scouting em HTML</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:20px;">
+          Gere instantaneamente relatórios completos formatados para impressão, olheiros de clubes, scouts profissionais e imprensa esportiva com métricas de radar, eficiência, histórico de transferências e valor de mercado.
+        </p>
+
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:20px;">
+          <select id="select-atleta-dossie" class="ponte-select" style="flex:1; min-width:240px;">
+            <option value="pedro-9">Pedro (Flamengo • Camisa 9 • Centroavante)</option>
+            <option value="estevao-41">Estêvão (Palmeiras • Camisa 41 • Ponta Direita)</option>
+            <option value="vinicius-jr-7">Vinícius Júnior (Real Madrid • Camisa 7 • Ponta Esquerda)</option>
+            <option value="haaland-9">Erling Haaland (Manchester City • Camisa 9 • Centroavante)</option>
+            <option value="lamine-yamal-19">Lamine Yamal (Barcelona • Camisa 19 • Ponta Direita)</option>
+            <option value="veiga-23">Raphael Veiga (Palmeiras • Camisa 23 • Meia)</option>
+            <option value="ar которыми-10" value="arrascaeta-14">Giorgian de Arrascaeta (Flamengo • Camisa 14 • Meia)</option>
+            <option value="messi-10">Lionel Messi (Inter Miami / Argentina • Camisa 10)</option>
+            <option value="cr7-7">Cristiano Ronaldo (Al-Nassr / Portugal • Camisa 7)</option>
+          </select>
+          <button class="ponte-btn" style="padding:10px 22px;" onclick="abrirDossieSelecionado()">📄 Abrir Dossiê HTML Completo</button>
+        </div>
+
+        <div style="border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden; background:#0b0f19;">
+          <iframe id="iframe-dossie-preview" src="/api/futebol/jogadores/pedro-9/relatorio.html" style="width:100%; height:520px; border:none;"></iframe>
         </div>
       </div>
     </section>
@@ -546,8 +629,10 @@
     let currentMundoData = 'hoje';
     let cacheJogosMundo = [];
 
+    let currentNoticiaLiga = 'bra.1';
+
     window.switchTab = function(tabName) {
-      const tabs = ['mundo', 'premios', 'carreiras', 'futuro', 'antigos', 'classicos', 'jogadores', 'tabela', 'clubes', 'confronto', 'cardsvg', 'playground'];
+      const tabs = ['mundo', 'premios', 'chuteira', 'noticias', 'dossie', 'carreiras', 'futuro', 'antigos', 'classicos', 'jogadores', 'tabela', 'clubes', 'confronto', 'cardsvg', 'playground'];
       tabs.forEach(t => {
         const sec = document.getElementById(`section-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
@@ -564,6 +649,9 @@
       });
       if (tabName === 'mundo') loadJogosMundo();
       if (tabName === 'premios') renderPremios('global');
+      if (tabName === 'chuteira') renderChuteira();
+      if (tabName === 'noticias') loadEspnNoticias(currentNoticiaLiga);
+      if (tabName === 'dossie') abrirDossieSelecionado(false);
       if (tabName === 'carreiras') executarComparacaoCarreiras();
       if (tabName === 'futuro') renderJogosFuturos();
       if (tabName === 'antigos') renderJogosAntigos();
@@ -573,6 +661,142 @@
       if (tabName === 'clubes') renderClubes(Object.values(CLUBES));
       if (tabName === 'cardsvg') atualizarCardSvg();
       if (tabName === 'playground') updateSnippets();
+    };
+
+    window.renderChuteira = async function() {
+      try {
+        const resChuteira = await fetch('/api/futebol/premios/chuteira-de-ouro');
+        const dataChuteira = await resChuteira.json();
+        const listaChuteira = dataChuteira.ranking || [];
+
+        const elChuteira = document.getElementById('lista-chuteira-ouro');
+        elChuteira.innerHTML = listaChuteira.map((c, i) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:24px; height:24px; border-radius:50%; background:${i === 0 ? '#fbbf24' : '#1e293b'}; color:${i === 0 ? '#000' : '#fff'}; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px;">
+                ${c.rank}
+              </div>
+              <div>
+                <strong style="color:var(--ink); font-size:13px;">${c.jogador}</strong>
+                <small style="color:var(--muted); display:block; font-size:11px;">${c.clube} • ${c.gols} gols (x${c.coeficiente})</small>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-weight:900; color:${i === 0 ? '#fbbf24' : '#10b981'}; font-family:var(--font-mono); font-size:14px;">${c.pontos} pts</span>
+            </div>
+          </div>
+        `).join('');
+
+        const resFifa = await fetch('/api/futebol/ranking-fifa');
+        const dataFifa = await resFifa.json();
+        const listaFifa = dataFifa.ranking || [];
+
+        const elFifa = document.getElementById('lista-ranking-fifa');
+        elFifa.innerHTML = listaFifa.map(f => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:12.5px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-weight:800; width:22px; color:var(--muted);">${f.posicao}º</span>
+              <span style="font-size:16px;">${f.bandeira || '⚽'}</span>
+              <strong style="color:var(--ink);">${f.selecao}</strong>
+              <small style="color:var(--muted);">(${f.sigla})</small>
+            </div>
+            <div style="font-family:var(--font-mono); font-weight:700; color:#60a5fa;">
+              ${f.pontos.toFixed(1)} pts
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Erro ao renderizar Chuteira/FIFA:', err);
+      }
+    };
+
+    window.loadEspnNoticias = async function(liga = 'bra.1') {
+      currentNoticiaLiga = liga;
+      const grid = document.getElementById('grid-noticias');
+      grid.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); grid-column:1/-1;">Carregando notícias da ESPN...</div>';
+
+      try {
+        const res = await fetch(`/api/futebol/espn/noticias?liga=${liga}`);
+        const data = await res.json();
+        const noticias = data.noticias || [];
+
+        if (noticias.length === 0) {
+          grid.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); grid-column:1/-1;">Nenhuma notícia encontrada para esta liga no momento.</div>';
+          return;
+        }
+
+        grid.innerHTML = noticias.map(n => `
+          <div class="ponte-card" style="padding:16px; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              ${n.imagemDestaque ? `<img src="${n.imagemDestaque}" style="width:100%; height:160px; object-fit:cover; border-radius:var(--radius-md); margin-bottom:12px;" alt="${n.titulo}">` : ''}
+              <h4 style="margin:0 0 8px; font-size:14px; color:var(--ink); line-height:1.4;">${n.titulo}</h4>
+              <p style="font-size:12px; color:var(--muted); margin:0 0 12px; line-height:1.5;">${n.resumo || ''}</p>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--line-light); padding-top:10px; font-size:11px;">
+              <span style="color:var(--mint); font-weight:600;">${n.autor}</span>
+              ${n.linkOriginal ? `<a href="${n.linkOriginal}" target="_blank" class="ponte-btn secondary" style="padding:4px 10px; font-size:10.5px;">Ler na ESPN ↗</a>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        grid.innerHTML = `<div style="color:#ef4444; padding:20px; grid-column:1/-1;">Erro ao carregar notícias: ${err.message}</div>`;
+      }
+    };
+
+    window.loadGloboMercado = async function() {
+      const grid = document.getElementById('grid-noticias');
+      grid.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); grid-column:1/-1;">Consultando mercado Cartola FC e partidas Globo...</div>';
+
+      try {
+        const [resStatus, resPartidas] = await Promise.all([
+          fetch('/api/futebol/globo/mercado-status'),
+          fetch('/api/futebol/globo/partidas')
+        ]);
+        const dataStatus = await resStatus.json();
+        const dataPartidas = await resPartidas.json();
+
+        grid.innerHTML = `
+          <div class="ponte-card" style="padding:20px; grid-column:1/-1; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <h4 style="margin:0 0 4px; font-size:15px; color:var(--mint);">🛒 Status do Mercado Cartola FC / Globo</h4>
+                <div style="font-size:12px; color:var(--muted);">Rodada Oficial ${dataStatus.status?.rodada_atual || 35}</div>
+              </div>
+              <span class="ponte-badge ${dataStatus.mercadoAberto ? 'mint' : 'blue'}" style="font-weight:800;">
+                ${dataStatus.mercadoAberto ? '● MERCADO ABERTO' : 'FECHADO PARA ESCALAÇÃO'}
+              </span>
+            </div>
+          </div>
+          ${(dataPartidas.partidas || []).map(p => `
+            <div class="match-card" style="margin-bottom:0;">
+              <div class="match-header">
+                <span>Rodada ${dataPartidas.rodada} • ${p.partida_data || '2026'}</span>
+                <span style="color:var(--mint);">${p.local || 'Estádio Oficial'}</span>
+              </div>
+              <div class="match-body">
+                <div class="match-team">
+                  <img src="${p.clube_casa_escudo || ''}" style="width:36px; height:36px; object-fit:contain;">
+                  <strong>Clube Mandante</strong>
+                </div>
+                <div class="match-score" style="font-size:16px;">VS</div>
+                <div class="match-team">
+                  <img src="${p.clube_visitante_escudo || ''}" style="width:36px; height:36px; object-fit:contain;">
+                  <strong>Clube Visitante</strong>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        `;
+      } catch (err) {
+        grid.innerHTML = `<div style="color:#ef4444; padding:20px; grid-column:1/-1;">Erro ao consultar Globo: ${err.message}</div>`;
+      }
+    };
+
+    window.abrirDossieSelecionado = function(abrirAba = true) {
+      const id = document.getElementById('select-atleta-dossie')?.value || 'pedro-9';
+      const iframe = document.getElementById('iframe-dossie-preview');
+      if (iframe) iframe.src = `/api/futebol/jogadores/${id}/relatorio.html`;
+      if (abrirAba) window.open(`/api/futebol/jogadores/${id}/relatorio.html`, '_blank');
     };
 
     window.renderPremios = function(escopo = 'global') {

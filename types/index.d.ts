@@ -208,6 +208,16 @@ export declare class FutebolPro {
   static getEstadios(filtros?: { uf?: string; cidade?: string }): Promise<{ ok: boolean; total: number; estadios: Estadio[] }>;
   static getArtilharia(campeonato?: string): Promise<{ ok: boolean; ranking: Artilheiro[] }>;
   static simularConfronto(clubeCasa: string, clubeVisitante: string): Promise<{ ok: boolean; confronto: string; analise: SimulacaoConfronto }>;
+  static getStreaksConfronto(clubeCasa: string, clubeVisitante: string): Promise<{ ok: boolean; confronto: string; streaks: any }>;
+  static getPartidaRatings(partidaId: string): Promise<{ ok: boolean; partidaId: string; mvpPartida: any; ratingsAtletas: any[] }>;
+  static getPartidaXgAvancado(partidaId: string): Promise<{ ok: boolean; partidaId: string; analiseOptaStatsBomb: any }>;
+  static getPartidaEscalacoesSvgUrl(partidaId: string): string;
+  static getPartidaProbabilidadeAoVivo(partidaId: string): Promise<{ ok: boolean; partidaId: string; preditorProbabilidades: any }>;
+  static getClubeDesfalques(clubeSlug: string): Promise<{ ok: boolean; clube: string; slug: string; relatorioDesfalques: any }>;
+  static getRelatorioJogadorHtml(jogadorId: string): Promise<string>;
+  static getTopTransferencias(filtros?: { ano?: number; clube?: string }): Promise<{ ok: boolean; totalTransferencias: number; transferencias: any[] }>;
+  static getValuationClube(clubeSlug: string): Promise<{ ok: boolean; clube: string; slug: string; valuationTransfermarkt: any }>;
+  static getCrosswalk(tipo: 'clube' | 'jogador', idOuSlug: string): Promise<{ ok: boolean; tipo: string; identificadoresCruzados: any }>;
   static getCardSvgUrl(timeCasa: string, placarCasa: number | string, timeVisitante: string, placarVisitante: number | string, options?: { campeonato?: string; status?: string }): string;
 }
 

@@ -840,6 +840,12 @@ const dataCross = await resCross.json();
 assert(dataCross.identificadoresCruzados.transfermarkt === '432895', 'ID do Transfermarkt cruzado com sucesso');
 
 // 20.11 Testes do SDK Oficial FutebolPro com novos métodos
+const origGlobalFetch = globalThis.fetch;
+globalThis.fetch = async (input, init) => {
+  const req = input instanceof Request ? input : new Request(input, init);
+  return await worker.fetch(req, {});
+};
+
 FutebolPro.configure({ baseUrl: 'https://api.test', apiKey: 'fut_master_live_test_suite_key' });
 const sdkDesf = await FutebolPro.getClubeDesfalques('flamengo');
 assert(sdkDesf.ok === true && sdkDesf.relatorioDesfalques.departamentoMedico.length > 0, 'SDK getClubeDesfalques funciona');
@@ -852,5 +858,10 @@ assert(sdkOpta.ok === true && sdkOpta.analiseOptaStatsBomb.metricasOptaStatsBomb
 
 const sdkDossie = await FutebolPro.getRelatorioJogadorHtml('pedro-9');
 assert(typeof sdkDossie === 'string' && sdkDossie.includes('Dossiê de Scouting Oficial'), 'SDK getRelatorioJogadorHtml funciona');
+
+const sdkEscSvgUrl = FutebolPro.getPartidaEscalacoesSvgUrl('hist_001');
+assert(sdkEscSvgUrl.includes('/escalacoes.svg'), 'Helper getPartidaEscalacoesSvgUrl gera URL correta');
+
+globalThis.fetch = origGlobalFetch;
 
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
