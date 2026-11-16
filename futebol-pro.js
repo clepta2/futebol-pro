@@ -975,6 +975,147 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém as sequências táticas e streaks pré-jogo do confronto (WhoScored / Sofascore)
+   * @param {string} clubeCasa
+   * @param {string} clubeVisitante
+   * @returns {Promise<Object>}
+   */
+  static async getStreaksConfronto(clubeCasa, clubeVisitante) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/confronto/${clubeCasa}/${clubeVisitante}/streaks`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter streaks do confronto: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém as notas e match ratings ao vivo dos 22 atletas em campo (Sofascore / WhoScored 0 a 10)
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPartidaRatings(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/ratings`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter ratings da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém as métricas avançadas Opta / StatsBomb (xG, xA, xGOT) da partida
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPartidaXgAvancado(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/xg-avancado`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter métricas avançadas da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Diagrama Tático 2D das Escalações Titulares em SVG
+   * @param {string} partidaId
+   * @returns {string}
+   */
+  static getPartidaEscalacoesSvgUrl(partidaId) {
+    return `${this.baseUrl}/api/futebol/partida/${partidaId}/escalacoes.svg`;
+  }
+
+  /**
+   * Obtém o preditor probabilístico de resultado ao vivo da partida (Google Sports / Opta)
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPartidaProbabilidadeAoVivo(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/probabilidade`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter probabilidades da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o relatório de desfalques, lesões no DM e suspensões do clube (Wyscout / Transfermarkt)
+   * @param {string} clubeSlug
+   * @returns {Promise<Object>}
+   */
+  static async getClubeDesfalques(clubeSlug) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/clubes/${clubeSlug}/desfalques`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter desfalques do clube (${clubeSlug}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o dossiê executivo de relatório de scouting do atleta em HTML
+   * @param {string} jogadorId
+   * @returns {Promise<string>}
+   */
+  static async getRelatorioJogadorHtml(jogadorId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/jogadores/${jogadorId}/relatorio.html`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter relatório HTML do atleta (${jogadorId}): HTTP ${resp.status}`);
+    return await resp.text();
+  }
+
+  /**
+   * Obtém as top transferências do mercado mundial e compras históricas
+   * @param {Object} [filtros] - { ano?: number, clube?: string }
+   * @returns {Promise<Object>}
+   */
+  static async getTopTransferencias(filtros = {}) {
+    const params = new URLSearchParams();
+    if (filtros.ano) params.set('ano', filtros.ano);
+    if (filtros.clube) params.set('clube', filtros.clube);
+    const q = params.toString() ? `?${params.toString()}` : '';
+    const resp = await fetch(`${this.baseUrl}/api/futebol/transferencias/top${q}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter transferências: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o valuation oficial do elenco do clube (Transfermarkt)
+   * @param {string} clubeSlug
+   * @returns {Promise<Object>}
+   */
+  static async getValuationClube(clubeSlug) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/clubes/${clubeSlug}/valuation`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter valuation do clube (${clubeSlug}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o crosswalk universal de IDs entre ESPN, Transfermarkt, Sofascore e Wikidata
+   * @param {'clube'|'jogador'} tipo
+   * @param {string} idOuSlug
+   * @returns {Promise<Object>}
+   */
+  static async getCrosswalk(tipo, idOuSlug) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/crosswalk/${tipo}/${idOuSlug}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter crosswalk (${tipo}/${idOuSlug}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
    * Gera URL para o Card SVG dinâmico de partida
    * @param {string} timeCasa 
    * @param {number|string} placarCasa 
