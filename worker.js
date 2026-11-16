@@ -1313,6 +1313,23 @@ export default {
         });
       }
 
+      // Linhas de Handicap Asiático
+      if (subAcao === 'handicap') {
+        const part = detalhe.partida || detalhe;
+        const analiseXg = analisarXgPartida(part.lanceALance || [], part.mandante?.nome, part.visitante?.nome);
+        const expCasa = analiseXg.xgTotalMandante > 0 ? analiseXg.xgTotalMandante : 1.5;
+        const expFora = analiseXg.xgTotalVisitante > 0 ? analiseXg.xgTotalVisitante : 1.0;
+        const handicap = calcularHandicapAsiatico(expCasa, expFora);
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          partida: `${part.mandante?.nome} vs ${part.visitante?.nome}`,
+          handicapAsiatico: handicap
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       // Pontuação Oficial de Fantasy Game (Cartola / Fantasy League)
       if (subAcao === 'fantasy' || subAcao === 'cartola') {
         const part = detalhe.partida || detalhe;

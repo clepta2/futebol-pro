@@ -245,6 +245,68 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém as linhas de Handicap Asiático da partida
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPartidaHandicap(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/handicap`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter handicap da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o chaveamento oficial de torneios mata-mata (Libertadores, Copa do Brasil, Champions)
+   * @param {string} [torneio] - Ex: 'libertadores', 'copa-do-brasil'
+   * @returns {Promise<Object>}
+   */
+  static async getMataMata(torneio) {
+    const url = torneio ? `${this.baseUrl}/api/futebol/matamata/${torneio}` : `${this.baseUrl}/api/futebol/matamata`;
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter chaveamento mata-mata: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Diagrama SVG do Chaveamento Mata-Mata
+   * @param {string} torneio
+   * @returns {string}
+   */
+  static getChaveamentoSvgUrl(torneio = 'libertadores') {
+    return `${this.baseUrl}/api/futebol/matamata/${torneio}/chaveamento.svg`;
+  }
+
+  /**
+   * Obtém o catálogo de árbitros oficiais e médias disciplinares
+   * @param {string} [id] - Ex: 'wilton-sampaio', 'szymon-marciniak'
+   * @returns {Promise<Object>}
+   */
+  static async getArbitros(id) {
+    const url = id ? `${this.baseUrl}/api/futebol/arbitros/${id}` : `${this.baseUrl}/api/futebol/arbitros`;
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter árbitros: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Gráfico Gauge SVG do Clássico H2H
+   * @param {string} slug - Ex: 'flamengo-palmeiras'
+   * @returns {string}
+   */
+  static getClassicoGaugeSvgUrl(slug) {
+    return `${this.baseUrl}/api/futebol/classicos/${slug}/gauge.svg`;
+  }
+
+  /**
    * Obtém as pontuações e scouts detalhados de Fantasy Game dos atletas na partida
    * @param {string} partidaId
    * @returns {Promise<Object>}
