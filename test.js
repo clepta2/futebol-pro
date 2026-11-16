@@ -650,4 +650,49 @@ assert(resGauge.headers.get('Content-Type').includes('image/svg+xml'), 'Header i
 const textGauge = await resGauge.text();
 assert(textGauge.includes('CONFRONTOS HISTÓRICOS OFICIAIS'), 'Gauge SVG do clássico gerado');
 
+
+// ─── 18. MOMENTUM SVG, CHUTEIRA DE OURO & RANKING FIFA ───
+console.log('\n--- 18. Attack Momentum SVG, Chuteira de Ouro & Ranking FIFA ---');
+
+// 18.1 Attack Momentum da Partida
+const resMom = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/momentum', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resMom.status === 200, 'Endpoint /partida/:id/momentum responde 200');
+const dataMom = await resMom.json();
+assert(dataMom.attackMomentum.length === 18, '18 blocos de 5 minutos de momentum calculados');
+
+// 18.2 Momentum SVG
+const resMomSvg = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/momentum.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resMomSvg.status === 200, 'Endpoint /partida/:id/momentum.svg responde 200');
+assert(resMomSvg.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para momentum');
+const textMom = await resMomSvg.text();
+assert(textMom.includes('PRESSÃO OFENSIVA &amp; MOMENTUM'), 'Gráfico SVG de Attack Momentum validado');
+
+// 18.3 Chuteira de Ouro Mundial & SVG
+const resChuteira = await worker.fetch(new Request('https://api.test/api/futebol/premios/chuteira-de-ouro', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resChuteira.status === 200, 'Endpoint /premios/chuteira-de-ouro responde 200');
+const dataChuteira = await resChuteira.json();
+assert(dataChuteira.ranking.length >= 5, 'Top 5 da Chuteira de Ouro retornado');
+assert(dataChuteira.ranking[0].pontos > 40, 'Pontos ponderados por coeficiente validados');
+
+const resChuteiraSvg = await worker.fetch(new Request('https://api.test/api/futebol/premios/chuteira-de-ouro.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resChuteiraSvg.status === 200, 'Endpoint /chuteira-de-ouro.svg responde 200');
+assert(resChuteiraSvg.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para chuteira');
+
+// 18.4 Ranking FIFA de Seleções
+const resFifa = await worker.fetch(new Request('https://api.test/api/futebol/ranking-fifa', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resFifa.status === 200, 'Endpoint /ranking-fifa responde 200');
+const dataFifa = await resFifa.json();
+assert(dataFifa.ranking.length === 10, 'Top 10 oficial de seleções FIFA retornado');
+assert(dataFifa.ranking.some(s => s.selecao === 'Brasil'), 'Seleção Brasileira presente no ranking');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);

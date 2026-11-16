@@ -154,6 +154,11 @@ export declare class FutebolPro {
   static getCamisaJogadorSvgUrl(jogadorId: string): string;
   static getAvatarJogadorSvgUrl(jogadorId: string): string;
   static getHistoricoClubesJogador(jogadorId: string): Promise<{ ok: boolean; atleta: string; historicoClubesAnos: any[] }>;
+  static getMomentumPartida(partidaId: string): Promise<{ ok: boolean; partidaId: string; attackMomentum: any[] }>;
+  static getMomentumSvgUrl(partidaId: string): string;
+  static getChuteiraDeOuro(): Promise<{ ok: boolean; premio: string; ranking: any[]; chuteiraSvgUrl: string }>;
+  static getChuteiraDeOuroSvgUrl(): string;
+  static getRankingFifa(): Promise<{ ok: boolean; titulo: string; ranking: any[] }>;
   static getPartidaHandicap(partidaId: string): Promise<{ ok: boolean; partidaId: string; handicapAsiatico: any }>;
   static getMataMata(torneio?: string): Promise<{ ok: boolean; torneiosDisponiveis?: string[]; mataMata?: any; chaveamento?: any; chaveamentoSvgUrl?: string }>;
   static getChaveamentoSvgUrl(torneio?: string): string;

@@ -3511,6 +3511,182 @@ export function renderClassicoGaugeSvg(classico) {
 </svg>`;
 }
 
+export const CHUTEIRA_DE_OURO_MUNDIAL = [
+  { rank: 1, jogador: 'Erling Haaland', clube: 'Manchester City', liga: 'Premier League', gols: 28, coeficiente: 2.0, pontos: 56.0, nacionalidade: 'Noruega' },
+  { rank: 2, jogador: 'Robert Lewandowski', clube: 'Barcelona', liga: 'LaLiga EA Sports', gols: 26, coeficiente: 2.0, pontos: 52.0, nacionalidade: 'Polônia' },
+  { rank: 3, jogador: 'Kylian Mbappé', clube: 'Real Madrid', liga: 'LaLiga EA Sports', gols: 24, coeficiente: 2.0, pontos: 48.0, nacionalidade: 'França' },
+  { rank: 4, jogador: 'Pedro', clube: 'Flamengo', liga: 'Brasileirão Série A', gols: 20, coeficiente: 2.0, pontos: 40.0, nacionalidade: 'Brasil' },
+  { rank: 5, jogador: 'Viktor Gyökeres', clube: 'Sporting CP', liga: 'Liga Portugal', gols: 25, coeficiente: 1.5, pontos: 37.5, nacionalidade: 'Suécia' },
+  { rank: 6, jogador: 'Harry Kane', clube: 'Bayern Munich', liga: 'Bundesliga', gols: 18, coeficiente: 2.0, pontos: 36.0, nacionalidade: 'Inglaterra' }
+];
+
+export const RANKING_FIFA_SELECOES = [
+  { posicao: 1, selecao: 'Argentina', sigla: 'ARG', pontos: 1889.02, confederacao: 'CONMEBOL', copasDoMundo: 3, bandeira: '🇦🇷' },
+  { posicao: 2, selecao: 'França', sigla: 'FRA', pontos: 1851.92, confederacao: 'UEFA', copasDoMundo: 2, bandeira: '🇫🇷' },
+  { posicao: 3, selecao: 'Espanha', sigla: 'ESP', pontos: 1836.42, confederacao: 'UEFA', copasDoMundo: 1, campeaoEuro: true, bandeira: '🇪🇸' },
+  { posicao: 4, selecao: 'Inglaterra', sigla: 'ENG', pontos: 1812.26, confederacao: 'UEFA', copasDoMundo: 1, bandeira: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { posicao: 5, selecao: 'Brasil', sigla: 'BRA', pontos: 1784.37, confederacao: 'CONMEBOL', copasDoMundo: 5, pentacampeao: true, bandeira: '🇧🇷' },
+  { posicao: 6, selecao: 'Bélgica', sigla: 'BEL', pontos: 1768.14, confederacao: 'UEFA', copasDoMundo: 0, bandeira: '🇧🇪' },
+  { posicao: 7, selecao: 'Países Baixos', sigla: 'NED', pontos: 1759.95, confederacao: 'UEFA', copasDoMundo: 0, bandeira: '🇳🇱' },
+  { posicao: 8, selecao: 'Portugal', sigla: 'POR', pontos: 1752.14, confederacao: 'UEFA', copasDoMundo: 0, bandeira: '🇵🇹' },
+  { posicao: 9, selecao: 'Colômbia', sigla: 'COL', pontos: 1724.37, confederacao: 'CONMEBOL', copasDoMundo: 0, bandeira: '🇨🇴' },
+  { posicao: 10, selecao: 'Itália', sigla: 'ITA', pontos: 1701.69, confederacao: 'UEFA', copasDoMundo: 4, bandeira: '🇮🇹' }
+];
+
+/**
+ * Calcula o Índice de Pressão e Momentum Ofensivo da Partida a cada 5 Minutos (Estilo Sofascore Attack Momentum)
+ */
+export function calcularMomentumPartida(lances = [], homeName = 'Mandante', awayName = 'Visitante') {
+  const intervals = Array(18).fill(0);
+
+  for (const l of lances) {
+    const min = parseInt(String(l.minuto || '0').replace("'", ''), 10);
+    const bucket = Math.min(17, Math.max(0, Math.floor(min / 5)));
+    const isHome = l.equipe ? l.equipe.toLowerCase().includes(homeName.toLowerCase()) : ((l.coordenadasCampo?.x || 50) > 50);
+
+    let weight = 1;
+    const tipo = (l.tipo || '').toLowerCase();
+    const desc = (l.descricao || '').toLowerCase();
+    if (tipo.includes('goal') || desc.includes('goal!')) weight = 6;
+    else if (tipo.includes('shot') || desc.includes('shot')) weight = 3;
+    else if (tipo.includes('corner') || desc.includes('corner')) weight = 2;
+    else if (tipo.includes('foul')) weight = 1;
+
+    intervals[bucket] += isHome ? weight : -weight;
+  }
+
+  return intervals.map((v, i) => {
+    const minIni = i * 5;
+    const minFim = (i + 1) * 5;
+    const intensidade = Math.min(10, Math.max(-10, Number((v * 1.5).toFixed(1))));
+    return {
+      periodo: `${minIni}'-${minFim}'`,
+      minutoInicial: minIni,
+      minutoFinal: minFim,
+      timeDominante: intensidade > 0 ? homeName : intensidade < 0 ? awayName : 'Equilíbrio',
+      pressaoOfensiva: intensidade,
+      percentualDominioMandante: Math.round(((intensidade + 10) / 20) * 100)
+    };
+  });
+}
+
+/**
+ * Renderiza o Gráfico de Momentum e Pressão Ofensiva (Attack Momentum SVG)
+ */
+export function renderMomentumSvg(momentumList = [], homeName = 'Mandante', awayName = 'Visitante') {
+  const fX = 60, fY = 70, fW = 660, fH = 240;
+  const zeroY = fY + fH / 2;
+
+  let barsSvg = '';
+  momentumList.forEach((m, idx) => {
+    const x = fX + idx * (fW / 18);
+    const barW = (fW / 18) - 4;
+    const val = m.pressaoOfensiva || 0;
+    const h = Math.abs(val) * 10;
+    const y = val >= 0 ? zeroY - h : zeroY;
+    const cor = val >= 0 ? '#10b981' : '#3b82f6';
+
+    barsSvg += `
+      <g>
+        <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(3, h).toFixed(1)}" rx="3" fill="${cor}" opacity="0.85"/>
+        <text x="${(x + barW / 2).toFixed(1)}" y="${zeroY + 130}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#64748b">${m.minutoFinal}'</text>
+      </g>
+    `;
+  });
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 430" width="780" height="430">
+  <defs>
+    <linearGradient id="momBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070d18"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="780" height="430" rx="16" fill="url(#momBg)" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Título -->
+  <text x="390" y="34" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#a3e635" letter-spacing="1">
+    PRESSÃO OFENSIVA &amp; MOMENTUM EM TEMPO REAL (0' - 90')
+  </text>
+  
+  <text x="60" y="52" font-family="system-ui, sans-serif" font-size="12" font-weight="800" fill="#10b981">▲ ${homeName.toUpperCase()} (PRESSÃO MANDANTE)</text>
+  <text x="720" y="52" text-anchor="end" font-family="system-ui, sans-serif" font-size="12" font-weight="800" fill="#60a5fa">▼ ${awayName.toUpperCase()} (PRESSÃO VISITANTE)</text>
+
+  <!-- Área do Gráfico -->
+  <rect x="60" y="70" width="660" height="240" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Linha Zero Central (Equilíbrio) -->
+  <line x1="60" y1="190" x2="720" y2="190" stroke="#334155" stroke-width="1.5" stroke-dasharray="4,4"/>
+
+  <!-- Barras de Momentum -->
+  ${barsSvg}
+
+  <!-- Legenda -->
+  <text x="390" y="380" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">
+    Blocos de 5 minutos ponderados por finalizações, escanteios, faltas e gols
+  </text>
+  <text x="390" y="410" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">
+    Futebol Pro Anycast • Modelo Attack Momentum • https://ponte.ozpro.com.br
+  </text>
+</svg>`;
+}
+
+/**
+ * Renderiza o Troféu e Ranking SVG da Chuteira de Ouro Mundial
+ */
+export function renderChuteiraDeOuroSvg(ranking = CHUTEIRA_DE_OURO_MUNDIAL) {
+  let rowsSvg = '';
+  ranking.slice(0, 5).forEach((r, idx) => {
+    const y = 90 + idx * 56;
+    const w = Math.round((r.pontos / ranking[0].pontos) * 280);
+
+    rowsSvg += `
+      <g transform="translate(40, ${y})">
+        <!-- Posição e Bandeira -->
+        <circle cx="20" cy="20" r="14" fill="#162032" stroke="#334155" stroke-width="1.5"/>
+        <text x="20" y="25" text-anchor="middle" font-family="ui-monospace, monospace" font-size="12" font-weight="900" fill="${idx === 0 ? '#fbbf24' : '#f8fafc'}">${r.rank}</text>
+
+        <!-- Nome e Clube -->
+        <text x="50" y="16" font-family="system-ui, sans-serif" font-size="13" font-weight="800" fill="#f8fafc">${r.jogador}</text>
+        <text x="50" y="32" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">${r.clube} • ${r.gols} gols (x${r.coeficiente})</text>
+
+        <!-- Barra de Pontos -->
+        <rect x="330" y="12" width="${w}" height="16" rx="4" fill="${idx === 0 ? '#fbbf24' : '#10b981'}"/>
+        <text x="${340 + w}" y="25" font-family="ui-monospace, monospace" font-size="13" font-weight="900" fill="${idx === 0 ? '#fbbf24' : '#a3e635'}">${r.pontos} pts</text>
+      </g>
+    `;
+  });
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 400" width="740" height="400">
+  <defs>
+    <linearGradient id="bootBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a101d"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="740" height="400" rx="16" fill="url(#bootBg)" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Cabeçalho -->
+  <text x="370" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#fbbf24" letter-spacing="1">
+    🏆 CHUTEIRA DE OURO MUNDIAL (EUROPEAN &amp; SOUTH AMERICAN GOLDEN BOOT)
+  </text>
+  <text x="370" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11.5" font-weight="600" fill="#94a3b8">
+    Gols oficiais multiplicados pelo coeficiente de dificuldade da liga (UEFA / CONMEBOL)
+  </text>
+
+  <line x1="40" y1="74" x2="700" y2="74" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Linhas do Ranking -->
+  ${rowsSvg}
+
+  <!-- Rodapé -->
+  <text x="370" y="385" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10.5" fill="#475569">
+    Futebol Pro Anycast • Coeficientes Oficiais Ponderados • https://ponte.ozpro.com.br
+  </text>
+</svg>`;
+}
+
 
 
 

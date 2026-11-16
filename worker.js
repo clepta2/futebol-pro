@@ -54,6 +54,11 @@ import {
   calcularHandicapAsiatico,
   renderChaveamentoMataMataSvg,
   renderClassicoGaugeSvg,
+  CHUTEIRA_DE_OURO_MUNDIAL,
+  RANKING_FIFA_SELECOES,
+  calcularMomentumPartida,
+  renderMomentumSvg,
+  renderChuteiraDeOuroSvg,
   exportarTabelaCsv,
   exportarTabelaXml
 } from './dados-futebol.js';
@@ -1330,6 +1335,37 @@ export default {
         });
       }
 
+      // Attack Momentum e Pressão Ofensiva (Estilo Sofascore)
+      if (subAcao === 'momentum' || subAcao === 'pressao') {
+        const part = detalhe.partida || detalhe;
+        const momentum = calcularMomentumPartida(part.lanceALance || [], part.mandante?.nome, part.visitante?.nome);
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          partida: `${part.mandante?.nome} vs ${part.visitante?.nome}`,
+          status: part.status,
+          tempoJogo: part.tempoJogo,
+          attackMomentum: momentum,
+          momentumSvgUrl: `/api/futebol/partida/${partidaId}/momentum.svg`
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      if (subAcao === 'momentum.svg') {
+        const part = detalhe.partida || detalhe;
+        const momentum = calcularMomentumPartida(part.lanceALance || [], part.mandante?.nome, part.visitante?.nome);
+        const svg = renderMomentumSvg(momentum, part.mandante?.nome, part.visitante?.nome);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=30',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
       // Pontuação Oficial de Fantasy Game (Cartola / Fantasy League)
       if (subAcao === 'fantasy' || subAcao === 'cartola') {
         const part = detalhe.partida || detalhe;
@@ -1830,6 +1866,46 @@ export default {
         criterios: 'Rating médio ponderado, gols, assistências, títulos oficiais e decisões',
         rankingMelhoresDaTemporada: ranking,
         selecaoIdealDaTemporada: SELECAO_DA_TEMPORADA
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 10.0.1.1 CHUTEIRA DE OURO MUNDIAL & SVG
+    if (path === '/api/futebol/premios/chuteira-de-ouro' || path === '/api/futebol/premios/chuteira-de-ouro.svg') {
+      if (path.endsWith('.svg') || url.searchParams.get('formato') === 'svg') {
+        const svg = renderChuteiraDeOuroSvg(CHUTEIRA_DE_OURO_MUNDIAL);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        premio: 'Chuteira de Ouro Mundial (Golden Boot)',
+        temporada: '2026',
+        criterioPontos: 'Gols na liga nacional multiplicados pelo coeficiente de dificuldade UEFA/CONMEBOL (x2.0 ou x1.5)',
+        liderAtual: CHUTEIRA_DE_OURO_MUNDIAL[0],
+        ranking: CHUTEIRA_DE_OURO_MUNDIAL,
+        chuteiraSvgUrl: '/api/futebol/premios/chuteira-de-ouro.svg'
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 10.0.1.2 RANKING FIFA OFICIAL DE SELEÇÕES
+    if (path === '/api/futebol/ranking-fifa' || path === '/api/futebol/selecoes') {
+      return new Response(JSON.stringify({
+        ok: true,
+        titulo: 'Ranking Mundial Oficial da FIFA (Men\'s World Ranking)',
+        atualizadoEm: 'Novembro de 2026',
+        totalSelecoesListadas: RANKING_FIFA_SELECOES.length,
+        ranking: RANKING_FIFA_SELECOES
       }, null, 2), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
       });

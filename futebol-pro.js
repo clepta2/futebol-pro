@@ -231,6 +231,63 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém a análise de Attack Momentum e pressão ofensiva da partida minuto a minuto
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getMomentumPartida(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/momentum`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter momentum da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Gráfico de Attack Momentum SVG
+   * @param {string} partidaId
+   * @returns {string}
+   */
+  static getMomentumSvgUrl(partidaId) {
+    return `${this.baseUrl}/api/futebol/partida/${partidaId}/momentum.svg`;
+  }
+
+  /**
+   * Obtém a classificação oficial e pontuações da Chuteira de Ouro Mundial
+   * @returns {Promise<Object>}
+   */
+  static async getChuteiraDeOuro() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/premios/chuteira-de-ouro`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter Chuteira de Ouro: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Gráfico e Troféu SVG da Chuteira de Ouro Mundial
+   * @returns {string}
+   */
+  static getChuteiraDeOuroSvgUrl() {
+    return `${this.baseUrl}/api/futebol/premios/chuteira-de-ouro.svg`;
+  }
+
+  /**
+   * Obtém o Ranking Mundial Oficial da FIFA de Seleções
+   * @returns {Promise<Object>}
+   */
+  static async getRankingFifa() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/ranking-fifa`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter Ranking FIFA: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
    * Obtém os mercados de odds justas calculados pela distribuição de Poisson da partida
    * @param {string} partidaId
    * @returns {Promise<Object>}
