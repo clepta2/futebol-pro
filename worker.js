@@ -2575,6 +2575,19 @@ export default {
         });
       }
 
+      // Dossiê Executivo de Scouting em HTML para Imprensa e Olheiros
+      if (subAcao === 'relatorio.html' || subAcao === 'dossie.html' || path.endsWith('.html')) {
+        const html = renderRelatorioScoutingHtml(jogador, analise);
+        return new Response(html, {
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
       // Histórico de Clubes por Ano e Trajetória
       if (subAcao === 'historico' || subAcao === 'carreira') {
         return new Response(JSON.stringify({
