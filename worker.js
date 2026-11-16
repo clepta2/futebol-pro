@@ -49,6 +49,11 @@ import {
   calcularPontuacaoFantasy,
   RANKING_RODADA_FANTASY,
   SCOUTING_SUB21_TALENTOS,
+  MATA_MATA_TORNEIOS,
+  ARBITROS_OFICIAIS,
+  calcularHandicapAsiatico,
+  renderChaveamentoMataMataSvg,
+  renderClassicoGaugeSvg,
   exportarTabelaCsv,
   exportarTabelaXml
 } from './dados-futebol.js';
@@ -1398,7 +1403,11 @@ export default {
     }
 
     if (path.startsWith('/api/futebol/classicos/')) {
-      const slugClassico = path.split('/')[4]?.toLowerCase();
+      const parts = path.split('/');
+      let slugClassico = parts[4]?.toLowerCase();
+      const isGaugeSvg = slugClassico.endsWith('.svg') || parts[5] === 'gauge.svg';
+      slugClassico = slugClassico.replace(/\.svg$/, '');
+
       const classico = RETROSPECTO_CLASSICOS[slugClassico];
       if (!classico) {
         return new Response(JSON.stringify({
@@ -1412,10 +1421,109 @@ export default {
         });
       }
 
+      if (isGaugeSvg) {
+        const svg = renderClassicoGaugeSvg(classico);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
       return new Response(JSON.stringify({
         ok: true,
         slug: slugClassico,
-        dados: classico
+        dados: classico,
+        gaugeSvgUrl: `/api/futebol/classicos/${slugClassico}/gauge.svg`
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 6.7 CHAVEAMENTO OFICIAL DE TORNEIOS MATA-MATA (Libertadores, Copa do Brasil, Champions)
+    if (path === '/api/futebol/matamata') {
+      return new Response(JSON.stringify({
+        ok: true,
+        torneiosDisponiveis: Object.keys(MATA_MATA_TORNEIOS),
+        mataMata: MATA_MATA_TORNEIOS
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path.startsWith('/api/futebol/matamata/')) {
+      const parts = path.split('/');
+      let slugTorneio = parts[4]?.toLowerCase();
+      const isChaveamentoSvg = slugTorneio.endsWith('.svg') || parts[5] === 'chaveamento.svg';
+      slugTorneio = slugTorneio.replace(/\.svg$/, '');
+
+      const torneio = MATA_MATA_TORNEIOS[slugTorneio];
+      if (!torneio) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'TORNEIO_NAO_ENCONTRADO',
+          mensagem: `Torneio mata-mata "${slugTorneio}" não cadastrado.`,
+          disponiveis: Object.keys(MATA_MATA_TORNEIOS)
+        }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      if (isChaveamentoSvg) {
+        const svg = renderChaveamentoMataMataSvg(torneio);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        slug: slugTorneio,
+        chaveamento: torneio,
+        chaveamentoSvgUrl: `/api/futebol/matamata/${slugTorneio}/chaveamento.svg`
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 6.8 PERFIL E ESTATÍSTICAS OFICIAIS DE ÁRBITROS FIFA
+    if (path === '/api/futebol/arbitros') {
+      return new Response(JSON.stringify({
+        ok: true,
+        totalArbitros: ARBITROS_OFICIAIS.length,
+        arbitros: ARBITROS_OFICIAIS
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path.startsWith('/api/futebol/arbitros/')) {
+      const arbitroId = path.split('/')[4]?.toLowerCase();
+      const arbitro = ARBITROS_OFICIAIS.find(a => a.id.toLowerCase() === arbitroId || a.nome.toLowerCase().includes(arbitroId));
+      if (!arbitro) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'ARBITRO_NAO_ENCONTRADO',
+          mensagem: `Árbitro "${arbitroId}" não cadastrado no banco oficial.`,
+          disponiveis: ARBITROS_OFICIAIS.map(a => a.id)
+        }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        arbitro
       }, null, 2), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
       });

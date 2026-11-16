@@ -3199,6 +3199,319 @@ export function renderAvatarJogadorSvg(jogador) {
 </svg>`;
 }
 
+export const MATA_MATA_TORNEIOS = {
+  'libertadores': {
+    campeonato: 'CONMEBOL Libertadores',
+    slug: 'libertadores',
+    temporada: '2026',
+    faseAtual: 'Grande Final',
+    semifinais: [
+      {
+        chave: 'SF1',
+        time1: { nome: 'Atlético-MG', placarIda: 3, placarVolta: 0, agregado: 3, classificado: true },
+        time2: { nome: 'River Plate', placarIda: 0, placarVolta: 0, agregado: 0, classificado: false }
+      },
+      {
+        chave: 'SF2',
+        time1: { nome: 'Botafogo', placarIda: 5, placarVolta: 1, agregado: 6, classificado: true },
+        time2: { nome: 'Peñarol', placarIda: 0, placarVolta: 3, agregado: 3, classificado: false }
+      }
+    ],
+    grandeFinal: {
+      data: '2026-11-28',
+      estadio: 'Estádio Monumental de Córdoba (Argentina)',
+      mandante: 'Atlético-MG',
+      visitante: 'Botafogo',
+      status: 'Final Única Agendada'
+    }
+  },
+  'copa-do-brasil': {
+    campeonato: 'Copa do Brasil',
+    slug: 'copa-do-brasil',
+    temporada: '2026',
+    faseAtual: 'Final Concluída',
+    semifinais: [
+      {
+        chave: 'SF1',
+        time1: { nome: 'Flamengo', placarIda: 1, placarVolta: 0, agregado: 1, classificado: true },
+        time2: { nome: 'Corinthians', placarIda: 0, placarVolta: 0, agregado: 0, classificado: false }
+      },
+      {
+        chave: 'SF2',
+        time1: { nome: 'Atlético-MG', placarIda: 2, placarVolta: 1, agregado: 3, classificado: true },
+        time2: { nome: 'Vasco da Gama', placarIda: 1, placarVolta: 1, agregado: 2, classificado: false }
+      }
+    ],
+    grandeFinal: {
+      ida: { mandante: 'Flamengo', placar: 3, visitante: 'Atlético-MG', placarVisitante: 1, local: 'Maracanã' },
+      volta: { mandante: 'Atlético-MG', placar: 0, visitante: 'Flamengo', placarVisitante: 1, local: 'Arena MRV' },
+      campeao: 'Flamengo (Pentacampeão)'
+    }
+  },
+  'champions-league': {
+    campeonato: 'UEFA Champions League',
+    slug: 'champions-league',
+    temporada: '2026-2027',
+    faseAtual: 'Fase de Liga Unificada (36 Clubes)',
+    lideresLiga: ['Liverpool', 'Sporting CP', 'Monaco', 'Real Madrid'],
+    finalMarcada: {
+      data: '2027-05-29',
+      estadio: 'Puskás Aréna (Budapeste, Hungria)'
+    }
+  }
+};
+
+export const ARBITROS_OFICIAIS = [
+  {
+    id: 'wilton-sampaio',
+    nome: 'Wilton Pereira Sampaio',
+    federacao: 'FIFA / CBF (Goiás)',
+    nacionalidade: 'Brasil',
+    idade: 44,
+    categoria: 'FIFA Elite',
+    jogosArbitrados: 310,
+    mediaCartoesAmarelos: 4.9,
+    mediaCartoesVermelhos: 0.28,
+    mediaFaltasPorJogo: 28.4,
+    mediaPenaltisPorJogo: 0.38,
+    perfilDisciplinar: 'Rigoroso (Alto controle verbal e faltas táticas punidas precocemente)'
+  },
+  {
+    id: 'raphael-claus',
+    nome: 'Raphael Claus',
+    federacao: 'FIFA / CBF (São Paulo)',
+    nacionalidade: 'Brasil',
+    idade: 47,
+    categoria: 'FIFA Elite',
+    jogosArbitrados: 345,
+    mediaCartoesAmarelos: 4.4,
+    mediaCartoesVermelhos: 0.22,
+    mediaFaltasPorJogo: 25.8,
+    mediaPenaltisPorJogo: 0.32,
+    perfilDisciplinar: 'Fluido e Moderado (Deixa o jogo correr e prioriza vantagem)'
+  },
+  {
+    id: 'wilmar-roldan',
+    nome: 'Wilmar Roldán',
+    federacao: 'FIFA / CONMEBOL',
+    nacionalidade: 'Colômbia',
+    idade: 46,
+    categoria: 'FIFA CONMEBOL Elite',
+    jogosArbitrados: 420,
+    mediaCartoesAmarelos: 5.4,
+    mediaCartoesVermelhos: 0.35,
+    mediaFaltasPorJogo: 30.2,
+    mediaPenaltisPorJogo: 0.42,
+    perfilDisciplinar: 'Disciplinador Rígido (Forte tolerância zero a reclamações)'
+  },
+  {
+    id: 'szymon-marciniak',
+    nome: 'Szymon Marciniak',
+    federacao: 'FIFA / UEFA',
+    nacionalidade: 'Polônia',
+    idade: 45,
+    categoria: 'FIFA UEFA Elite (Árbitro da Final da Copa 2022 e Champions 2023)',
+    jogosArbitrados: 380,
+    mediaCartoesAmarelos: 4.1,
+    mediaCartoesVermelhos: 0.18,
+    mediaFaltasPorJogo: 23.5,
+    mediaPenaltisPorJogo: 0.30,
+    perfilDisciplinar: 'Referência Mundial de Ritmo e Precisão no VAR'
+  },
+  {
+    id: 'anthony-taylor',
+    nome: 'Anthony Taylor',
+    federacao: 'FIFA / UEFA (Premier League)',
+    nacionalidade: 'Inglaterra',
+    idade: 48,
+    categoria: 'FIFA UEFA Elite',
+    jogosArbitrados: 410,
+    mediaCartoesAmarelos: 3.9,
+    mediaCartoesVermelhos: 0.16,
+    mediaFaltasPorJogo: 21.8,
+    mediaPenaltisPorJogo: 0.28,
+    perfilDisciplinar: 'Estilo Inglês (Mínima intervenção em disputas ombro a ombro)'
+  }
+];
+
+/**
+ * Calcula Linhas de Handicap Asiático a partir da expectativa de gols
+ */
+export function calcularHandicapAsiatico(expCasa = 1.5, expVisitante = 1.0) {
+  const diff = expCasa - expVisitante;
+  const pVitoria = Math.max(0.1, Math.min(0.9, 0.5 + diff * 0.15));
+
+  const linhas = [
+    { linha: 'Mandante -0.5 (Vitória Simples)', prob: Number((pVitoria * 100).toFixed(1)), odd: Number((1 / pVitoria).toFixed(2)) },
+    { linha: 'Visitante +0.5 (Dupla Chance)', prob: Number(((1 - pVitoria) * 100).toFixed(1)), odd: Number((1 / (1 - pVitoria)).toFixed(2)) },
+    { linha: 'Mandante -1.0 (Vitória por 2+ Gols)', prob: Number((Math.max(0.08, pVitoria * 0.62) * 100).toFixed(1)), odd: Number((1 / Math.max(0.08, pVitoria * 0.62)).toFixed(2)) },
+    { linha: 'Visitante +1.0 (Segurança)', prob: Number(((1 - Math.max(0.08, pVitoria * 0.62)) * 100).toFixed(1)), odd: Number((1 / (1 - Math.max(0.08, pVitoria * 0.62))).toFixed(2)) },
+    { linha: 'Mandante -0.25 (Empate Devolve Metade)', prob: Number((((pVitoria + 0.5) / 2) * 100).toFixed(1)), odd: Number((1 / ((pVitoria + 0.5) / 2)).toFixed(2)) },
+    { linha: 'Visitante +0.25', prob: Number(((1 - ((pVitoria + 0.5) / 2)) * 100).toFixed(1)), odd: Number((1 / (1 - ((pVitoria + 0.5) / 2))).toFixed(2)) }
+  ];
+
+  return {
+    expectativaGols: { mandante: expCasa, visitante: expVisitante },
+    linhasHandicapAsiatico: linhas,
+    timestampCalculo: new Date().toISOString()
+  };
+}
+
+/**
+ * Renderiza Diagrama Visual do Chaveamento Mata-Mata em SVG
+ */
+export function renderChaveamentoMataMataSvg(dadosMataMata) {
+  const sf = dadosMataMata.semifinais || [];
+  const final = dadosMataMata.grandeFinal || {};
+  const nomeCamp = (dadosMataMata.campeonato || 'Mata-Mata').toUpperCase();
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 440" width="780" height="440">
+  <defs>
+    <linearGradient id="bkBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a101d"/>
+      <stop offset="100%" stop-color="#030712"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="780" height="440" rx="16" fill="url(#bkBg)" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Título -->
+  <text x="390" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#a3e635" letter-spacing="1">
+    CHAVEAMENTO OFICIAL MATA-MATA • ${nomeCamp}
+  </text>
+
+  <!-- Semifinal 1 (Esquerda Topo) -->
+  <g transform="translate(40, 80)">
+    <rect width="210" height="90" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+    <text x="14" y="24" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="#94a3b8">SEMIFINAL 1 (AGREGADO)</text>
+    <text x="14" y="52" font-family="system-ui, sans-serif" font-size="13" font-weight="800" fill="${sf[0]?.time1?.classificado ? '#10b981' : '#f8fafc'}">
+      ${sf[0]?.time1?.nome || 'Time A'} <tspan font-family="ui-monospace" fill="#a3e635">${sf[0]?.time1?.agregado !== undefined ? sf[0].time1.agregado : '-'}</tspan>
+    </text>
+    <text x="14" y="74" font-family="system-ui, sans-serif" font-size="13" font-weight="800" fill="${sf[0]?.time2?.classificado ? '#10b981' : '#94a3b8'}">
+      ${sf[0]?.time2?.nome || 'Time B'} <tspan font-family="ui-monospace" fill="#94a3b8">${sf[0]?.time2?.agregado !== undefined ? sf[0].time2.agregado : '-'}</tspan>
+    </text>
+  </g>
+
+  <!-- Linha conectando Semifinal 1 até a Final -->
+  <path d="M 250 125 L 310 125 L 310 205 L 350 205" stroke="#10b981" stroke-width="2" fill="none"/>
+
+  <!-- Semifinal 2 (Esquerda Fundo) -->
+  <g transform="translate(40, 240)">
+    <rect width="210" height="90" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+    <text x="14" y="24" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="#94a3b8">SEMIFINAL 2 (AGREGADO)</text>
+    <text x="14" y="52" font-family="system-ui, sans-serif" font-size="13" font-weight="800" fill="${sf[1]?.time1?.classificado ? '#10b981' : '#f8fafc'}">
+      ${sf[1]?.time1?.nome || 'Time C'} <tspan font-family="ui-monospace" fill="#a3e635">${sf[1]?.time1?.agregado !== undefined ? sf[1].time1.agregado : '-'}</tspan>
+    </text>
+    <text x="14" y="74" font-family="system-ui, sans-serif" font-size="13" font-weight="800" fill="${sf[1]?.time2?.classificado ? '#10b981' : '#94a3b8'}">
+      ${sf[1]?.time2?.nome || 'Time D'} <tspan font-family="ui-monospace" fill="#94a3b8">${sf[1]?.time2?.agregado !== undefined ? sf[1].time2.agregado : '-'}</tspan>
+    </text>
+  </g>
+
+  <!-- Linha conectando Semifinal 2 até a Final -->
+  <path d="M 250 285 L 310 285 L 310 225 L 350 225" stroke="#10b981" stroke-width="2" fill="none"/>
+
+  <!-- Box da Grande Final (Centro) -->
+  <g transform="translate(350, 150)">
+    <rect width="240" height="130" rx="12" fill="#162032" stroke="#a3e635" stroke-width="2"/>
+    <text x="120" y="28" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#a3e635" letter-spacing="1">🏆 GRANDE FINAL ÚNICA</text>
+    
+    <text x="120" y="60" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="900" fill="#f8fafc">
+      ${final.mandante || final.campeao || 'Finalista 1'}
+    </text>
+    <text x="120" y="80" text-anchor="middle" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#94a3b8">
+      VS
+    </text>
+    <text x="120" y="104" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="900" fill="#f8fafc">
+      ${final.visitante || 'Finalista 2'}
+    </text>
+  </g>
+
+  <!-- Taça / Troféu Destaque (Direita) -->
+  <g transform="translate(630, 160)">
+    <circle cx="50" cy="50" r="44" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
+    <text x="50" y="58" text-anchor="middle" font-size="34">🏆</text>
+    <text x="50" y="112" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10.5" font-weight="800" fill="#fbbf24">GLÓRIA ETERNA</text>
+  </g>
+
+  <!-- Rodapé -->
+  <text x="390" y="415" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#64748b">
+    Futebol Pro Anycast • Súmulas Oficiais de Torneios Mata-Mata • https://ponte.ozpro.com.br
+  </text>
+</svg>`;
+}
+
+/**
+ * Renderiza o Comparador Gráfico Gauge do Clássico em SVG
+ */
+export function renderClassicoGaugeSvg(classico) {
+  const t1 = classico.vitoriasTime1 || 1;
+  const t2 = classico.vitoriasTime2 || 1;
+  const emp = classico.empates || 1;
+  const total = t1 + t2 + emp;
+
+  const pct1 = Math.round((t1 / total) * 100);
+  const pctEmp = Math.round((emp / total) * 100);
+  const pct2 = Math.max(1, 100 - pct1 - pctEmp);
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 340" width="680" height="340">
+  <defs>
+    <linearGradient id="clBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a101d"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="680" height="340" rx="16" fill="url(#clBg)" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Título do Clássico -->
+  <text x="340" y="40" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="900" fill="#f8fafc">
+    ${classico.classico.toUpperCase()}
+  </text>
+  <text x="340" y="62" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#a3e635">
+    TOTAL DE ${classico.totalJogos} CONFRONTOS HISTÓRICOS OFICIAIS
+  </text>
+
+  <!-- Barra de Proporção Tripla -->
+  <g transform="translate(60, 100)">
+    <rect x="0" y="0" width="${(pct1 / 100) * 560}" height="32" rx="4" fill="#10b981"/>
+    <rect x="${(pct1 / 100) * 560}" y="0" width="${(pctEmp / 100) * 560}" height="32" fill="#fbbf24"/>
+    <rect x="${((pct1 + pctEmp) / 100) * 560}" y="0" width="${(pct2 / 100) * 560}" height="32" rx="4" fill="#3b82f6"/>
+  </g>
+
+  <!-- Três Cards Comparativos -->
+  <g transform="translate(60, 160)">
+    <!-- Time 1 -->
+    <rect x="0" y="0" width="160" height="90" rx="10" fill="#0f172a" stroke="#10b981" stroke-width="1.5"/>
+    <text x="80" y="28" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#94a3b8">VITÓRIAS TIME 1</text>
+    <text x="80" y="62" text-anchor="middle" font-family="ui-monospace, monospace" font-size="28" font-weight="900" fill="#10b981">${t1}</text>
+    <text x="80" y="80" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#64748b">${pct1}% do total</text>
+
+    <!-- Empates -->
+    <rect x="200" y="0" width="160" height="90" rx="10" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="280" y="28" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#94a3b8">EMPATES</text>
+    <text x="280" y="62" text-anchor="middle" font-family="ui-monospace, monospace" font-size="28" font-weight="900" fill="#fbbf24">${emp}</text>
+    <text x="280" y="80" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#64748b">${pctEmp}% do total</text>
+
+    <!-- Time 2 -->
+    <rect x="400" y="0" width="160" height="90" rx="10" fill="#0f172a" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="480" y="28" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#94a3b8">VITÓRIAS TIME 2</text>
+    <text x="480" y="62" text-anchor="middle" font-family="ui-monospace, monospace" font-size="28" font-weight="900" fill="#60a5fa">${t2}</text>
+    <text x="480" y="80" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#64748b">${pct2}% do total</text>
+  </g>
+
+  <!-- Maior Goleada -->
+  <text x="340" y="295" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#cbd5e1">
+    💥 Maior Goleada Registrada: <tspan fill="#a3e635">${classico.maiorGoleada}</tspan>
+  </text>
+
+  <!-- Watermark -->
+  <text x="340" y="325" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">
+    Futebol Pro Anycast • Histórico Oficial de Dérbis • https://ponte.ozpro.com.br
+  </text>
+</svg>`;
+}
+
+
 
 
 
