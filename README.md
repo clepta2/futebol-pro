@@ -100,29 +100,25 @@ Incorpore placares, tabelas e rastreamento em qualquer site externo com uma úni
 `GET /api/futebol/tabela/:campeonato`  
 Parâmetro opcional: `?formato=json|csv|xml` ou `GET /api/futebol/tabela/:campeonato/projecoes` para probabilidades de Título, G4 e Z4.
 
-**Competições Suportadas:**
-- `brasileirao-a` (Brasileirão Série A)
-- `brasileirao-b` (Brasileirão Série B)
-- `premier-league` (Inglaterra)
-- `la-liga` (Espanha)
-- `serie-a-italia` (Itália)
-- `bundesliga` (Alemanha)
-- `ligue-1` (França)
-- `eredivisie` (Holanda)
-- `primeira-liga` (Portugal)
-- `mls` (Estados Unidos)
-- `saudi-league` (Arábia Saudita)
-- `liga-argentina` (Argentina)
-- `championship` (Inglaterra 2ª Div)
-- `champions-league` (UEFA Champions League)
-- `libertadores` (CONMEBOL Libertadores)
-- `uefa-nations` (UEFA Nations League)
+### 12. 🏆 Torneios Mata-Mata & Diagrama SVG de Chaveamento
+- `GET /api/futebol/matamata/:torneio`: Confrontos de ida e volta, placares agregados e final (Libertadores, Copa do Brasil, Champions League).
+- `GET /api/futebol/matamata/:torneio/chaveamento.svg`: Diagrama vetorial visual SVG completo do chaveamento do torneio.
 
-### 7. 🛡️ Cadastro Oficial de Clubes
+### 13. 👨‍⚖️ Árbitros FIFA & Estatísticas Disciplinares
+- `GET /api/futebol/arbitros`: Catálogo de árbitros oficiais com médias de cartões amarelos, vermelhos, faltas por jogo, pênaltis e índice de rigor disciplinar.
+- `GET /api/futebol/arbitros/:id`: Ficha técnica de arbitragem (ex: `wilton-sampaio`, `raphael-claus`, `szymon-marciniak`).
+
+### 14. 🎲 Linhas de Handicap Asiático
+- `GET /api/futebol/partida/:id/handicap`: Cálculo matemático de linhas de handicap asiático (-0.25, -0.5, -0.75, -1.0, +0.25, +0.5, +0.75, +1.0) com probabilidades e odds justas.
+
+### 15. 🎚️ Gauge Gráfico de Clássicos H2H em SVG
+- `GET /api/futebol/classicos/:slug/gauge.svg`: Renderizador SVG de proporção tripla de vitórias e empates do dérbi.
+
+### 16. 🛡️ Cadastro Oficial de Clubes
 `GET /api/futebol/clubes`  
 Filtros opcionais: `?estado=SP`, `?pais=Brasil`, `?busca=flamengo`
 
-### 8. 🏟️ Estádios Oficiais
+### 17. 🏟️ Estádios Oficiais
 `GET /api/futebol/estadios`  
 Filtros opcionais: `?uf=RJ`, `?cidade=Rio de Janeiro`
 
