@@ -28,6 +28,8 @@ import {
   RETROSPECTO_CLASSICOS,
   calcularProbabilidadeConfronto,
   compararJogadores,
+  analisarJogadorComMotor,
+  renderDashboardAtletaSvg,
   renderGraficoEstatisticoPartidaSvg,
   renderCardPartidaSvg,
   renderRadarAtletaSvg,
@@ -1307,18 +1309,46 @@ export default {
     if (path.startsWith('/api/futebol/jogadores/')) {
       const parts = path.split('/');
       let jogadorId = parts[4]?.toLowerCase();
-      const isRadarSvg = jogadorId.endsWith('.svg') || parts[5] === 'radar.svg';
+      const subAcao = parts[5]?.toLowerCase();
+      const isDashboardSvg = subAcao === 'dashboard.svg' || subAcao === 'grafico.svg';
+      const isRadarSvg = subAcao === 'radar.svg' || jogadorId.endsWith('.svg');
       jogadorId = jogadorId.replace(/\.svg$/, '').replace(/\/radar$/, '');
 
-      const jogador = JOGADORES_CONSOLIDADOS.find(j => j.id.toLowerCase() === jogadorId || j.nome.toLowerCase().includes(jogadorId));
+      let jogador = JOGADORES_CONSOLIDADOS.find(j => 
+        j.id.toLowerCase() === jogadorId || 
+        (j.slug && j.slug.toLowerCase() === jogadorId) || 
+        j.nome.toLowerCase().includes(jogadorId)
+      );
+
+      if (!jogador) {
+        const elencoFla = await fetchRosterLive('flamengo');
+        jogador = elencoFla.find(j => j.id === jogadorId || j.nome.toLowerCase().includes(jogadorId));
+      }
+
       if (!jogador) {
         return new Response(JSON.stringify({
           ok: false,
           erro: 'JOGADOR_NAO_ENCONTRADO',
-          mensagem: `Jogador "${jogadorId}" não encontrado na base de dados.`
+          mensagem: `Jogador "${jogadorId}" não encontrado na base de dados oficiais.`
         }), {
           status: 404,
           headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Motor de Análise Estatística e Tática Oficial
+      const analise = analisarJogadorComMotor(jogador);
+
+      // Renderização do Dashboard Gráfico SVG Completo
+      if (isDashboardSvg) {
+        const svg = renderDashboardAtletaSvg(jogador, analise);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
         });
       }
 
@@ -1335,10 +1365,26 @@ export default {
         });
       }
 
+      // Retorno JSON do Motor de Análise
+      if (subAcao === 'analise' || subAcao === 'motor') {
+        return new Response(JSON.stringify({
+          ok: true,
+          analise
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       return new Response(JSON.stringify({
         ok: true,
-        jogador
-      }), {
+        jogador,
+        analiseRapida: {
+          rating: analise.motorAnalitico?.ratingGeral,
+          classe: analise.motorAnalitico?.classeDesempenho,
+          arquetipo: analise.motorAnalitico?.arquetipoTatico,
+          pontosFortes: analise.motorAnalitico?.pontosFortes
+        }
+      }, null, 2), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
       });
     }

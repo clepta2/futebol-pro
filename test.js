@@ -286,6 +286,24 @@ assert(resRadar.headers.get('Content-Type').includes('image/svg+xml'), 'Header i
 const svgRadar = await resRadar.text();
 assert(svgRadar.includes('<polygon') && svgRadar.includes('FINALIZAÇÃO'), 'Polígono radar com habilidades gerado no SVG');
 
+// 9.4.1 Motor de Análise Estatística e Tática do Atleta
+const resAnalise = await worker.fetch(new Request('https://api.test/api/futebol/jogadores/pedro-9/analise', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resAnalise.status === 200, 'Endpoint /jogadores/:id/analise responde 200');
+const dataAnalise = await resAnalise.json();
+assert(dataAnalise.analise.motorAnalitico.ratingGeral >= 8.5, 'Rating geral do atleta calculado pelo motor analítico');
+assert(dataAnalise.analise.motorAnalitico.arquetipoTatico.includes('Centroavante'), 'Arquétipo tático identificado');
+
+// 9.4.2 Dashboard Gráfico SVG Completo do Atleta
+const resDashSvg = await worker.fetch(new Request('https://api.test/api/futebol/jogadores/pedro-9/dashboard.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resDashSvg.status === 200, 'Endpoint /dashboard.svg responde 200');
+assert(resDashSvg.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado');
+const textDash = await resDashSvg.text();
+assert(textDash.includes('EVOLUÇÃO HISTÓRICA DE GOLS'), 'Dashboard SVG contém gráfico de evolução histórica');
+
 // 9.5 Estatísticas Oficiais Reais da Partida
 const resStats = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/stats', {
   headers: { 'Authorization': 'Bearer fut_master_suite' }

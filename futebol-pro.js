@@ -227,6 +227,29 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém a análise estatística e parecer tático do motor de análise oficial
+   * @param {string} jogadorId
+   * @returns {Promise<Object>}
+   */
+  static async getAnaliseJogador(jogadorId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/jogadores/${jogadorId}/analise`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter análise do jogador (${jogadorId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Dashboard Gráfico SVG Completo do Jogador (Card de Scouting e Evolução)
+   * @param {string} jogadorId
+   * @returns {string}
+   */
+  static getDashboardJogadorUrl(jogadorId) {
+    return `${this.baseUrl}/api/futebol/jogadores/${jogadorId}/dashboard.svg`;
+  }
+
+  /**
    * Obtém a URL do Gráfico Radar SVG de atributos do atleta
    * @param {string} jogadorId
    * @returns {string}

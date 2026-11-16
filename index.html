@@ -396,11 +396,15 @@
 
         <div style="display:flex; gap:10px; margin-bottom:14px;">
           <select id="sandbox-endpoint" class="ponte-select" style="flex:1;" onchange="updateSnippets()">
+            <option value="/api/futebol/jogadores/pedro-9/analise">GET /api/futebol/jogadores/pedro-9/analise (Motor de Análise do Jogador)</option>
+            <option value="/api/futebol/partida/hist_001/stats">GET /api/futebol/partida/hist_001/stats (Estatísticas Oficiais da Partida)</option>
+            <option value="/api/futebol/clubes/flamengo/elenco">GET /api/futebol/clubes/flamengo/elenco (Elenco Oficial com 40+ Jogadores)</option>
+            <option value="/api/futebol/jogadores/comparar/pedro-9/veiga-23">GET /api/futebol/jogadores/comparar/pedro-9/veiga-23 (Comparador H2H)</option>
+            <option value="/api/futebol/mundo/hoje">GET /api/futebol/mundo/hoje (Todos os Jogos de Hoje)</option>
+            <option value="/api/futebol/classicos/flamengo-palmeiras">GET /api/futebol/classicos/flamengo-palmeiras (Retrospecto de Clássico)</option>
             <option value="/api/futebol/tabela/brasileirao-a">GET /api/futebol/tabela/brasileirao-a (Classificação)</option>
             <option value="/api/futebol/aovivo">GET /api/futebol/aovivo (Placares em Tempo Real)</option>
-            <option value="/api/futebol/clubes/flamengo">GET /api/futebol/clubes/flamengo (Cadastro do Clube)</option>
             <option value="/api/futebol/confronto/flamengo/palmeiras">GET /api/futebol/confronto/flamengo/palmeiras (Simulador Elo)</option>
-            <option value="/api/futebol/artilharia/brasileirao-a">GET /api/futebol/artilharia/brasileirao-a (Artilheiros)</option>
             <option value="/api/futebol/health">GET /api/futebol/health (Healthcheck Anycast)</option>
           </select>
           <button class="ponte-btn" onclick="executarSandbox()">▶ Executar</button>
@@ -599,15 +603,85 @@
             <strong>📐 Físico:</strong> ${jg.altura || '-'} • ${jg.peso || '-'}<br>
             <strong>⚽ Carreira:</strong> ${jg.golsCarreira || 0} gols, ${jg.assistenciasCarreira || 0} assistências em ${jg.jogosCarreira || 0} jogos
           </div>
-          <div style="display:flex; gap:6px;">
-            <button class="ponte-btn secondary" style="flex:1; padding:6px; font-size:11px;" onclick="abrirRadarJogador('${jg.id}')">🕸️ Ver Radar SVG</button>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+            <button class="ponte-btn" style="padding:6px; font-size:11px;" onclick="abrirDashboardJogador('${jg.id}')">📊 Dashboard SVG</button>
+            <button class="ponte-btn secondary" style="padding:6px; font-size:11px;" onclick="abrirRadarJogador('${jg.id}')">🕸️ Radar SVG</button>
+            <button class="ponte-btn secondary" style="grid-column: span 2; padding:6px; font-size:11px;" onclick="abrirMotorAnalise('${jg.id}')">🧠 Motor de Análise Tática</button>
           </div>
         </div>
       `).join('');
     };
 
+    window.abrirDashboardJogador = function(id) {
+      window.open(`/api/futebol/jogadores/${id}/dashboard.svg`, '_blank');
+    };
+
     window.abrirRadarJogador = function(id) {
       window.open(`/api/futebol/jogadores/${id}/radar.svg`, '_blank');
+    };
+
+    window.abrirMotorAnalise = async function(id) {
+      try {
+        const modal = document.getElementById('modal-partida');
+        const conteudo = document.getElementById('modal-partida-conteudo');
+        conteudo.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Executando motor analítico com dados oficiais...</div>';
+        modal.style.display = 'flex';
+
+        const res = await fetch(`/api/futebol/jogadores/${id}/analise`);
+        const data = await res.json();
+        const a = data.analise;
+        const m = a.motorAnalitico;
+        const ef = m.metricasEficiencia;
+
+        conteudo.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <h2 style="margin:0; font-size:1.3rem; color:var(--ink);">${a.atleta} <span style="font-size:13px; color:var(--mint);">#${a.camisa || ''}</span></h2>
+              <small style="color:var(--muted);">${a.clube} • ${a.posicao} • ${a.idade} anos</small>
+            </div>
+            <div style="text-align:right;">
+              <span class="ponte-badge mint" style="font-size:13px; font-weight:800;">★ Rating ${m.ratingGeral}</span>
+              <div style="font-size:11px; color:var(--muted); margin-top:2px;">${m.classeDesempenho}</div>
+            </div>
+          </div>
+
+          <div style="background:var(--paper-elevated); padding:14px; border-radius:var(--radius-md); border:1px solid var(--line-light); margin-bottom:16px;">
+            <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Arquétipo Tático Identificado</div>
+            <div style="font-size:16px; font-weight:800; color:var(--ink); margin-top:2px;">${m.arquetipoTatico}</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; text-align:center; margin-bottom:16px;">
+            <div style="background:var(--canvas); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--line);">
+              <small style="color:var(--muted); font-size:11px;">Pontaria no Alvo</small>
+              <div style="font-size:20px; font-weight:800; color:#10b981;">${ef.taxaPontariaNoAlvo}</div>
+            </div>
+            <div style="background:var(--canvas); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--line);">
+              <small style="color:var(--muted); font-size:11px;">Conversão de Gol</small>
+              <div style="font-size:20px; font-weight:800; color:#60a5fa;">${ef.taxaConversaoEmGol}</div>
+            </div>
+            <div style="background:var(--canvas); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--line);">
+              <small style="color:var(--muted); font-size:11px;">Participações em Gol</small>
+              <div style="font-size:20px; font-weight:800; color:#fbbf24;">${ef.participacoesDiretasEmGol}</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <strong style="color:var(--mint); font-size:12px; display:block; margin-bottom:6px;">✨ Pontos Fortes Observados:</strong>
+            ${m.pontosFortes.map(p => `<div style="font-size:12px; color:var(--ink-secondary); margin-bottom:4px;">• ${p}</div>`).join('')}
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <strong style="color:#ef4444; font-size:12px; display:block; margin-bottom:6px;">⚠️ Oportunidades de Ajuste Tático:</strong>
+            ${m.pontosAtencao.map(p => `<div style="font-size:12px; color:var(--ink-secondary); margin-bottom:4px;">• ${p}</div>`).join('')}
+          </div>
+
+          <div style="text-align:center; margin-top:20px;">
+            <a href="/api/futebol/jogadores/${id}/dashboard.svg" target="_blank" class="ponte-btn" style="display:inline-block; padding:8px 18px; font-size:12px;">📊 Abrir Dashboard Gráfico SVG em Nova Aba</a>
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById('modal-partida-conteudo').innerHTML = `<div style="color:#ef4444; padding:20px;">Erro ao executar análise: ${err.message}</div>`;
+      }
     };
 
     window.abrirGraficoEstatisticoPartida = async function(id) {

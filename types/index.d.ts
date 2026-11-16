@@ -149,6 +149,8 @@ export declare class FutebolPro {
   static getPartidaEscalacoes(partidaId: string): Promise<{ ok: boolean; partidaId: string; escalacoes: any[] }>;
   static getClassicos(slug?: string): Promise<{ ok: boolean; totalClassicos?: number; classicos?: any; dados?: any }>;
   static compararJogadores(id1: string, id2: string): Promise<{ ok: boolean; comparacao: any }>;
+  static getAnaliseJogador(jogadorId: string): Promise<{ ok: boolean; analise: any }>;
+  static getDashboardJogadorUrl(jogadorId: string): string;
   static getRadarJogadorUrl(jogadorId: string): string;
   static getJogadores(filtros?: { clube?: string; posicao?: string; busca?: string }): Promise<{ ok: boolean; totalJogadores: number; jogadores: any[] }>;
   static getElencoClube(clubeSlug: string): Promise<{ ok: boolean; clube: string; totalJogadores: number; elenco: any[] }>;
