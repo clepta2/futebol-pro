@@ -79,7 +79,11 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
-  'Access-Control-Max-Age': '86400'
+  'Access-Control-Max-Age': '86400',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-Ponte-Version': '3.0.0'
 };
 
 // ─── MATRIZ OFICIAL DE PLANOS (PADRÃO PONTE SUITE - ATÉ 86.400 REQ/DIA) ───
