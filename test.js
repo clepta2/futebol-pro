@@ -574,4 +574,17 @@ assert(resHistClubes.status === 200, 'Endpoint /jogadores/:id/historico responde
 const dataHistClubes = await resHistClubes.json();
 assert(dataHistClubes.historicoClubesAnos.length >= 2, 'Histórico de clubes por ano do atleta retornado');
 
+
+// ─── 16. ATUALIZAÇÃO AUTOMÁTICA CLOUDFLARE SCHEDULED CRON (24/7) ───
+console.log('\n--- 16. Atualização Automática Cloudflare Scheduled Cron (24/7) ---');
+
+let scheduledExecuted = false;
+try {
+  await worker.scheduled({ cron: '*/5 * * * *', type: 'scheduled' }, {}, { waitUntil: (p) => p });
+  scheduledExecuted = true;
+} catch (e) {
+  console.error('Scheduled cron error:', e);
+}
+assert(scheduledExecuted === true, 'Gatilho automático Cloudflare scheduled executado com sucesso');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
