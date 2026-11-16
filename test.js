@@ -840,7 +840,7 @@ const dataCross = await resCross.json();
 assert(dataCross.identificadoresCruzados.transfermarkt === '432895', 'ID do Transfermarkt cruzado com sucesso');
 
 // 20.11 Testes do SDK Oficial FutebolPro com novos métodos
-FutebolPro.configure({ baseUrl: 'https://api.test' });
+FutebolPro.configure({ baseUrl: 'https://api.test', apiKey: 'fut_master_live_test_suite_key' });
 const sdkDesf = await FutebolPro.getClubeDesfalques('flamengo');
 assert(sdkDesf.ok === true && sdkDesf.relatorioDesfalques.departamentoMedico.length > 0, 'SDK getClubeDesfalques funciona');
 
