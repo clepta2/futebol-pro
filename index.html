@@ -1262,17 +1262,60 @@
             </div>
             <span class="ponte-badge blue" style="font-size:10px;">Elo ${c.forcaElo}</span>
           </div>
-          <div style="font-size:12px; color:var(--ink-secondary); margin-bottom:12px;">
+          <div style="font-size:12px; color:var(--ink-secondary); margin-bottom:12px; line-height:1.6;">
             <strong>🏟️ Estádio:</strong> ${c.estadio} (${(c.capacidadeEstadio || 0).toLocaleString('pt-BR')} pessoas)<br>
             <strong>📅 Fundação:</strong> ${c.fundacao}<br>
             <strong>🏆 Títulos:</strong> ${Object.entries(c.titulosPrincipais || {}).map(([k, v]) => `${v}x ${k}`).join(', ')}
           </div>
-          <div style="display:flex; gap:6px;">
-            <button class="ponte-btn secondary" style="flex:1; padding:6px; font-size:11px;" onclick="abrirSimuladorCom('${c.slug}')">⚔️ Simular Jogo</button>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:8px;">
+            <button class="ponte-btn" style="padding:6px; font-size:11px;" onclick="window.open('/api/futebol/clubes/${c.slug}/camisa-titular.svg?numero=10&nome=${encodeURIComponent(c.sigla)}', '_blank')">👕 Manto SVG</button>
+            <button class="ponte-btn secondary" style="padding:6px; font-size:11px;" onclick="abrirTecnicosClube('${c.slug}')">👔 Técnicos</button>
+            <button class="ponte-btn secondary" style="grid-column: span 2; padding:6px; font-size:11px;" onclick="abrirSimuladorCom('${c.slug}')">⚔️ Simular Jogo</button>
           </div>
         </div>
       `).join('');
     }
+
+    window.abrirTecnicosClube = async function(slug) {
+      try {
+        const modal = document.getElementById('modal-partida');
+        const conteudo = document.getElementById('modal-partida-conteudo');
+        conteudo.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Carregando técnicos...</div>';
+        modal.style.display = 'flex';
+
+        const res = await fetch(`/api/futebol/clubes/${slug}/tecnicos`);
+        const data = await res.json();
+        const tAtual = data.tecnicoAtual || {};
+        const tHist = data.tecnicosHistoricosLendarios || [];
+
+        conteudo.innerHTML = `
+          <h2 style="margin-top:0; color:var(--ink); font-size:1.3rem;">👔 Treinadores &amp; Comissões • ${data.clube}</h2>
+          <div style="background:var(--paper-elevated); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line); margin-bottom:18px;">
+            <span class="ponte-badge mint" style="margin-bottom:8px; display:inline-block;">Comandante Atual</span>
+            <div style="font-size:18px; font-weight:800; color:var(--ink);">${tAtual.nome}</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:4px;">
+              🌍 ${tAtual.nacionalidade || 'Brasil'} • Esquema: ${tAtual.esquemaPreferido || '4-3-3'} • Aproveitamento: ${tAtual.aproveitamento || '-'}
+            </div>
+            ${tAtual.titulosNoClube ? `<div style="font-size:12px; color:var(--mint); margin-top:6px;"><strong>🏆 Títulos no Clube:</strong> ${tAtual.titulosNoClube.join(', ')}</div>` : ''}
+          </div>
+
+          <h4 style="margin:0 0 10px; font-size:13px; color:var(--muted); text-transform:uppercase;">Galeria de Treinadores Históricos</h4>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${tHist.map(th => `
+              <div style="background:var(--canvas); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--line); font-size:12px;">
+                <div style="display:flex; justify-content:space-between;">
+                  <strong style="color:var(--ink); font-size:13px;">${th.nome}</strong>
+                  <span style="color:var(--muted); font-size:11px;">${th.periodo}</span>
+                </div>
+                <div style="color:var(--mint); margin-top:4px;">🏆 ${th.titulos.join(' • ')}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById('modal-partida-conteudo').innerHTML = `<div style="color:#ef4444; padding:20px;">Erro: ${err.message}</div>`;
+      }
+    };
 
     window.filtrarClubes = function() {
       const busca = document.getElementById('filtro-clube').value.toLowerCase();
