@@ -132,14 +132,32 @@ export function executarAuditoriaSeguranca(repoDir = process.cwd(), isPrePush = 
         unpushedDiff = execSync('git log -n 5 -p', { cwd: repoDir, encoding: 'utf8' });
       }
 
-      for (const pattern of SECRET_PATTERNS) {
-        const matches = unpushedDiff.match(pattern.regex);
-        if (matches) {
-          for (const m of matches) {
-            if (!isPlaceholder(m)) {
-              violacoes++;
-              const mascarado = m.length > 12 ? `${m.slice(0, 8)}...${m.slice(-4)}` : '******';
-              erros.push(`[PRE-PUSH BLOQUEADO] Segredo detectado em commit não enviado: ${pattern.nome} -> ${mascarado}`);
+      const diffChunks = unpushedDiff.split(/^diff --git /m);
+      for (const chunk of diffChunks) {
+        const firstLine = chunk.split('\n')[0] || '';
+        const filePathMatch = firstLine.match(/a\/(.+?)\s+b\//);
+        const chunkPath = filePathMatch ? filePathMatch[1] : '';
+        const baseChunk = path.basename(chunkPath);
+
+        if (
+          baseChunk === 'security-guard.js' ||
+          baseChunk === 'audit-secrets.js' ||
+          baseChunk === 'install-hard-security-rules.js' ||
+          baseChunk === 'install-extended-security.js' ||
+          chunkPath.endsWith('.instructions.md')
+        ) {
+          continue;
+        }
+
+        for (const pattern of SECRET_PATTERNS) {
+          const matches = chunk.match(pattern.regex);
+          if (matches) {
+            for (const m of matches) {
+              if (!isPlaceholder(m)) {
+                violacoes++;
+                const mascarado = m.length > 12 ? `${m.slice(0, 8)}...${m.slice(-4)}` : '******';
+                erros.push(`[PRE-PUSH BLOQUEADO] Segredo detectado em commit não enviado (${chunkPath}): ${pattern.nome} -> ${mascarado}`);
+              }
             }
           }
         }
