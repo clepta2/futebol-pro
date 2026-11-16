@@ -8,6 +8,7 @@
   "types": "types/index.d.ts",
   "scripts": {
     "test": "node test.js",
+    "sync:dados": "node scripts/baixar-dados-soberanos.js",
     "deploy": "wrangler deploy"
   },
   "keywords": [

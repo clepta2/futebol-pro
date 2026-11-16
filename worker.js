@@ -53,6 +53,14 @@ import {
   exportarTabelaXml
 } from './dados-futebol.js';
 
+import {
+  ELENCOS_SERIE_A_SOBERANOS,
+  PREMIER_LEAGUE_2026_SOBERANO,
+  LALIGA_2026_SOBERANO,
+  COPA_DO_MUNDO_2026_SOBERANO,
+  BRASILEIRAO_HISTORICO_SOBERANO
+} from './dados/index.js';
+
 import { WIDGET_JS_CONTENT } from './widget-content.js';
 
 const webhooksRegistry = new Map();
@@ -645,6 +653,11 @@ async function fetchRosterLive(clubeSlug) {
         }
       }
     } catch (_) {}
+  }
+
+  // 1. Verifica se temos o elenco completo baixado localmente em ./dados (Soberania Total)
+  if (ELENCOS_SERIE_A_SOBERANOS && ELENCOS_SERIE_A_SOBERANOS[clubeSlug] && ELENCOS_SERIE_A_SOBERANOS[clubeSlug].length > 0) {
+    return ELENCOS_SERIE_A_SOBERANOS[clubeSlug];
   }
 
   const soberanos = JOGADORES_CONSOLIDADOS.filter(j => j.clubeSlug === clubeSlug);
@@ -2174,6 +2187,36 @@ export default {
 
     if (path.startsWith('/api/futebol/github/openfootball/')) {
       const torneio = path.split('/')[5]?.toLowerCase();
+      
+      // 1. Tenta servir primeiro da base local soberana baixada
+      if ((torneio === 'premier-league' || torneio === 'en.1') && PREMIER_LEAGUE_2026_SOBERANO.name) {
+        return new Response(JSON.stringify({
+          ok: true,
+          fonte: 'Base Soberana Local: openfootball/football.json (Premier League)',
+          dados: PREMIER_LEAGUE_2026_SOBERANO
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+      if ((torneio === 'la-liga' || torneio === 'es.1') && LALIGA_2026_SOBERANO.name) {
+        return new Response(JSON.stringify({
+          ok: true,
+          fonte: 'Base Soberana Local: openfootball/football.json (LaLiga)',
+          dados: LALIGA_2026_SOBERANO
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+      if ((torneio === 'world-cup' || torneio === 'copa-do-mundo') && COPA_DO_MUNDO_2026_SOBERANO.name) {
+        return new Response(JSON.stringify({
+          ok: true,
+          fonte: 'Base Soberana Local: openfootball/worldcup.json (Copa do Mundo)',
+          dados: COPA_DO_MUNDO_2026_SOBERANO
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       let fileUrl = 'https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/en.1.json';
       if (torneio === 'world-cup' || torneio === 'copa-do-mundo') {
         fileUrl = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
@@ -2224,7 +2267,9 @@ export default {
     if (path === '/api/futebol/github/brasileirao-historico') {
       const clube = url.searchParams.get('clube')?.toLowerCase();
       const ano = url.searchParams.get('ano');
-      let partidas = JOGOS_ANTIGOS_HISTORICOS;
+      let partidas = (BRASILEIRAO_HISTORICO_SOBERANO && BRASILEIRAO_HISTORICO_SOBERANO.length > 0)
+        ? BRASILEIRAO_HISTORICO_SOBERANO
+        : JOGOS_ANTIGOS_HISTORICOS;
 
       let filtradas = partidas;
       if (clube) {
@@ -2239,7 +2284,7 @@ export default {
 
       return new Response(JSON.stringify({
         ok: true,
-        fonte: 'Base Soberana Futebol Pro Anycast',
+        fonte: 'Base Soberana Local: adaoduque/Brasileirao_Dataset (8.785 Partidas)',
         totalPartidasEncontradas: filtradas.length,
         amostraPartidas: filtradas.slice(-50)
       }, null, 2), {
