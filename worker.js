@@ -1525,6 +1525,68 @@ export default {
         });
       }
 
+      // Camisas & Mantos Oficiais do Clube
+      if (subAcao === 'camisas' || subAcao === 'uniformes') {
+        return new Response(JSON.stringify({
+          ok: true,
+          clube: clube.nomeCurto,
+          slug,
+          coresOficiais: clube.cores,
+          uniformes: clube.uniformes || {
+            titular: { ano: '2026', corPrincipal: clube.corPrimaria, corSecundaria: clube.corSecundaria },
+            reserva: { ano: '2026', corPrincipal: '#FFFFFF', corSecundaria: clube.corPrimaria }
+          },
+          camisaSvgTitularUrl: `/api/futebol/clubes/${slug}/camisa-titular.svg`,
+          camisaSvgReservaUrl: `/api/futebol/clubes/${slug}/camisa-reserva.svg`
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Renderizador da Camisa / Manto do Clube em SVG
+      if (subAcao?.startsWith('camisa')) {
+        const isReserva = subAcao.includes('reserva');
+        const numParam = url.searchParams.get('numero') || 10;
+        const nomeParam = url.searchParams.get('nome') || clube.sigla || 'MANTO';
+        const cor1 = isReserva ? '#ffffff' : (clube.corPrimaria || '#c3281e');
+        const cor2 = isReserva ? (clube.corPrimaria || '#c3281e') : (clube.corSecundaria || '#ffffff');
+        const svg = renderCamisaSvg(clube.nomeCurto, cor1, cor2, numParam, nomeParam, isReserva ? 'reserva' : 'titular');
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      // Técnicos Atuais e Históricos
+      if (subAcao === 'tecnicos' || subAcao === 'treinadores') {
+        return new Response(JSON.stringify({
+          ok: true,
+          clube: clube.nomeCurto,
+          slug,
+          tecnicoAtual: clube.tecnicoAtual || { nome: 'Treinador Principal', nacionalidade: 'Brasil' },
+          tecnicosHistoricosLendarios: clube.tecnicosHistoricos || []
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Brasões e Logos
+      if (subAcao === 'brasao' || subAcao === 'escudo' || subAcao === 'logo') {
+        return new Response(JSON.stringify({
+          ok: true,
+          clube: clube.nomeCurto,
+          slug,
+          escudoOficialPng: clube.escudo,
+          brasoes: clube.brasoes || { oficialPng: clube.escudo }
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       return new Response(JSON.stringify({
         ok: true,
         clube
@@ -1845,6 +1907,47 @@ export default {
             ...CORS_HEADERS,
             ...rateHeaders
           }
+        });
+      }
+
+      // Renderização da Camisa do Jogador em SVG
+      if (subAcao === 'camisa.svg') {
+        const svg = renderCamisaSvg(jogador.clube, jogador.corPrimaria || '#c3281e', '#ffffff', jogador.camisa || 10, jogador.nome, 'oficial');
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      // Renderização do Avatar do Atleta em SVG
+      if (subAcao === 'avatar.svg') {
+        const svg = renderAvatarJogadorSvg(jogador);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      // Histórico de Clubes por Ano e Trajetória
+      if (subAcao === 'historico' || subAcao === 'carreira') {
+        return new Response(JSON.stringify({
+          ok: true,
+          atleta: jogador.nome,
+          clubeAtual: jogador.clube,
+          historicoClubesAnos: jogador.historicoClubesAnos || [
+            { anos: '2020-2026', clube: jogador.clube, jogos: jogador.jogosCarreira || 150, gols: jogador.golsCarreira || 45 }
+          ],
+          historicoTemporadas: jogador.historicoTemporadas || []
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
         });
       }
 
