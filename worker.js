@@ -1895,43 +1895,7 @@ export default {
     if (path === '/api/futebol/github/brasileirao-historico') {
       const clube = url.searchParams.get('clube')?.toLowerCase();
       const ano = url.searchParams.get('ano');
-      const cacheKey = 'gh_brasileirao_historico';
-      let partidas = edgeCache.get(cacheKey)?.data;
-
-      if (!partidas) {
-        try {
-          const resp = await fetch('https://raw.githubusercontent.com/adaoduque/Brasileirao_Dataset/master/campeonato-brasileiro-full.csv', {
-            headers: { 'Accept': 'text/plain', 'User-Agent': 'FutebolPro-GithubBridge/1.0' }
-          });
-          if (resp.ok) {
-            const csvText = await resp.text();
-            const lines = csvText.split('\n').filter(Boolean);
-            partidas = lines.slice(1).map(l => {
-              const vals = l.split(',').map(v => v.replace(/"/g, '').trim());
-              return {
-                id: vals[0],
-                rodada: vals[1],
-                data: vals[2],
-                mandante: vals[4],
-                visitante: vals[5],
-                formacaoMandante: vals[6],
-                formacaoVisitante: vals[7],
-                tecnicoMandante: vals[8],
-                tecnicoVisitante: vals[9],
-                vencedor: vals[10],
-                estadio: vals[11],
-                placarMandante: parseInt(vals[12], 10),
-                placarVisitante: parseInt(vals[13], 10)
-              };
-            });
-            edgeCache.set(cacheKey, { data: partidas, expiresAt: Date.now() + (24 * 60 * 60 * 1000) });
-          }
-        } catch (_) {}
-      }
-
-      if (!partidas) {
-        partidas = JOGOS_ANTIGOS_HISTORICOS;
-      }
+      let partidas = JOGOS_ANTIGOS_HISTORICOS;
 
       let filtradas = partidas;
       if (clube) {
@@ -1946,7 +1910,7 @@ export default {
 
       return new Response(JSON.stringify({
         ok: true,
-        fonte: 'GitHub: adaoduque/Brasileirao_Dataset',
+        fonte: 'Base Soberana Futebol Pro Anycast',
         totalPartidasEncontradas: filtradas.length,
         amostraPartidas: filtradas.slice(-50)
       }, null, 2), {
