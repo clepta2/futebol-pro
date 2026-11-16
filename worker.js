@@ -2256,5 +2256,53 @@ export default {
       status: 404,
       headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
     });
+  },
+
+  // ─── GATILHO AUTOMÁTICO CLOUDFLARE CRON TRIGGER (24/7 AUTO-UPDATE) ───
+  async scheduled(event, env = {}, ctx = {}) {
+    const cronTime = new Date().toISOString();
+
+    // 1. Pré-aquecimento do Cache Global de Jogos do Mundo (Hoje)
+    try {
+      await fetchJogosMundoLive('hoje');
+    } catch (_) {}
+
+    // 2. Pré-aquecimento das Tabelas Principais
+    try {
+      await fetchTabelaLive('brasileirao-a');
+      await fetchTabelaLive('premier-league');
+      await fetchTabelaLive('la-liga');
+    } catch (_) {}
+
+    // 3. Verificação de Alertas para Webhooks
+    if (webhooksRegistry.size > 0) {
+      try {
+        const jogosHoje = await fetchJogosMundoLive('hoje');
+        const aoVivo = jogosHoje.filter(j => j.status === 'ao_vivo');
+        for (const [id, wh] of webhooksRegistry) {
+          if (wh.status === 'ativo' && aoVivo.length > 0) {
+            const prom = fetch(wh.url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'User-Agent': 'FutebolPro-WebhookDispatcher/2.0' },
+              body: JSON.stringify({
+                evento: 'ping_ao_vivo',
+                totalJogosEmAndamento: aoVivo.length,
+                jogos: aoVivo.map(j => ({
+                  id: j.id,
+                  campeonato: j.campeonato,
+                  placar: `${j.mandante.nome} ${j.mandante.placar} x ${j.visitante.placar} ${j.visitante.nome}`,
+                  tempo: j.tempoJogo
+                })),
+                timestamp: cronTime
+              })
+            }).catch(() => {});
+
+            if (ctx.waitUntil) {
+              ctx.waitUntil(prom);
+            }
+          }
+        }
+      } catch (_) {}
+    }
   }
 };

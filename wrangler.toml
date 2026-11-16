@@ -6,6 +6,9 @@ workers_dev = true
 [observability]
 enabled = true
 
+[triggers]
+crons = ["*/5 * * * *"]
+
 [vars]
 SERVICE_NAME = "Futebol Pro Anycast API"
 ENVIRONMENT = "production"
