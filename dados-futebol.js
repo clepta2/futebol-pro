@@ -1451,6 +1451,130 @@ export const JOGADORES_CONSOLIDADOS = [
     jogosCarreira: 95,
     foto: "https://a.espncdn.com/i/headshots/soccer/players/full/379899.png",
     valorMercado: "€ 150M"
+  },
+  {
+    id: "messi-10",
+    nome: "Lionel Messi",
+    nomeCompleto: "Lionel Andrés Messi Cuccittini",
+    clube: "Inter Miami / Argentina",
+    clubeSlug: "inter-miami",
+    posicao: "Atacante / Camisa 10",
+    posicaoGeral: "Ataque",
+    camisa: 10,
+    idade: 39,
+    nacionalidade: "Argentina",
+    altura: "1.70m",
+    peso: "72kg",
+    pePreferido: "Canhoto",
+    golsCarreira: 850,
+    assistenciasCarreira: 382,
+    jogosCarreira: 1085,
+    titulosCarreira: 46,
+    bolasDeOuro: 8,
+    chuteirasDeOuro: 6,
+    copasDoMundo: 1,
+    championsLeague: 4,
+    foto: "https://a.espncdn.com/i/headshots/soccer/players/full/45843.png",
+    valorMercado: "€ 25M"
+  },
+  {
+    id: "cr7-7",
+    nome: "Cristiano Ronaldo",
+    nomeCompleto: "Cristiano Ronaldo dos Santos Aveiro",
+    clube: "Al-Nassr / Portugal",
+    clubeSlug: "al-nassr",
+    posicao: "Centroavante / Extremo",
+    posicaoGeral: "Ataque",
+    camisa: 7,
+    idade: 41,
+    nacionalidade: "Portugal",
+    altura: "1.87m",
+    peso: "83kg",
+    pePreferido: "Destro",
+    golsCarreira: 915,
+    assistenciasCarreira: 256,
+    jogosCarreira: 1255,
+    titulosCarreira: 35,
+    bolasDeOuro: 5,
+    chuteirasDeOuro: 4,
+    copasDoMundo: 0,
+    championsLeague: 5,
+    foto: "https://a.espncdn.com/i/headshots/soccer/players/full/22774.png",
+    valorMercado: "€ 12M"
+  },
+  {
+    id: "neymar-10",
+    nome: "Neymar Jr",
+    nomeCompleto: "Neymar da Silva Santos Júnior",
+    clube: "Al-Hilal / Brasil",
+    clubeSlug: "al-hilal",
+    posicao: "Ponta Esquerda / Meia",
+    posicaoGeral: "Ataque",
+    camisa: 10,
+    idade: 34,
+    nacionalidade: "Brasil",
+    altura: "1.75m",
+    peso: "68kg",
+    pePreferido: "Destro",
+    golsCarreira: 439,
+    assistenciasCarreira: 250,
+    jogosCarreira: 715,
+    titulosCarreira: 32,
+    bolasDeOuro: 0,
+    chuteirasDeOuro: 0,
+    copasDoMundo: 0,
+    championsLeague: 1,
+    libertadores: 1,
+    foto: "https://a.espncdn.com/i/headshots/soccer/players/full/132948.png",
+    valorMercado: "€ 30M"
+  },
+  {
+    id: "pele-10",
+    nome: "Pelé (Rei do Futebol)",
+    nomeCompleto: "Edson Arantes do Nascimento",
+    clube: "Santos FC / Brasil",
+    clubeSlug: "santos",
+    posicao: "Ponta de Lança",
+    posicaoGeral: "Ataque",
+    camisa: 10,
+    idade: 82,
+    nacionalidade: "Brasil",
+    altura: "1.73m",
+    peso: "73kg",
+    pePreferido: "Destro (Ambidestro)",
+    golsCarreira: 1281,
+    golsOficiais: 767,
+    jogosCarreira: 1363,
+    jogosOficiais: 831,
+    titulosCarreira: 37,
+    copasDoMundo: 3,
+    libertadores: 2,
+    mundialInterclubes: 2,
+    foto: "https://a.espncdn.com/i/teamlogos/soccer/500/2674.png",
+    statusLenda: "Atleta do Século XX eleito pelo COI e FIFA"
+  },
+  {
+    id: "ronaldo-9",
+    nome: "Ronaldo Fenômeno",
+    nomeCompleto: "Ronaldo Luís Nazário de Lima",
+    clube: "Real Madrid / Brasil",
+    clubeSlug: "real-madrid",
+    posicao: "Centroavante",
+    posicaoGeral: "Ataque",
+    camisa: 9,
+    idade: 49,
+    nacionalidade: "Brasil",
+    altura: "1.83m",
+    peso: "82kg",
+    pePreferido: "Destro (Ambidestro)",
+    golsCarreira: 414,
+    jogosCarreira: 616,
+    titulosCarreira: 19,
+    bolasDeOuro: 2,
+    theBestFifa: 3,
+    copasDoMundo: 2,
+    foto: "https://a.espncdn.com/i/teamlogos/soccer/500/86.png",
+    statusLenda: "Maior camisa 9 da história das Copas do Mundo"
   }
 ];
 
@@ -2128,6 +2252,218 @@ export function renderDashboardAtletaSvg(jogador, analise) {
   <!-- Watermark -->
   <text x="380" y="440" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">
     Motor de Análise Futebol Pro • Dados Verificados de Atleta • https://ponte.ozpro.com.br
+  </text>
+</svg>`;
+}
+
+export const CONFRONTOS_DIRETOS_ATLETAS = {
+  'messi-10-cr7-7': {
+    duelo: 'Lionel Messi vs Cristiano Ronaldo',
+    totalConfrontos: 36,
+    vitoriasAtleta1: 16,
+    vitoriasAtleta2: 11,
+    empates: 9,
+    golsAtleta1: 22,
+    golsAtleta2: 21,
+    assistenciasAtleta1: 12,
+    assistenciasAtleta2: 1,
+    confrontosFinais: 'Messi 2 x 0 CR7 (Final Champions League 2009)'
+  },
+  'vinicius-jr-7-mbappe-9': {
+    duelo: 'Vinícius Júnior vs Kylian Mbappé',
+    totalConfrontos: 4,
+    vitoriasAtleta1: 2,
+    vitoriasAtleta2: 1,
+    empates: 1,
+    golsAtleta1: 2,
+    golsAtleta2: 3,
+    assistenciasAtleta1: 2,
+    assistenciasAtleta2: 0
+  },
+  'pedro-9-yuri-alberto-9': {
+    duelo: 'Pedro vs Yuri Alberto (Duelo de Artilheiros Brasileirão)',
+    totalConfrontos: 8,
+    vitoriasAtleta1: 4,
+    vitoriasAtleta2: 2,
+    empates: 2,
+    golsAtleta1: 5,
+    golsAtleta2: 4
+  }
+};
+
+export const CORRIDA_MELHOR_DA_TEMPORADA = {
+  global: [
+    { rank: 1, jogador: 'Vinícius Júnior', clube: 'Real Madrid', gols: 26, assist: 13, rating: 9.6, titulos: ['Champions League', 'LaLiga'], probabilidadeBolaDeOuro: '88%' },
+    { rank: 2, jogador: 'Erling Haaland', clube: 'Manchester City', gols: 38, assist: 6, rating: 9.4, titulos: ['Premier League'], probabilidadeBolaDeOuro: '82%' },
+    { rank: 3, jogador: 'Kylian Mbappé', clube: 'Real Madrid', gols: 32, assist: 8, rating: 9.3, titulos: ['LaLiga', 'Supercopa UEFA'], probabilidadeBolaDeOuro: '79%' },
+    { rank: 4, jogador: 'Lamine Yamal', clube: 'Barcelona', gols: 12, assist: 18, rating: 9.2, titulos: ['Eurocopa 2024'], probabilidadeBolaDeOuro: '75%' },
+    { rank: 5, jogador: 'Robert Lewandowski', clube: 'Barcelona', gols: 28, assist: 4, rating: 9.0, titulos: [], probabilidadeBolaDeOuro: '65%' }
+  ],
+  brasileirao: [
+    { rank: 1, jogador: 'Pedro', clube: 'Flamengo', gols: 20, assist: 6, rating: 9.4, participacoes: 26, premioProjetado: 'Bola de Ouro / Craque do Brasileirão' },
+    { rank: 2, jogador: 'Estêvão', clube: 'Palmeiras', gols: 14, assist: 9, rating: 9.2, participacoes: 23, premioProjetado: 'Bola de Prata & Revelação do Ano' },
+    { rank: 3, jogador: 'Raphael Veiga', clube: 'Palmeiras', gols: 11, assist: 9, rating: 8.9, participacoes: 20, premioProjetado: 'Bola de Prata Meio-Campo' },
+    { rank: 4, jogador: 'Yuri Alberto', clube: 'Corinthians', gols: 16, assist: 4, rating: 8.8, participacoes: 20, premioProjetado: 'Bola de Prata Atacante' },
+    { rank: 5, jogador: 'Giorgian de Arrascaeta', clube: 'Flamengo', gols: 8, assist: 14, rating: 8.8, participacoes: 22, premioProjetado: 'Bola de Prata Maestro' }
+  ]
+};
+
+export const SELECAO_DA_TEMPORADA = {
+  formacao: '4-3-3',
+  temporada: '2026',
+  titulares: [
+    { pos: 'GOL', numero: 1, nome: 'Agustín Rossi', clube: 'Flamengo', rating: 8.8, estatisticaChave: '19 jogos sem sofrer gols' },
+    { pos: 'LAD', numero: 2, nome: 'William', clube: 'Cruzeiro', rating: 8.6, estatisticaChave: '8 assistências na temporada' },
+    { pos: 'ZAG', numero: 3, nome: 'Gustavo Gómez', clube: 'Palmeiras', rating: 8.9, estatisticaChave: '92 desarmes limpos' },
+    { pos: 'ZAG', numero: 4, nome: 'Léo Ortiz', clube: 'Flamengo', rating: 8.9, estatisticaChave: '91.4% precisão de passe' },
+    { pos: 'LAE', numero: 6, nome: 'Guilherme Arana', clube: 'Atlético-MG', rating: 8.7, estatisticaChave: '7 assistências e 4 gols' },
+    { pos: 'VOL', numero: 5, nome: 'Aníbal Moreno', clube: 'Palmeiras', rating: 8.8, estatisticaChave: '110 recuperações de posse' },
+    { pos: 'MEI', numero: 8, nome: 'Raphael Veiga', clube: 'Palmeiras', rating: 8.9, estatisticaChave: '11 gols e 9 assistências' },
+    { pos: 'MEI', numero: 10, nome: 'Giorgian de Arrascaeta', clube: 'Flamengo', rating: 8.8, estatisticaChave: '8 gols e 14 assistências' },
+    { pos: 'ATA', numero: 7, nome: 'Estêvão', clube: 'Palmeiras', rating: 9.2, estatisticaChave: '14 gols, 9 assistências, 84 dribles certos' },
+    { pos: 'ATA', numero: 9, nome: 'Pedro', clube: 'Flamengo', rating: 9.4, estatisticaChave: 'Artilheiro da Série A com 20 gols' },
+    { pos: 'ATA', numero: 11, nome: 'Vinícius Júnior', clube: 'Real Madrid', rating: 9.6, estatisticaChave: '26 gols e 13 assistências' }
+  ]
+};
+
+/**
+ * Compara a carreira inteira de dois atletas com dados históricos oficiais
+ */
+export function compararCarreiras(j1, j2) {
+  const g1 = j1.golsCarreira || j1.golsOficiais || 0;
+  const g2 = j2.golsCarreira || j2.golsOficiais || 0;
+  const jg1 = Math.max(1, j1.jogosCarreira || j1.jogosOficiais || 1);
+  const jg2 = Math.max(1, j2.jogosCarreira || j2.jogosOficiais || 1);
+  const a1 = j1.assistenciasCarreira || 0;
+  const a2 = j2.assistenciasCarreira || 0;
+
+  const mediaG1 = Number((g1 / jg1).toFixed(2));
+  const mediaG2 = Number((g2 / jg2).toFixed(2));
+  const partCarreira1 = g1 + a1;
+  const partCarreira2 = g2 + a2;
+
+  let chaveDuelo = `${j1.id}-${j2.id}`;
+  let h2h = CONFRONTOS_DIRETOS_ATLETAS[chaveDuelo] || CONFRONTOS_DIRETOS_ATLETAS[`${j2.id}-${j1.id}`];
+
+  return {
+    atleta1: {
+      id: j1.id,
+      nome: j1.nome,
+      clube: j1.clube,
+      jogosOficiais: jg1,
+      golsCarreira: g1,
+      assistenciasCarreira: a1,
+      mediaGolsPorJogo: mediaG1,
+      totalParticipacoesCarreira: partCarreira1,
+      titulosOficiais: j1.titulosCarreira || 0,
+      bolasDeOuro: j1.bolasDeOuro || 0,
+      chuteirasDeOuro: j1.chuteirasDeOuro || 0,
+      copasDoMundo: j1.copasDoMundo || 0
+    },
+    atleta2: {
+      id: j2.id,
+      nome: j2.nome,
+      clube: j2.clube,
+      jogosOficiais: jg2,
+      golsCarreira: g2,
+      assistenciasCarreira: a2,
+      mediaGolsPorJogo: mediaG2,
+      totalParticipacoesCarreira: partCarreira2,
+      titulosOficiais: j2.titulosCarreira || 0,
+      bolasDeOuro: j2.bolasDeOuro || 0,
+      chuteirasDeOuro: j2.chuteirasDeOuro || 0,
+      copasDoMundo: j2.copasDoMundo || 0
+    },
+    confrontosDiretosEmCampo: h2h || 'Atletas nunca se enfrentaram diretamente em partidas oficiais registradas.',
+    analiseComparativa: {
+      maiorGoleadorCarreira: g1 > g2 ? j1.nome : g2 > g1 ? j2.nome : 'Empate rigoroso',
+      melhorMediaPorJogo: mediaG1 > mediaG2 ? `${j1.nome} (${mediaG1} gols/jogo)` : `${j2.nome} (${mediaG2} gols/jogo)`,
+      maisTitulosConquistados: (j1.titulosCarreira || 0) > (j2.titulosCarreira || 0) ? j1.nome : (j2.titulosCarreira || 0) > (j1.titulosCarreira || 0) ? j2.nome : 'Empate de troféus',
+      maisPremiosIndividuais: (j1.bolasDeOuro || 0) > (j2.bolasDeOuro || 0) ? j1.nome : (j2.bolasDeOuro || 0) > (j1.bolasDeOuro || 0) ? j2.nome : 'Equivalência'
+    },
+    timestampComparacao: new Date().toISOString()
+  };
+}
+
+/**
+ * Renderiza gráfico SVG Bi-Direcional de Comparação Completa de Carreiras
+ */
+export function renderComparacaoCarreirasSvg(j1, j2) {
+  const g1 = j1.golsCarreira || j1.golsOficiais || 0;
+  const g2 = j2.golsCarreira || j2.golsOficiais || 0;
+  const jg1 = Math.max(1, j1.jogosCarreira || j1.jogosOficiais || 1);
+  const jg2 = Math.max(1, j2.jogosCarreira || j2.jogosOficiais || 1);
+  const a1 = j1.assistenciasCarreira || 0;
+  const a2 = j2.assistenciasCarreira || 0;
+  const t1 = j1.titulosCarreira || 0;
+  const t2 = j2.titulosCarreira || 0;
+  const b1 = j1.bolasDeOuro || 0;
+  const b2 = j2.bolasDeOuro || 0;
+  const m1 = Number((g1 / jg1).toFixed(2));
+  const m2 = Number((g2 / jg2).toFixed(2));
+
+  const metrics = [
+    { label: 'Gols Oficiais na Carreira', v1: g1, v2: g2 },
+    { label: 'Assistências na Carreira', v1: a1, v2: a2 },
+    { label: 'Jogos Disputados', v1: jg1, v2: jg2 },
+    { label: 'Média de Gols por Jogo', v1: m1, v2: m2, isDecimal: true },
+    { label: 'Títulos Oficiais Coletivos', v1: t1, v2: t2 },
+    { label: 'Bolas de Ouro / The Best', v1: b1, v2: b2 }
+  ];
+
+  let rowsSvg = '';
+  metrics.forEach((m, idx) => {
+    const y = 110 + idx * 52;
+    const maxVal = Math.max(m.v1, m.v2, 1);
+    const w1 = Math.min(160, Math.round((m.v1 / maxVal) * 160));
+    const w2 = Math.min(160, Math.round((m.v2 / maxVal) * 160));
+
+    rowsSvg += `
+      <g transform="translate(0, ${y})">
+        <text x="180" y="24" text-anchor="end" font-family="ui-monospace, monospace" font-size="14" font-weight="900" fill="#10b981">${m.v1}</text>
+        <rect x="${190 + (160 - w1)}" y="12" width="${w1}" height="14" rx="4" fill="#10b981"/>
+        
+        <text x="380" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#94a3b8">${m.label.toUpperCase()}</text>
+        
+        <rect x="400" y="12" width="${w2}" height="14" rx="4" fill="#3b82f6"/>
+        <text x="${410 + w2 + 10}" y="24" text-anchor="start" font-family="ui-monospace, monospace" font-size="14" font-weight="900" fill="#60a5fa">${m.v2}</text>
+      </g>
+    `;
+  });
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 450" width="760" height="450">
+  <defs>
+    <linearGradient id="cfBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a101d"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="760" height="450" rx="16" fill="url(#cfBg)" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Cabeçalho -->
+  <text x="380" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="800" fill="#a3e635" letter-spacing="1">
+    COMPARAÇÃO HISTÓRICA DE CARREIRAS • DADOS OFICIAIS
+  </text>
+  
+  <text x="180" y="74" text-anchor="end" font-family="system-ui, sans-serif" font-size="18" font-weight="900" fill="#f8fafc">
+    ${j1.nome.toUpperCase()}
+  </text>
+  <text x="380" y="74" text-anchor="middle" font-family="ui-monospace, monospace" font-size="16" font-weight="800" fill="#64748b">
+    VS
+  </text>
+  <text x="580" y="74" text-anchor="start" font-family="system-ui, sans-serif" font-size="18" font-weight="900" fill="#f8fafc">
+    ${j2.nome.toUpperCase()}
+  </text>
+
+  <line x1="40" y1="92" x2="720" y2="92" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Linhas Comparativas -->
+  ${rowsSvg}
+
+  <!-- Rodapé -->
+  <text x="380" y="435" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">
+    Futebol Pro Anycast • Comparador Oficial de Carreiras • https://ponte.ozpro.com.br
   </text>
 </svg>`;
 }

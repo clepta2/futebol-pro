@@ -64,9 +64,15 @@ Monitoramento contínuo em tempo real com minutos e placar atualizado com latên
 - `GET /api/futebol/clubes/:slug/elenco`: Elenco completo de todos os jogadores do time (40+ atletas reais) com foto oficial, número da camisa, idade, peso, altura, nacionalidade e estatísticas reais da temporada (gols, assistências, finalizações, faltas, desarmes).
 - `GET /api/futebol/jogadores/:id`: Perfil e métricas oficiais de desempenho do atleta na temporada.
 - `GET /api/futebol/jogadores/:id/grafico.svg`: Gráfico de radar hexagonal SVG de atributos verídicos do atleta.
-- `GET /api/futebol/jogadores/comparar/:id1/:id2`: Comparação estatística direta entre dois atletas com veredito analítico de participações em gol e médias.
+- `GET /api/futebol/jogadores/:id/dashboard.svg`: Dashboard visual SVG completo de scouting com histórico de gols por temporada.
+- `GET /api/futebol/jogadores/:id/analise`: Diagnóstico tático pelo motor analítico com rating geral (0 a 10), arquétipo e pontaria.
 
-### 6. 📊 Tabela de Classificação
+### 6. ⚖️ Comparador Histórico de Carreiras & Corrida Melhor da Temporada
+- `GET /api/futebol/carreiras/comparar/:id1/:id2`: Comparação profunda de carreiras oficiais completas (ex: `messi-10/cr7-7`, `pele-10/ronaldo-9`) com gols totais, assistências, jogos, médias, títulos coletivos, Bolas de Ouro e histórico de confrontos diretos mútuos.
+- `GET /api/futebol/carreiras/comparar/:id1/:id2.svg`: Gráfico visual bi-direcional em SVG comparando as duas carreiras lado a lado.
+- `GET /api/futebol/premios/melhor-do-ano`: Corrida oficial para Melhor Jogador da Temporada (Ballon d'Or & Bola de Ouro Placar) e Seleção Ideal da Temporada (XI Titular).
+
+### 7. 📊 Tabela de Classificação
 `GET /api/futebol/tabela/:campeonato`  
 Parâmetro opcional: `?formato=json|csv|xml`
 

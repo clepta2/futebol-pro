@@ -148,6 +148,9 @@ export declare class FutebolPro {
   static getGraficoPartidaUrl(partidaId: string): string;
   static getPartidaEscalacoes(partidaId: string): Promise<{ ok: boolean; partidaId: string; escalacoes: any[] }>;
   static getClassicos(slug?: string): Promise<{ ok: boolean; totalClassicos?: number; classicos?: any; dados?: any }>;
+  static compararCarreiras(id1: string, id2: string): Promise<{ ok: boolean; comparacao: any }>;
+  static getComparacaoCarreirasSvgUrl(id1: string, id2: string): string;
+  static getMelhoresDaTemporada(escopo?: 'global' | 'brasileirao'): Promise<{ ok: boolean; rankingMelhoresDaTemporada: any[]; selecaoIdealDaTemporada: any }>;
   static compararJogadores(id1: string, id2: string): Promise<{ ok: boolean; comparacao: any }>;
   static getAnaliseJogador(jogadorId: string): Promise<{ ok: boolean; analise: any }>;
   static getDashboardJogadorUrl(jogadorId: string): string;

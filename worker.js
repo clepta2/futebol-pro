@@ -26,10 +26,15 @@ import {
   JOGOS_ANTIGOS_HISTORICOS,
   JOGOS_FUTUROS_CALENDARIO,
   RETROSPECTO_CLASSICOS,
+  CONFRONTOS_DIRETOS_ATLETAS,
+  CORRIDA_MELHOR_DA_TEMPORADA,
+  SELECAO_DA_TEMPORADA,
   calcularProbabilidadeConfronto,
   compararJogadores,
+  compararCarreiras,
   analisarJogadorComMotor,
   renderDashboardAtletaSvg,
+  renderComparacaoCarreirasSvg,
   renderGraficoEstatisticoPartidaSvg,
   renderCardPartidaSvg,
   renderRadarAtletaSvg,
@@ -1273,6 +1278,68 @@ export default {
         totalJogadores: lista.length,
         jogadores: lista
       }), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 10.0 COMPARADOR HISTÓRICO DE CARREIRAS (ex: messi vs cr7, pele vs ronaldo)
+    if (path.startsWith('/api/futebol/carreiras/comparar/')) {
+      const parts = path.split('/');
+      let id1 = parts[5]?.toLowerCase();
+      let id2 = parts[6]?.toLowerCase();
+      const isGraficoSvg = id2?.endsWith('.svg');
+      if (isGraficoSvg) id2 = id2.replace(/\.svg$/, '');
+
+      const j1 = JOGADORES_CONSOLIDADOS.find(j => j.id.toLowerCase() === id1 || j.nome.toLowerCase().includes(id1));
+      const j2 = JOGADORES_CONSOLIDADOS.find(j => j.id.toLowerCase() === id2 || j.nome.toLowerCase().includes(id2));
+
+      if (!j1 || !j2) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'ATLETAS_NAO_ENCONTRADOS',
+          mensagem: 'Informe identificadores válidos de atletas para comparação de carreira.',
+          exemplo: '/api/futebol/carreiras/comparar/messi-10/cr7-7'
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      if (isGraficoSvg) {
+        const svg = renderComparacaoCarreirasSvg(j1, j2);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      const comparacao = compararCarreiras(j1, j2);
+      return new Response(JSON.stringify({
+        ok: true,
+        comparacao
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 10.0.1 PRÊMIOS DA TEMPORADA & CORRIDA MELHOR JOGADOR DO ANO
+    if (path === '/api/futebol/premios/melhor-do-ano' || path === '/api/futebol/premios/temporada') {
+      const escopo = url.searchParams.get('escopo')?.toLowerCase() || 'global';
+      const ranking = CORRIDA_MELHOR_DA_TEMPORADA[escopo] || CORRIDA_MELHOR_DA_TEMPORADA.global;
+
+      return new Response(JSON.stringify({
+        ok: true,
+        titulo: 'Corrida Oficial para Melhor Jogador da Temporada (Ballon d\'Or & The Best)',
+        escopo,
+        temporada: '2026',
+        criterios: 'Rating médio ponderado, gols, assistências, títulos oficiais e decisões',
+        rankingMelhoresDaTemporada: ranking,
+        selecaoIdealDaTemporada: SELECAO_DA_TEMPORADA
+      }, null, 2), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
       });
     }

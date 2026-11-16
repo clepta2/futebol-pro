@@ -212,6 +212,45 @@ export class FutebolPro {
   }
 
   /**
+   * Compara a carreira inteira de dois atletas (gols, jogos, títulos, prêmios)
+   * @param {string} id1 - Ex: 'messi-10', 'pele-10'
+   * @param {string} id2 - Ex: 'cr7-7', 'ronaldo-9'
+   * @returns {Promise<Object>}
+   */
+  static async compararCarreiras(id1, id2) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/carreiras/comparar/${id1}/${id2}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao comparar carreiras: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Gráfico SVG de Comparação de Carreiras
+   * @param {string} id1
+   * @param {string} id2
+   * @returns {string}
+   */
+  static getComparacaoCarreirasSvgUrl(id1, id2) {
+    return `${this.baseUrl}/api/futebol/carreiras/comparar/${id1}/${id2}.svg`;
+  }
+
+  /**
+   * Consulta a corrida de Melhor Jogador da Temporada e Seleção do Ano
+   * @param {'global'|'brasileirao'} [escopo='global']
+   * @returns {Promise<Object>}
+   */
+  static async getMelhoresDaTemporada(escopo = 'global') {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/premios/melhor-do-ano?escopo=${escopo}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao consultar melhores da temporada: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
    * Compara dois jogadores em métricas estatísticas e médias
    * @param {string} id1
    * @param {string} id2

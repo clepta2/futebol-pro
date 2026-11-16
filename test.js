@@ -340,4 +340,36 @@ assert(resGhBra.status === 200, 'Endpoint /api/futebol/github/brasileirao-histor
 const dataGhBra = await resGhBra.json();
 assert(dataGhBra.totalPartidasEncontradas > 0, 'Partidas históricas do GitHub retornadas com sucesso');
 
+
+// ─── 11. COMPARADOR DE CARREIRAS & MELHOR DA TEMPORADA ───
+console.log('\n--- 11. Comparador de Carreiras Históricas & Melhor da Temporada ---');
+
+// 11.1 Comparação Completa de Carreira (Messi vs Cristiano Ronaldo)
+const resCarreiras = await worker.fetch(new Request('https://api.test/api/futebol/carreiras/comparar/messi-10/cr7-7', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resCarreiras.status === 200, 'Endpoint /carreiras/comparar responde 200');
+const dataCarreiras = await resCarreiras.json();
+assert(dataCarreiras.comparacao.atleta1.golsCarreira > 800, 'Gols de carreira do Messi validados (>800)');
+assert(dataCarreiras.comparacao.atleta2.golsCarreira > 850, 'Gols de carreira do CR7 validados (>850)');
+assert(dataCarreiras.comparacao.confrontosDiretosEmCampo.totalConfrontos === 36, 'Total de 36 confrontos diretos Messi vs CR7 confirmado');
+
+// 11.2 Gráfico SVG Bi-Direcional de Carreiras
+const resCarreirasSvg = await worker.fetch(new Request('https://api.test/api/futebol/carreiras/comparar/messi-10/cr7-7.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resCarreirasSvg.status === 200, 'Endpoint /carreiras/comparar/...svg responde 200');
+assert(resCarreirasSvg.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para comparação de carreiras');
+const textCarreirasSvg = await resCarreirasSvg.text();
+assert(textCarreirasSvg.includes('COMPARAÇÃO HISTÓRICA DE CARREIRAS'), 'Gráfico SVG de carreiras gerado com sucesso');
+
+// 11.3 Corrida Melhor Jogador da Temporada (Ballon d''Or & The Best)
+const resPremios = await worker.fetch(new Request('https://api.test/api/futebol/premios/melhor-do-ano', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resPremios.status === 200, 'Endpoint /premios/melhor-do-ano responde 200');
+const dataPremios = await resPremios.json();
+assert(dataPremios.rankingMelhoresDaTemporada.length >= 5, 'Mínimo de 5 postulantes na corrida de melhor da temporada');
+assert(dataPremios.selecaoIdealDaTemporada.titulares.length === 11, 'Seleção ideal da temporada possui exatamente 11 titulares');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
