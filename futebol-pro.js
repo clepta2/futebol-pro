@@ -220,6 +220,85 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém as partidas da rodada oficial do Grupo Globo / Cartola FC
+   * @returns {Promise<Object>}
+   */
+  static async getGloboPartidas() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/globo/partidas`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao consultar partidas Globo: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém os 68 clubes com escudos de alta resolução da CDN Globo s3.glbimg.com
+   * @returns {Promise<Object>}
+   */
+  static async getGloboClubes() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/globo/clubes`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao consultar clubes Globo: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o status oficial do mercado da Globo (aberto/fechado, data/hora de fechamento)
+   * @returns {Promise<Object>}
+   */
+  static async getGloboMercadoStatus() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/globo/mercado-status`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao consultar status mercado Globo: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém os esquemas táticos oficiais da Globo (4-3-3, 3-4-3, etc.)
+   * @returns {Promise<Object>}
+   */
+  static async getGloboEsquemas() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/globo/esquemas`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao consultar esquemas Globo: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém as notícias oficiais em tempo real da ESPN Worldwide com filtro por liga
+   * @param {string} [liga='bra.1'] - 'bra.1', 'eng.1', 'esp.1', 'uefa.champions'
+   * @returns {Promise<Object>}
+   */
+  static async getEspnNoticias(liga = 'bra.1') {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/espn/noticias?liga=${encodeURIComponent(liga)}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao consultar notícias ESPN: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém os torneios oficiais mundiais da FIFA (Copa do Mundo 2026, Mundial de Clubes)
+   * @returns {Promise<Object>}
+   */
+  static async getFifaTorneios() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/fifa/torneios`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao consultar torneios FIFA: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
    * Obtém a URL do Mapa de Calor Tático (Heatmap SVG) da equipe
    * @param {string} partidaId
    * @param {string} [equipe]

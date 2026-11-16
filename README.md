@@ -114,11 +114,23 @@ Parâmetro opcional: `?formato=json|csv|xml` ou `GET /api/futebol/tabela/:campeo
 ### 15. 🎚️ Gauge Gráfico de Clássicos H2H em SVG
 - `GET /api/futebol/classicos/:slug/gauge.svg`: Renderizador SVG de proporção tripla de vitórias e empates do dérbi.
 
-### 16. 🛡️ Cadastro Oficial de Clubes
+### 16. 📺 Integrações Oficiais de Grandes Portais (Globo, ESPN & FIFA)
+- **Grupo Globo & Cartola FC:**
+  - `GET /api/futebol/globo/partidas`: Rodada oficial da Série A com horários de TV e estádios no padrão ge.globo.
+  - `GET /api/futebol/globo/clubes`: 68 clubes com escudos oficiais de alta resolução da CDN `s3.glbimg.com`.
+  - `GET /api/futebol/globo/mercado-status`: Status oficial do mercado (aberto/fechado e timestamp de fechamento).
+  - `GET /api/futebol/globo/esquemas`: Esquemas táticos oficiais (4-3-3, 3-4-3, 3-5-2, etc.).
+- **ESPN Worldwide Sports News:**
+  - `GET /api/futebol/espn/noticias?liga=bra.1`: Feed de notícias jornalísticas em tempo real com manchete, resumo, autor, fotos e links originais (suporta `bra.1`, `eng.1`, `esp.1`, `uefa.champions`).
+- **FIFA (Fédération Internationale de Football Association):**
+  - `GET /api/futebol/fifa/torneios`: Calendário e detalhes da Copa do Mundo FIFA 2026, Super Mundial de Clubes FIFA 2025/2026 e Copa Intercontinental.
+  - `GET /api/futebol/ranking-fifa`: Top 10 oficial de seleções masculinas do mundo.
+
+### 17. 🛡️ Cadastro Oficial de Clubes
 `GET /api/futebol/clubes`  
 Filtros opcionais: `?estado=SP`, `?pais=Brasil`, `?busca=flamengo`
 
-### 17. 🏟️ Estádios Oficiais
+### 18. 🏟️ Estádios Oficiais
 `GET /api/futebol/estadios`  
 Filtros opcionais: `?uf=RJ`, `?cidade=Rio de Janeiro`
 

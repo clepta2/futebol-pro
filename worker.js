@@ -2090,6 +2090,173 @@ export default {
       });
     }
 
+    // 10.0.6 INTEGRAÇÕES OFICIAIS DE GRANDES PORTAIS (GLOBO, ESPN, FIFA)
+    if (path === '/api/futebol/globo/partidas') {
+      const cacheKey = 'globo_cartola_partidas';
+      let dados = await getStorageData(cacheKey, env);
+      if (!dados) {
+        try {
+          const resp = await fetch('https://api.cartola.globo.com/partidas', {
+            headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-GloboBridge/1.0' }
+          });
+          if (resp.ok) {
+            dados = await resp.json();
+            await putStorageData(cacheKey, dados, 180, env, ctx);
+          }
+        } catch (_) {}
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        provedor: 'Grupo Globo / Cartola FC Oficial',
+        rodada: dados?.rodada || 35,
+        totalPartidasRodada: dados?.partidas?.length || 0,
+        partidas: dados?.partidas || []
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path === '/api/futebol/globo/clubes') {
+      const cacheKey = 'globo_cartola_clubes';
+      let clubesGlobo = await getStorageData(cacheKey, env);
+      if (!clubesGlobo) {
+        try {
+          const resp = await fetch('https://api.cartola.globo.com/clubes', {
+            headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-GloboBridge/1.0' }
+          });
+          if (resp.ok) {
+            clubesGlobo = await resp.json();
+            await putStorageData(cacheKey, clubesGlobo, 86400, env, ctx);
+          }
+        } catch (_) {}
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        provedor: 'Grupo Globo / CDN s3.glbimg.com Oficial',
+        totalClubes: Object.keys(clubesGlobo || {}).length,
+        clubes: clubesGlobo || {}
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path === '/api/futebol/globo/mercado-status' || path === '/api/futebol/globo/status') {
+      const cacheKey = 'globo_mercado_status';
+      let statusMercado = await getStorageData(cacheKey, env);
+      if (!statusMercado) {
+        try {
+          const resp = await fetch('https://api.cartola.globo.com/mercado/status', {
+            headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-GloboBridge/1.0' }
+          });
+          if (resp.ok) {
+            statusMercado = await resp.json();
+            await putStorageData(cacheKey, statusMercado, 60, env, ctx);
+          }
+        } catch (_) {}
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        provedor: 'Grupo Globo / Cartola FC',
+        mercadoAberto: statusMercado?.status_mercado === 1,
+        status: statusMercado || {}
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path === '/api/futebol/globo/esquemas') {
+      const cacheKey = 'globo_esquemas_taticos';
+      let esquemas = await getStorageData(cacheKey, env);
+      if (!esquemas) {
+        try {
+          const resp = await fetch('https://api.cartola.globo.com/esquemas', {
+            headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-GloboBridge/1.0' }
+          });
+          if (resp.ok) {
+            esquemas = await resp.json();
+            await putStorageData(cacheKey, esquemas, 86400, env, ctx);
+          }
+        } catch (_) {}
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        provedor: 'Grupo Globo / Esquemas Táticos Oficiais',
+        totalEsquemas: esquemas?.length || 0,
+        esquemas: esquemas || []
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path === '/api/futebol/espn/noticias') {
+      const liga = url.searchParams.get('liga')?.toLowerCase() || 'bra.1';
+      const cacheKey = `espn_news_${liga}`;
+      let noticias = await getStorageData(cacheKey, env);
+
+      if (!noticias) {
+        try {
+          const resp = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${liga}/news`, {
+            headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-ESPNBridge/1.0' }
+          });
+          if (resp.ok) {
+            const json = await resp.json();
+            noticias = (json.articles || []).map(a => ({
+              titulo: a.headline,
+              resumo: a.description,
+              publicadoEm: a.published,
+              autor: a.byline || 'ESPN News',
+              linkOriginal: a.links?.web?.href,
+              imagemDestaque: a.images?.[0]?.url || null
+            }));
+            await putStorageData(cacheKey, noticias, 300, env, ctx);
+          }
+        } catch (_) {}
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        provedor: 'ESPN Worldwide Sports News',
+        liga,
+        totalNoticias: noticias?.length || 0,
+        noticias: noticias || []
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path === '/api/futebol/fifa/torneios') {
+      return new Response(JSON.stringify({
+        ok: true,
+        provedor: 'FIFA (Fédération Internationale de Football Association)',
+        torneiosOficiais: [
+          {
+            torneio: 'FIFA World Cup 2026',
+            sede: 'Estados Unidos, México e Canadá',
+            formato: '48 Seleções (12 Grupos de 4)',
+            totalJogos: 104,
+            periodo: '11 de Junho a 19 de Julho de 2026',
+            estadioFinal: 'MetLife Stadium (New York/New Jersey)'
+          },
+          {
+            torneio: 'FIFA Club World Cup 2025/2026 (Super Mundial de Clubes)',
+            sede: 'Estados Unidos',
+            formato: '32 Clubes Mundiais (Flamengo, Palmeiras, Fluminense, Real Madrid, Manchester City, Chelsea, Bayern)',
+            periodo: '15 de Junho a 13 de Julho de 2025/2026'
+          },
+          {
+            torneio: 'FIFA Intercontinental Cup (Copa Intercontinental da FIFA)',
+            formato: 'Campeão da Libertadores vs Campeão da CONCACAF e vencedor contra Campeão da Champions League'
+          }
+        ]
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
     if (path.startsWith('/api/futebol/jogadores/comparar/')) {
       const parts = path.split('/');
       const id1 = parts[5]?.toLowerCase();

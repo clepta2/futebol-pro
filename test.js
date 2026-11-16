@@ -695,4 +695,57 @@ const dataFifa = await resFifa.json();
 assert(dataFifa.ranking.length === 10, 'Top 10 oficial de seleções FIFA retornado');
 assert(dataFifa.ranking.some(s => s.selecao === 'Brasil'), 'Seleção Brasileira presente no ranking');
 
+
+// ─── 19. INTEGRAÇÕES GLOBO, CARTOLA FC, ESPN NEWS & FIFA ───
+console.log('\n--- 19. Integrações Oficiais Globo, Cartola FC, ESPN News & FIFA ---');
+
+// 19.1 Globo Cartola Partidas
+const resGloboPart = await worker.fetch(new Request('https://api.test/api/futebol/globo/partidas', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resGloboPart.status === 200, 'Endpoint /globo/partidas responde 200');
+const dataGloboPart = await resGloboPart.json();
+assert(dataGloboPart.totalPartidasRodada > 0, 'Partidas da rodada Globo retornadas');
+
+// 19.2 Globo Cartola Clubes
+const resGloboClub = await worker.fetch(new Request('https://api.test/api/futebol/globo/clubes', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resGloboClub.status === 200, 'Endpoint /globo/clubes responde 200');
+const dataGloboClub = await resGloboClub.json();
+assert(dataGloboClub.totalClubes > 20, 'Clubes com escudos Globo retornados');
+
+// 19.3 Globo Mercado Status
+const resGloboStat = await worker.fetch(new Request('https://api.test/api/futebol/globo/mercado-status', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resGloboStat.status === 200, 'Endpoint /globo/mercado-status responde 200');
+const dataGloboStat = await resGloboStat.json();
+assert(dataGloboStat.status.rodada_atual > 0, 'Status de mercado Globo validado');
+
+// 19.4 Globo Esquemas Táticos
+const resGloboEsq = await worker.fetch(new Request('https://api.test/api/futebol/globo/esquemas', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resGloboEsq.status === 200, 'Endpoint /globo/esquemas responde 200');
+const dataGloboEsq = await resGloboEsq.json();
+assert(dataGloboEsq.totalEsquemas >= 5, 'Esquemas táticos oficiais Globo retornados');
+
+// 19.5 ESPN Notícias em Tempo Real
+const resEspnNot = await worker.fetch(new Request('https://api.test/api/futebol/espn/noticias?liga=bra.1', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resEspnNot.status === 200, 'Endpoint /espn/noticias responde 200');
+const dataEspnNot = await resEspnNot.json();
+assert(dataEspnNot.totalNoticias > 0, 'Notícias oficiais ESPN retornadas');
+assert(dataEspnNot.noticias[0].titulo.length > 5, 'Título de notícia ESPN validado');
+
+// 19.6 FIFA Torneios Mundiais
+const resFifaTor = await worker.fetch(new Request('https://api.test/api/futebol/fifa/torneios', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resFifaTor.status === 200, 'Endpoint /fifa/torneios responde 200');
+const dataFifaTor = await resFifaTor.json();
+assert(dataFifaTor.torneiosOficiais.length >= 3, 'Torneios oficiais FIFA retornados');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
