@@ -587,4 +587,13 @@ try {
 }
 assert(scheduledExecuted === true, 'Gatilho automático Cloudflare scheduled executado com sucesso');
 
+// 16.2 Sincronização Manual / On-Demand e Persistência Imediata
+const resSync = await worker.fetch(new Request('https://api.test/api/futebol/sync', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resSync.status === 200, 'Endpoint POST /sync responde 200');
+const dataSync = await resSync.json();
+assert(dataSync.ok === true, 'Sincronização reporta ok: true');
+assert(dataSync.armazenamentoPersistente !== undefined, 'Armazenamento persistente reportado');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);

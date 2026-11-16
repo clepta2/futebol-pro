@@ -6,8 +6,12 @@ workers_dev = true
 [observability]
 enabled = true
 
+[[kv_namespaces]]
+binding = "FUTEBOL_KV"
+id = "futebol_pro_kv_storage"
+
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["*/2 * * * *"]
 
 [vars]
 SERVICE_NAME = "Futebol Pro Anycast API"

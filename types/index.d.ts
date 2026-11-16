@@ -163,6 +163,7 @@ export declare class FutebolPro {
   static listarWebhooks(): Promise<{ ok: boolean; totalWebhooksAtivos: number; webhooks: any[] }>;
   static removerWebhook(webhookId: string): Promise<{ ok: boolean; mensagem: string }>;
   static testarWebhook(): Promise<{ ok: boolean; mensagem: string; payloadDisparado: any }>;
+  static forcarSincronizacao(): Promise<{ ok: boolean; mensagem: string; armazenamentoPersistente: string; timestamp: string }>;
   static getWidgetJsUrl(): string;
   static getPartidaXg(partidaId: string): Promise<{ ok: boolean; partidaId: string; analiseXg: any }>;
   static getShotMapSvgUrl(partidaId: string): string;

@@ -341,6 +341,19 @@ export class FutebolPro {
   }
 
   /**
+   * Força a sincronização imediata de todos os feeds e salva no armazenamento persistente
+   * @returns {Promise<Object>}
+   */
+  static async forcarSincronizacao() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/sync`, {
+      method: 'POST',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao sincronizar dados: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
    * Dispara simulação de teste de evento de gol via webhook
    * @returns {Promise<Object>}
    */
