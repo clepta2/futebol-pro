@@ -9,7 +9,8 @@
   "scripts": {
     "test": "node test.js",
     "sync:dados": "node scripts/baixar-dados-soberanos.js",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "security:check": "node scripts/security-guard.js"
   },
   "keywords": [
     "futebol",
