@@ -305,6 +305,7 @@
           <button class="ponte-btn" style="padding:6px 14px; font-size:12px;" onclick="loadTabela('brasileirao-a')">Brasileirão Série A</button>
           <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadTabela('premier-league')">Premier League</button>
           <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadTabela('la-liga')">LaLiga</button>
+          <button class="ponte-btn secondary" id="btn-toggle-projecoes" style="padding:6px 14px; font-size:12px;" onclick="toggleProjecaoTabela()">🔮 Projeções (Título, G4 e Z4)</button>
         </div>
         <div style="display:flex; gap:8px;">
           <button class="ponte-btn secondary" style="padding:6px 12px; font-size:12px;" onclick="downloadTabela('csv')">📥 Exportar CSV</button>
@@ -848,6 +849,92 @@
       }
     };
 
+    window.executarOmnisearch = async function() {
+      const q = (document.getElementById('omnisearch-input')?.value || '').trim();
+      const resBox = document.getElementById('omnisearch-results');
+      if (!q) {
+        resBox.style.display = 'none';
+        return;
+      }
+
+      resBox.style.display = 'block';
+      resBox.innerHTML = '<span style="color:var(--muted);">Pesquisando no catálogo Anycast...</span>';
+
+      try {
+        const resp = await fetch(`/api/futebol/busca?q=${encodeURIComponent(q)}`);
+        const data = await resp.json();
+        const r = data.resultados || {};
+        const total = data.totalResultados || 0;
+
+        if (total === 0) {
+          resBox.innerHTML = `<span style="color:var(--muted);">Nenhum resultado encontrado para "<strong>${q}</strong>".</span>`;
+          return;
+        }
+
+        let html = `<div style="font-size:12px; font-weight:700; color:var(--mint); margin-bottom:8px;">${total} resultados para "${q}":</div>`;
+        if (r.clubes?.length > 0) {
+          html += `<div style="margin-bottom:6px;"><strong>🛡️ Clubes:</strong> ${r.clubes.map(c => `<a href="javascript:void(0)" onclick="abrirSimuladorCom('${c.slug}')" style="color:var(--ink); text-decoration:underline; margin-right:8px;">${c.nomeCurto} (${c.cidade})</a>`).join('')}</div>`;
+        }
+        if (r.jogadores?.length > 0) {
+          html += `<div style="margin-bottom:6px;"><strong>🏃 Jogadores:</strong> ${r.jogadores.map(j => `<a href="javascript:void(0)" onclick="abrirMotorAnalise('${j.id}')" style="color:var(--ink); text-decoration:underline; margin-right:8px;">${j.nome} (${j.clube})</a>`).join('')}</div>`;
+        }
+        if (r.estadios?.length > 0) {
+          html += `<div style="margin-bottom:6px;"><strong>🏟️ Estádios:</strong> ${r.estadios.map(e => `<span style="color:var(--ink-secondary); margin-right:8px;">${e.nome} (${e.cidade})</span>`).join('')}</div>`;
+        }
+        if (r.classicos?.length > 0) {
+          html += `<div style="margin-bottom:6px;"><strong>🏆 Clássicos:</strong> ${r.classicos.map(cl => `<span style="color:var(--ink-secondary); margin-right:8px;">${cl.classico}</span>`).join('')}</div>`;
+        }
+
+        resBox.innerHTML = html;
+      } catch (err) {
+        resBox.innerHTML = `<span style="color:#ef4444;">Erro ao buscar: ${err.message}</span>`;
+      }
+    };
+
+    window.toggleProjecaoTabela = async function() {
+      const btn = document.getElementById('btn-toggle-projecoes');
+      const isShowingProj = btn.classList.contains('active-proj');
+      
+      if (isShowingProj) {
+        btn.classList.remove('active-proj');
+        btn.className = 'ponte-btn secondary';
+        loadTabela(currentCampeonato);
+        return;
+      }
+
+      btn.classList.add('active-proj');
+      btn.className = 'ponte-btn';
+      btn.style.borderColor = 'var(--mint)';
+
+      const tbody = document.getElementById('tabela-body');
+      tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:30px; color:var(--muted);">Calculando modelo probabilístico de projeção (Título, G4 e Z4)...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/futebol/tabela/${currentCampeonato}/projecoes`);
+        const data = await res.json();
+        const proj = data.projecoes || [];
+
+        tbody.innerHTML = proj.map(p => `
+          <tr>
+            <td style="font-weight:700; color:var(--muted);">${p.pos}</td>
+            <td style="font-weight:700; color:var(--ink);">${p.time}</td>
+            <td style="text-align:center; font-weight:800; color:var(--ink);">${p.ptsAtuais}</td>
+            <td style="text-align:center; color:var(--muted);">${p.jogosDisputados}</td>
+            <td style="text-align:center; color:var(--mint); font-weight:700;">${p.jogosRestantes} rest.</td>
+            <td style="text-align:center; font-weight:800; color:#38bdf8;">${p.projecaoPontosFinal} pts</td>
+            <td colspan="4" style="text-align:center;">
+              <span style="display:inline-block; margin-right:12px; color:#10b981; font-weight:700;">🏆 Título: ${p.probabilidadeTitulo}</span>
+              <span style="display:inline-block; margin-right:12px; color:#60a5fa; font-weight:600;">⭐ G4: ${p.probabilidadeG4Libertadores}</span>
+              <span style="display:inline-block; color:#ef4444; font-weight:700;">⚠️ Z4: ${p.riscoRebaixamentoZ4}</span>
+            </td>
+            <td colspan="2" style="text-align:center; color:var(--muted); font-size:11px;">Projeção Matemática</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        loadTabela(currentCampeonato);
+      }
+    };
+
     window.abrirGraficoEstatisticoPartida = async function(id) {
       try {
         const modal = document.getElementById('modal-partida');
@@ -868,8 +955,16 @@
             <span class="ponte-badge mint">Dados Verídicos Oficiais</span>
           </div>
 
-          <!-- Embed do Gráfico SVG Comparativo em Tempo Real -->
-          <div style="text-align:center; margin-bottom:20px; overflow-x:auto;">
+          <!-- Abas de Visualização Gráfica da Partida -->
+          <div style="display:flex; gap:8px; margin-bottom:14px; overflow-x:auto;">
+            <button class="ponte-btn" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'stats')">📊 Estatísticas</button>
+            <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'shotmap')">🗺️ xG Shot Map</button>
+            <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'campo')">📍 Posição da Bola 2D</button>
+            <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'heatmap')">🔥 Heatmap Tático</button>
+            <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'odds')">🎲 Odds Poisson</button>
+          </div>
+
+          <div id="modal-visual-container" style="text-align:center; margin-bottom:20px; overflow-x:auto;">
             <img src="/api/futebol/partida/${id}/grafico.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Gráfico Comparativo da Partida">
           </div>
 
@@ -885,6 +980,55 @@
         `;
       } catch (err) {
         document.getElementById('modal-partida-conteudo').innerHTML = `<div style="color:#ef4444; padding:20px;">Erro ao carregar gráfico estatístico: ${err.message}</div>`;
+      }
+    };
+
+    window.trocarVisualModal = async function(id, tipo) {
+      const container = document.getElementById('modal-visual-container');
+      if (tipo === 'stats') {
+        container.innerHTML = `<img src="/api/futebol/partida/${id}/grafico.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+      } else if (tipo === 'shotmap') {
+        container.innerHTML = `<img src="/api/futebol/partida/${id}/shotmap.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+      } else if (tipo === 'campo') {
+        container.innerHTML = `<img src="/api/futebol/partida/${id}/campo.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+      } else if (tipo === 'heatmap') {
+        container.innerHTML = `<img src="/api/futebol/partida/${id}/heatmap.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+      } else if (tipo === 'odds') {
+        container.innerHTML = '<div style="padding:20px; color:var(--muted);">Calculando probabilidades Poisson...</div>';
+        try {
+          const res = await fetch(`/api/futebol/partida/${id}/odds`);
+          const data = await res.json();
+          const o = data.mercadosDeOddsPoisson;
+          container.innerHTML = `
+            <div style="background:var(--paper-elevated); padding:16px; border-radius:var(--radius-md); text-align:left; font-size:12px; border:1px solid var(--line);">
+              <h4 style="margin:0 0 10px; color:var(--mint);">🎲 Mercados de Probabilidade &amp; Odds Justas (Poisson)</h4>
+              <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:12px; text-align:center;">
+                <div style="background:var(--canvas); padding:8px; border-radius:var(--radius-sm);">
+                  <small style="color:var(--muted);">1 (Mandante)</small>
+                  <div style="font-weight:800; color:#10b981; font-size:16px;">@ ${o.mercado1X2.mandante.oddJusta}</div>
+                  <small style="color:var(--muted);">${o.mercado1X2.mandante.probabilidade}</small>
+                </div>
+                <div style="background:var(--canvas); padding:8px; border-radius:var(--radius-sm);">
+                  <small style="color:var(--muted);">X (Empate)</small>
+                  <div style="font-weight:800; color:#fbbf24; font-size:16px;">@ ${o.mercado1X2.empate.oddJusta}</div>
+                  <small style="color:var(--muted);">${o.mercado1X2.empate.probabilidade}</small>
+                </div>
+                <div style="background:var(--canvas); padding:8px; border-radius:var(--radius-sm);">
+                  <small style="color:var(--muted);">2 (Visitante)</small>
+                  <div style="font-weight:800; color:#60a5fa; font-size:16px;">@ ${o.mercado1X2.visitante.oddJusta}</div>
+                  <small style="color:var(--muted);">${o.mercado1X2.visitante.probabilidade}</small>
+                </div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; border-top:1px solid var(--line-light); padding-top:8px;">
+                <span><strong>Over 2.5:</strong> ${o.golsOverUnder.over25.prob} (@${o.golsOverUnder.over25.odd})</span>
+                <span><strong>Under 2.5:</strong> ${o.golsOverUnder.under25.prob} (@${o.golsOverUnder.under25.odd})</span>
+                <span><strong>Ambas Marcam:</strong> ${o.ambasMarcamBTTS.sim.prob} (@${o.ambasMarcamBTTS.sim.odd})</span>
+              </div>
+            </div>
+          `;
+        } catch (e) {
+          container.innerHTML = '<div style="color:#ef4444; padding:20px;">Erro ao carregar odds.</div>';
+        }
       }
     };
 
