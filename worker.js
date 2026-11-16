@@ -66,6 +66,9 @@ import {
   obterStreaksConfronto,
   calcularXgAvancado,
   renderRelatorioScoutingHtml,
+  obterDesfalquesClube,
+  renderEscalacoesTaticasSvg,
+  calcularProbabilidadeAoVivo,
   exportarTabelaCsv,
   exportarTabelaXml
 } from './dados-futebol.js';
@@ -1543,6 +1546,33 @@ export default {
         });
       }
 
+      // Renderizador Gráfico 2D das Escalações Titulares e Formação Tática em SVG
+      if (subAcao === 'escalacoes.svg' || subAcao === 'tatica.svg') {
+        const part = detalhe.partida || detalhe;
+        const svg = renderEscalacoesTaticasSvg(part);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=60',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      // Preditor de Probabilidade da Partida em Tempo Real (Google Sports / Opta Match Predictor)
+      if (subAcao === 'probabilidade' || subAcao === 'previsao' || subAcao === 'preditor') {
+        const part = detalhe.partida || detalhe;
+        const prob = calcularProbabilidadeAoVivo(part);
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          preditorProbabilidades: prob
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       return new Response(JSON.stringify(detalhe, null, 2), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
       });
@@ -1898,6 +1928,19 @@ export default {
           clube: clube.nomeCurto,
           slug,
           valuationTransfermarkt: val
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Desfalques, Lesões no Departamento Médico e Suspensões (Transfermarkt / Wyscout)
+      if (subAcao === 'desfalques' || subAcao === 'dm' || subAcao === 'lesoes' || subAcao === 'suspensos') {
+        const desfalques = obterDesfalquesClube(slug);
+        return new Response(JSON.stringify({
+          ok: true,
+          clube: clube.nomeCurto,
+          slug,
+          relatorioDesfalques: desfalques
         }, null, 2), {
           headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
         });
@@ -2636,6 +2679,18 @@ export default {
           ok: true,
           confronto: `${clubeCasa.nomeCurto} vs ${clubeVisitante.nomeCurto}`,
           mercadosDeOddsPoisson: odds
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Streaks e Tendências de Confronto (Estilo WhoScored / Sofascore Streaks)
+      if (parts[6] === 'streaks' || parts[6] === 'tendencias') {
+        const streaks = obterStreaksConfronto(clubeCasa, clubeVisitante);
+        return new Response(JSON.stringify({
+          ok: true,
+          confronto: `${clubeCasa.nomeCurto} vs ${clubeVisitante.nomeCurto}`,
+          streaks
         }, null, 2), {
           headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
         });

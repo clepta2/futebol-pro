@@ -3919,6 +3919,236 @@ export function renderRelatorioScoutingHtml(jogador, analise) {
 </html>`;
 }
 
+export const DESFALQUES_E_SUSPENSOES = {
+  'flamengo': [
+    { atleta: 'Pedro', numero: 9, posicao: 'Centroavante', tipo: 'Lesão', motivo: 'Ruptura no ligamento cruzado anterior (LCA)', status: 'Departamento Médico', dataLesao: '2024-09-04', previsaoRetorno: 'Segundo Semestre 2025' },
+    { atleta: 'Matías Viña', numero: 17, posicao: 'Lateral Esquerdo', tipo: 'Lesão', motivo: 'Cirurgia no ligamento cruzado e menisco', status: 'Departamento Médico', dataLesao: '2024-08-11', previsaoRetorno: 'Fase de Transição' },
+    { atleta: 'Everton Cebolinha', numero: 11, posicao: 'Ponta Esquerda', tipo: 'Lesão', motivo: 'Ruptura do tendão de Aquiles do tornozelo', status: 'Departamento Médico', dataLesao: '2024-08-11', previsaoRetorno: 'Fase de Transição' },
+    { atleta: 'Nicolás de la Cruz', numero: 18, posicao: 'Meia', tipo: 'Controle de Carga', motivo: 'Edema muscular na coxa direita', status: 'Transição Física', previsaoRetorno: 'Próxima Rodada' }
+  ],
+  'palmeiras': [
+    { atleta: 'Bruno Rodrigues', numero: 11, posicao: 'Atacante', tipo: 'Lesão', motivo: 'Cirurgia de reconstrução do tendão patelar', status: 'Departamento Médico', dataLesao: '2024-05-24', previsaoRetorno: 'Segundo Semestre 2025' },
+    { atleta: 'Joaquín Piquerez', numero: 22, posicao: 'Lateral Esquerdo', tipo: 'Lesão', motivo: 'Cirurgia no menisco do joelho esquerdo', status: 'Transição Física', dataLesao: '2024-07-20', previsaoRetorno: 'Disponível em Breve' },
+    { atleta: 'Zé Rafael', numero: 8, posicao: 'Meio-Campista', tipo: 'Suspensão', motivo: 'Acúmulo de 3 cartões amarelos', status: 'Suspenso', previsaoRetorno: '1 Partida de Suspensão' }
+  ],
+  'real-madrid': [
+    { atleta: 'Daniel Carvajal', numero: 2, posicao: 'Lateral Direito', tipo: 'Lesão', motivo: 'Ruptura do ligamento cruzado anterior e ligamento colateral', status: 'Departamento Médico', previsaoRetorno: 'Temporada 2025/2026' },
+    { atleta: 'Éder Militão', numero: 3, posicao: 'Zagueiro', tipo: 'Lesão', motivo: 'Ruptura do ligamento cruzado anterior do joelho direito', status: 'Departamento Médico', previsaoRetorno: 'Temporada 2025/2026' },
+    { atleta: 'David Alaba', numero: 4, posicao: 'Zagueiro', tipo: 'Lesão', motivo: 'Recuperação pós-cirúrgica de ligamento cruzado', status: 'Transição Física', previsaoRetorno: 'Fase Final de Recuperação' }
+  ],
+  'manchester-city': [
+    { atleta: 'Rodri', numero: 16, posicao: 'Volante', tipo: 'Lesão', motivo: 'Lesão no ligamento cruzado anterior do joelho', status: 'Departamento Médico', previsaoRetorno: 'Temporada 2025/2026' },
+    { atleta: 'Kevin De Bruyne', numero: 17, posicao: 'Meio-Campista', tipo: 'Desconforto Muscular', motivo: 'Controle de minutagem e sobrecarga muscular', status: 'Dúvida para a Partida', previsaoRetorno: 'Avaliação Pré-Jogo' }
+  ],
+  'barcelona': [
+    { atleta: 'Marc-André ter Stegen', numero: 1, posicao: 'Goleiro', tipo: 'Lesão', motivo: 'Ruptura completa do tendão patelar do joelho direito', status: 'Departamento Médico', previsaoRetorno: 'Temporada 2025/2026' },
+    { atleta: 'Marc Bernal', numero: 28, posicao: 'Volante', tipo: 'Lesão', motivo: 'Ruptura do ligamento cruzado anterior e menisco externo', status: 'Departamento Médico', previsaoRetorno: 'Temporada 2025/2026' }
+  ],
+  'corinthians': [
+    { atleta: 'Maycon', numero: 7, posicao: 'Volante', tipo: 'Lesão', motivo: 'Ruptura do ligamento cruzado anterior do joelho direito', status: 'Departamento Médico', previsaoRetorno: 'Segundo Semestre 2025' },
+    { atleta: 'Diego Palacios', numero: 6, posicao: 'Lateral Esquerdo', tipo: 'Lesão', motivo: 'Cirurgia para correção de lesão na cartilagem do joelho', status: 'Departamento Médico', previsaoRetorno: 'Fase de Transição' }
+  ],
+  'sao-paulo': [
+    { atleta: 'Pablo Maia', numero: 29, posicao: 'Volante', tipo: 'Lesão', motivo: 'Cirurgia para reinserção do tendão do músculo semitendíneo', status: 'Transição Física', previsaoRetorno: 'Fase Final de Recuperação' },
+    { atleta: 'Alisson', numero: 25, posicao: 'Volante', tipo: 'Lesão', motivo: 'Fratura no tornozelo direito', status: 'Transição Física', previsaoRetorno: 'Disponível em Breve' }
+  ]
+};
+
+export function obterDesfalquesClube(clubeSlug) {
+  const slug = (clubeSlug || '').toLowerCase();
+  const lista = DESFALQUES_E_SUSPENSOES[slug] || [];
+  return {
+    clubeSlug: slug,
+    totalDesfalques: lista.length,
+    departamentoMedico: lista.filter(d => d.tipo === 'Lesão' || d.status.includes('Médico')),
+    suspensos: lista.filter(d => d.tipo === 'Suspensão' || d.status === 'Suspenso'),
+    transicaoFisica: lista.filter(d => d.status.includes('Transição') || d.tipo.includes('Carga') || d.tipo.includes('Dúvida')),
+    todosDesfalques: lista
+  };
+}
+
+/**
+ * Renderiza Diagrama Tático 2D das Escalações Titulares em SVG (Wyscout / Sofascore)
+ */
+export function renderEscalacoesTaticasSvg(partida = {}) {
+  const mandante = partida.mandante || { nome: 'Mandante', sigla: 'MAN', placar: 0 };
+  const visitante = partida.visitante || { nome: 'Visitante', sigla: 'VIS', placar: 0 };
+  const esc = partida.escalacoes || [];
+  const escCasa = esc.find(e => e.time === mandante.nome) || esc[0] || { esquemaTatico: '4-2-3-1', titulares: [] };
+  const escFora = esc.find(e => e.time === visitante.nome) || esc[1] || { esquemaTatico: '4-3-3', titulares: [] };
+
+  const corCasa = partida.corMandante || '#c3281e';
+  const corFora = partida.corVisitante || '#059669';
+
+  const posicoesCasa4231 = [
+    { x: 85, y: 265, papel: 'Goleiro' },
+    { x: 170, y: 120, papel: 'Lateral D.' },
+    { x: 155, y: 215, papel: 'Zagueiro' },
+    { x: 155, y: 315, papel: 'Zagueiro' },
+    { x: 170, y: 410, papel: 'Lateral E.' },
+    { x: 235, y: 205, papel: 'Volante' },
+    { x: 235, y: 325, papel: 'Volante' },
+    { x: 300, y: 140, papel: 'Ponta D.' },
+    { x: 300, y: 265, papel: 'Meia' },
+    { x: 300, y: 390, papel: 'Ponta E.' },
+    { x: 355, y: 265, papel: 'Centroavante' }
+  ];
+
+  const posicoesFora433 = [
+    { x: 715, y: 265, papel: 'Goleiro' },
+    { x: 630, y: 120, papel: 'Lateral E.' },
+    { x: 645, y: 215, papel: 'Zagueiro' },
+    { x: 645, y: 315, papel: 'Zagueiro' },
+    { x: 630, y: 410, papel: 'Lateral D.' },
+    { x: 565, y: 265, papel: 'Primeiro Volante' },
+    { x: 550, y: 185, papel: 'Segundo Volante' },
+    { x: 550, y: 345, papel: 'Meia Armador' },
+    { x: 485, y: 140, papel: 'Ponta E.' },
+    { x: 445, y: 265, papel: 'Centroavante' },
+    { x: 485, y: 390, papel: 'Ponta D.' }
+  ];
+
+  let jogadoresCasaSvg = '';
+  (escCasa.titulares || []).slice(0, 11).forEach((t, i) => {
+    const pos = posicoesCasa4231[i] || { x: 100 + i * 20, y: 265 };
+    jogadoresCasaSvg += `
+      <g transform="translate(${pos.x}, ${pos.y})">
+        <circle cx="0" cy="0" r="16" fill="${corCasa}" stroke="#ffffff" stroke-width="2"/>
+        <text x="0" y="5" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" font-weight="900" fill="#ffffff">${t.camisa || (i + 1)}</text>
+        <rect x="-42" y="19" width="84" height="15" rx="3" fill="rgba(15, 23, 42, 0.85)"/>
+        <text x="0" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#f8fafc">${t.nome.split(' ').slice(-1)[0]}</text>
+      </g>
+    `;
+  });
+
+  let jogadoresForaSvg = '';
+  (escFora.titulares || []).slice(0, 11).forEach((t, i) => {
+    const pos = posicoesFora433[i] || { x: 700 - i * 20, y: 265 };
+    jogadoresForaSvg += `
+      <g transform="translate(${pos.x}, ${pos.y})">
+        <circle cx="0" cy="0" r="16" fill="${corFora}" stroke="#ffffff" stroke-width="2"/>
+        <text x="0" y="5" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" font-weight="900" fill="#ffffff">${t.camisa || (i + 1)}</text>
+        <rect x="-42" y="19" width="84" height="15" rx="3" fill="rgba(15, 23, 42, 0.85)"/>
+        <text x="0" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#f8fafc">${t.nome.split(' ').slice(-1)[0]}</text>
+      </g>
+    `;
+  });
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="800" height="520">
+  <defs>
+    <linearGradient id="pGrass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#14532d"/>
+      <stop offset="50%" stop-color="#166534"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="520" rx="16" fill="#020617" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Título e Esquemas -->
+  <text x="400" y="28" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="900" fill="#a3e635" letter-spacing="1">
+    ESCALAÇÃO OFICIAL &amp; FORMAÇÃO TÁTICA (WYSCOUT / SOFASCORE)
+  </text>
+  <text x="50" y="45" font-family="system-ui, sans-serif" font-size="12" font-weight="800" fill="#f8fafc">
+    ${mandante.nome.toUpperCase()} (${escCasa.esquemaTatico || '4-2-3-1'})
+  </text>
+  <text x="750" y="45" text-anchor="end" font-family="system-ui, sans-serif" font-size="12" font-weight="800" fill="#f8fafc">
+    ${visitante.nome.toUpperCase()} (${escFora.esquemaTatico || '4-3-3'})
+  </text>
+
+  <!-- Campo de Futebol -->
+  <rect x="50" y="55" width="700" height="420" fill="url(#pGrass)" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+  <!-- Linha Meio Campo -->
+  <line x1="400" y1="55" x2="400" y2="475" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <circle cx="400" cy="265" r="55" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <circle cx="400" cy="265" r="3" fill="#ffffff"/>
+
+  <!-- Grandes Áreas -->
+  <rect x="50" y="145" width="115" height="240" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <rect x="635" y="145" width="115" height="240" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+
+  <!-- Pequenas Áreas -->
+  <rect x="50" y="205" width="45" height="120" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+  <rect x="705" y="205" width="45" height="120" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+
+  <!-- Jogadores Posicionados -->
+  ${jogadoresCasaSvg}
+  ${jogadoresForaSvg}
+
+  <!-- Rodapé -->
+  <text x="400" y="502" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10.5" fill="#64748b">
+    Futebol Pro Anycast • Posicionamento Tático Oficial de Atletas • https://ponte.ozpro.com.br
+  </text>
+</svg>`;
+}
+
+/**
+ * Preditor de Probabilidade da Partida em Tempo Real (Google Sports / Opta Match Predictor)
+ */
+export function calcularProbabilidadeAoVivo(partida = {}) {
+  const mandante = partida.mandante || { nome: 'Mandante', placar: 0 };
+  const visitante = partida.visitante || { nome: 'Visitante', placar: 0 };
+  const gCasa = Number(mandante.placar ?? 0);
+  const gFora = Number(visitante.placar ?? 0);
+  const diffGols = gCasa - gFora;
+
+  let min = 0;
+  if (typeof partida.tempoJogo === 'string') {
+    const match = partida.tempoJogo.match(/\d+/);
+    if (match) min = parseInt(match[0], 10);
+  }
+  if (partida.status === 'encerrado') min = 90;
+
+  const tempoDecorridoPct = Math.min(1, Math.max(0, min / 90));
+
+  let pCasa = 0.44;
+  let pEmpate = 0.28;
+  let pFora = 0.28;
+
+  if (diffGols > 0) {
+    pCasa = Math.min(0.99, 0.55 + (diffGols * 0.20) + (tempoDecorridoPct * 0.24));
+    pEmpate = Math.max(0.01, (1 - pCasa) * 0.70);
+    pFora = Math.max(0.005, 1 - pCasa - pEmpate);
+  } else if (diffGols < 0) {
+    const diffAbs = Math.abs(diffGols);
+    pFora = Math.min(0.99, 0.52 + (diffAbs * 0.20) + (tempoDecorridoPct * 0.24));
+    pEmpate = Math.max(0.01, (1 - pFora) * 0.70);
+    pCasa = Math.max(0.005, 1 - pFora - pEmpate);
+  } else {
+    pEmpate = Math.min(0.85, 0.28 + (tempoDecorridoPct * 0.55));
+    const restante = 1 - pEmpate;
+    pCasa = restante * 0.55;
+    pFora = restante * 0.45;
+  }
+
+  const soma = pCasa + pEmpate + pFora;
+  pCasa /= soma;
+  pEmpate /= soma;
+  pFora /= soma;
+
+  let narrativa = 'Partida equilibrada com oportunidades abertas para ambos os lados.';
+  if (pCasa >= 0.75) narrativa = `${mandante.nome} exerce forte controle da partida e caminha para a vitória.`;
+  else if (pFora >= 0.75) narrativa = `${visitante.nome} consolida superioridade no placar em direção aos 3 pontos.`;
+  else if (pEmpate >= 0.50) narrativa = 'Ritmo cadenciado com alta probabilidade de igualdade até o apito final.';
+
+  return {
+    partida: `${mandante.nome} ${gCasa} x ${gFora} ${visitante.nome}`,
+    tempoDecorrido: `${min}'`,
+    status: partida.status || 'ao_vivo',
+    placarAtual: { mandante: gCasa, visitante: gFora },
+    probabilidadeVitoriaMandante: `${(pCasa * 100).toFixed(1)}%`,
+    probabilidadeEmpate: `${(pEmpate * 100).toFixed(1)}%`,
+    probabilidadeVitoriaVisitante: `${(pFora * 100).toFixed(1)}%`,
+    oddsAoVivoImplicitas: {
+      mandante: Number((1 / pCasa).toFixed(2)),
+      empate: Number((1 / pEmpate).toFixed(2)),
+      visitante: Number((1 / pFora).toFixed(2))
+    },
+    narrativaPreditora: narrativa,
+    modelo: 'Opta / Google Sports Bayesian Live Match Predictor'
+  };
+}
+
 
 
 
