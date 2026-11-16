@@ -1432,6 +1432,162 @@ export default {
       });
     }
 
+    // 15. INTEGRAÇÕES DIRETAS COM REPOSITÓRIOS GITHUB PÚBLICOS
+    if (path === '/api/futebol/github/fontes') {
+      return new Response(JSON.stringify({
+        ok: true,
+        servico: 'Futebol Pro — Matriz de Fontes e Repositórios GitHub',
+        repositoriosOficiais: [
+          {
+            nome: 'OpenFootball / football.json',
+            repositorio: 'openfootball/football.json',
+            url: 'https://github.com/openfootball/football.json',
+            descricao: 'Dados abertos de domínio público de ligas mundiais (Premier League, LaLiga, Serie A, Bundesliga) em formato JSON sem necessidade de API key.',
+            rotaApi: '/api/futebol/github/openfootball/:torneio'
+          },
+          {
+            nome: 'OpenFootball / worldcup.json',
+            repositorio: 'openfootball/worldcup.json',
+            url: 'https://github.com/openfootball/worldcup.json',
+            descricao: 'Resultados e calendários oficiais da Copa do Mundo FIFA em JSON.',
+            rotaApi: '/api/futebol/github/openfootball/world-cup'
+          },
+          {
+            nome: 'Brasileirão Dataset (Histórico desde 2003)',
+            repositorio: 'adaoduque/Brasileirao_Dataset',
+            url: 'https://github.com/adaoduque/Brasileirao_Dataset',
+            descricao: 'Mais de 8.700 partidas e 9.800 gols do Campeonato Brasileiro com escalações táticas, técnicos, árbitros e arenas.',
+            rotaApi: '/api/futebol/github/brasileirao-historico'
+          },
+          {
+            nome: 'StatsBomb Open Data (Hudl)',
+            repositorio: 'hudl/open-data',
+            url: 'https://github.com/hudl/open-data',
+            descricao: 'O maior acervo aberto de telemetria estatística de eventos (passes, xG, mapas de calor e pressão).'
+          },
+          {
+            nome: 'Football Logos (Brasões Oficiais SVG)',
+            repositorio: 'luukhopman/football-logos',
+            url: 'https://github.com/luukhopman/football-logos',
+            descricao: 'Brasões e escudos oficiais de clubes do mundo inteiro em SVG vetorial de alta definição.'
+          }
+        ]
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path.startsWith('/api/futebol/github/openfootball/')) {
+      const torneio = path.split('/')[5]?.toLowerCase();
+      let fileUrl = 'https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/en.1.json';
+      if (torneio === 'world-cup' || torneio === 'copa-do-mundo') {
+        fileUrl = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
+      } else if (torneio === 'la-liga' || torneio === 'es.1') {
+        fileUrl = 'https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/es.1.json';
+      } else if (torneio === 'bundesliga' || torneio === 'de.1') {
+        fileUrl = 'https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/de.1.json';
+      } else if (torneio === 'serie-a' || torneio === 'it.1') {
+        fileUrl = 'https://raw.githubusercontent.com/openfootball/football.json/master/2026-27/it.1.json';
+      }
+
+      const cacheKey = `gh_openfootball_${torneio}`;
+      const cached = edgeCache.get(cacheKey);
+      const now = Date.now();
+      if (cached && now < cached.expiresAt) {
+        return new Response(JSON.stringify(cached.data, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      try {
+        const resp = await fetch(fileUrl, {
+          headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-GithubBridge/1.0' }
+        });
+        if (resp.ok) {
+          const json = await resp.json();
+          edgeCache.set(cacheKey, { data: json, expiresAt: now + (6 * 60 * 60 * 1000) });
+          return new Response(JSON.stringify({
+            ok: true,
+            fonte: 'GitHub: openfootball/football.json',
+            dados: json
+          }, null, 2), {
+            headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+          });
+        }
+      } catch (_) {}
+
+      return new Response(JSON.stringify({
+        ok: false,
+        erro: 'UPSTREAM_GITHUB_INDISPONIVEL',
+        mensagem: 'Não foi possível carregar o arquivo do repositório openfootball no momento.'
+      }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path === '/api/futebol/github/brasileirao-historico') {
+      const clube = url.searchParams.get('clube')?.toLowerCase();
+      const ano = url.searchParams.get('ano');
+      const cacheKey = 'gh_brasileirao_historico';
+      let partidas = edgeCache.get(cacheKey)?.data;
+
+      if (!partidas) {
+        try {
+          const resp = await fetch('https://raw.githubusercontent.com/adaoduque/Brasileirao_Dataset/master/campeonato-brasileiro-full.csv', {
+            headers: { 'Accept': 'text/plain', 'User-Agent': 'FutebolPro-GithubBridge/1.0' }
+          });
+          if (resp.ok) {
+            const csvText = await resp.text();
+            const lines = csvText.split('\n').filter(Boolean);
+            partidas = lines.slice(1).map(l => {
+              const vals = l.split(',').map(v => v.replace(/"/g, '').trim());
+              return {
+                id: vals[0],
+                rodada: vals[1],
+                data: vals[2],
+                mandante: vals[4],
+                visitante: vals[5],
+                formacaoMandante: vals[6],
+                formacaoVisitante: vals[7],
+                tecnicoMandante: vals[8],
+                tecnicoVisitante: vals[9],
+                vencedor: vals[10],
+                estadio: vals[11],
+                placarMandante: parseInt(vals[12], 10),
+                placarVisitante: parseInt(vals[13], 10)
+              };
+            });
+            edgeCache.set(cacheKey, { data: partidas, expiresAt: Date.now() + (24 * 60 * 60 * 1000) });
+          }
+        } catch (_) {}
+      }
+
+      if (!partidas) {
+        partidas = JOGOS_ANTIGOS_HISTORICOS;
+      }
+
+      let filtradas = partidas;
+      if (clube) {
+        filtradas = filtradas.filter(p => 
+          (p.mandante || '').toLowerCase().includes(clube) || 
+          (p.visitante || '').toLowerCase().includes(clube)
+        );
+      }
+      if (ano) {
+        filtradas = filtradas.filter(p => (p.data || '').includes(ano));
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        fonte: 'GitHub: adaoduque/Brasileirao_Dataset',
+        totalPartidasEncontradas: filtradas.length,
+        amostraPartidas: filtradas.slice(-50)
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
     // Rota Não Encontrada
     return new Response(JSON.stringify({
       ok: false,

@@ -1,4 +1,4 @@
-import { FutebolPro } from './futebol-pro.js';
+﻿import { FutebolPro } from './futebol-pro.js';
 import worker from './worker.js';
 
 console.log('🧪 Iniciando Bateria de Testes do FutebolPro API & SDK Oficial...\n');
@@ -302,5 +302,24 @@ assert(resGraficoPartida.status === 200, 'Endpoint /partida/:id/grafico.svg resp
 assert(resGraficoPartida.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para gráfico da partida');
 const textGrafico = await resGraficoPartida.text();
 assert(textGrafico.includes('<svg') && textGrafico.includes('ANÁLISE ESTATÍSTICA OFICIAL'), 'Gráfico SVG contém barras e estatísticas reais');
+
+// ─── 10. REPOSITÓRIOS GITHUB OFICIAIS & DADOS ABERTOS ───
+console.log('\n--- 10. Repositórios GitHub Oficiais & Dados Abertos ---');
+
+// 10.1 Fontes GitHub
+const resGhFontes = await worker.fetch(new Request('https://api.test/api/futebol/github/fontes', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resGhFontes.status === 200, 'Endpoint /api/futebol/github/fontes responde 200');
+const dataGhFontes = await resGhFontes.json();
+assert(dataGhFontes.repositoriosOficiais.length >= 4, 'Mínimo de 4 repositórios GitHub mapeados');
+
+// 10.2 Brasileirão Histórico do GitHub
+const resGhBra = await worker.fetch(new Request('https://api.test/api/futebol/github/brasileirao-historico', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resGhBra.status === 200, 'Endpoint /api/futebol/github/brasileirao-historico responde 200');
+const dataGhBra = await resGhBra.json();
+assert(dataGhBra.totalPartidasEncontradas > 0, 'Partidas históricas do GitHub retornadas com sucesso');
 
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
