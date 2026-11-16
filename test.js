@@ -748,4 +748,109 @@ assert(resFifaTor.status === 200, 'Endpoint /fifa/torneios responde 200');
 const dataFifaTor = await resFifaTor.json();
 assert(dataFifaTor.torneiosOficiais.length >= 3, 'Torneios oficiais FIFA retornados');
 
+// ─── 20. RATINGS 0-10, OPTA/STATSBOMB, ESCALAÇÕES SVG, PREDITOR AO VIVO & DOSSIÊ HTML ───
+console.log('\n--- 20. Ratings 0-10, Opta/StatsBomb, Escalações SVG, Preditor Ao Vivo & Dossiê HTML ---');
+
+// 20.1 Notas e Match Ratings ao Vivo (Sofascore / WhoScored 0 a 10)
+const resRatings = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/ratings', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resRatings.status === 200, 'Endpoint /partida/:id/ratings responde 200');
+const dataRatings = await resRatings.json();
+assert(dataRatings.ratingsAtletas.length > 0, 'Ratings de atletas calculados na escala 0 a 10');
+assert(dataRatings.mvpPartida !== null, 'MVP da partida eleito com sucesso');
+
+// 20.2 Opta / StatsBomb: xG, xA (Expected Assists) e xGOT (Expected Goals on Target)
+const resOpta = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/xg-avancado', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resOpta.status === 200, 'Endpoint /partida/:id/xg-avancado responde 200');
+const dataOpta = await resOpta.json();
+assert(dataOpta.analiseOptaStatsBomb.metricasOptaStatsBomb.mandante.xG >= 0, 'Métricas avançadas Opta xG calculadas');
+assert(dataOpta.analiseOptaStatsBomb.metricasOptaStatsBomb.mandante.xA >= 0, 'Expected Assists (xA) calculado');
+
+// 20.3 Escalações e Formação Tática em Campo 2D SVG
+const resEscSvg = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/escalacoes.svg', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resEscSvg.status === 200, 'Endpoint /partida/:id/escalacoes.svg responde 200');
+assert(resEscSvg.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para escalações');
+const textEscSvg = await resEscSvg.text();
+assert(textEscSvg.includes('ESCALAÇÃO OFICIAL &amp; FORMAÇÃO TÁTICA'), 'SVG contém formação tática em campo 2D');
+
+// 20.4 Preditor Probabilístico de Resultado Ao Vivo (Google Sports / Opta Live Predictor)
+const resPred = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/probabilidade', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resPred.status === 200, 'Endpoint /partida/:id/probabilidade responde 200');
+const dataPred = await resPred.json();
+assert(dataPred.preditorProbabilidades.probabilidadeVitoriaMandante !== undefined, 'Probabilidade ao vivo calculada');
+assert(dataPred.preditorProbabilidades.narrativaPreditora.length > 10, 'Narrativa preditiva gerada');
+
+// 20.5 Desfalques, DM e Suspensões do Clube (Transfermarkt / Wyscout)
+const resDesf = await worker.fetch(new Request('https://api.test/api/futebol/clubes/flamengo/desfalques', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resDesf.status === 200, 'Endpoint /clubes/:slug/desfalques responde 200');
+const dataDesf = await resDesf.json();
+assert(dataDesf.relatorioDesfalques.departamentoMedico.length > 0, 'Atletas no departamento médico listados');
+assert(dataDesf.relatorioDesfalques.departamentoMedico[0].motivo.length > 5, 'Diagnóstico clínico verificado');
+
+// 20.6 Dossiê Executivo de Relatório de Scouting em HTML
+const resDossie = await worker.fetch(new Request('https://api.test/api/futebol/jogadores/pedro-9/relatorio.html', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resDossie.status === 200, 'Endpoint /jogadores/:id/relatorio.html responde 200');
+assert(resDossie.headers.get('Content-Type').includes('text/html'), 'Header text/html retornado para dossiê');
+const textDossie = await resDossie.text();
+assert(textDossie.includes('Dossiê de Scouting Oficial'), 'Dossiê HTML renderizado para imprensa e scouts');
+
+// 20.7 Streaks e Sequências Pré-Jogo do Confronto (WhoScored / Sofascore Streaks)
+const resStreaks = await worker.fetch(new Request('https://api.test/api/futebol/confronto/flamengo/palmeiras/streaks', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resStreaks.status === 200, 'Endpoint /confronto/:slug1/:slug2/streaks responde 200');
+const dataStreaks = await resStreaks.json();
+assert(dataStreaks.streaks.mandante.streaks.length >= 2, 'Streaks do clube mandante retornados');
+assert(dataStreaks.streaks.tendenciasMercado.length >= 2, 'Tendências de mercado WhoScored retornadas');
+
+// 20.8 Top Transferências do Mercado Mundial (Transfermarkt)
+const resTransf = await worker.fetch(new Request('https://api.test/api/futebol/transferencias/top', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resTransf.status === 200, 'Endpoint /transferencias/top responde 200');
+const dataTransf = await resTransf.json();
+assert(dataTransf.transferencias.length >= 10, 'Top transferências mundiais retornadas');
+assert(dataTransf.transferencias[0].jogador.includes('Neymar'), 'Recorde histórico de transferência validado');
+
+// 20.9 Valuation Oficial do Elenco (Transfermarkt)
+const resValElenco = await worker.fetch(new Request('https://api.test/api/futebol/clubes/flamengo/valuation', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resValElenco.status === 200, 'Endpoint /clubes/:slug/valuation responde 200');
+const dataValElenco = await resValElenco.json();
+assert(dataValElenco.valuationTransfermarkt.valorTotalElenco.includes('€'), 'Valuation em Euros validado');
+
+// 20.10 Crosswalk Universal de Entidades
+const resCross = await worker.fetch(new Request('https://api.test/api/futebol/crosswalk/jogador/pedro-9', {
+  headers: { 'Authorization': '******' }
+}), {});
+assert(resCross.status === 200, 'Endpoint /crosswalk/:tipo/:id responde 200');
+const dataCross = await resCross.json();
+assert(dataCross.identificadoresCruzados.transfermarkt === '432895', 'ID do Transfermarkt cruzado com sucesso');
+
+// 20.11 Testes do SDK Oficial FutebolPro com novos métodos
+FutebolPro.configure({ baseUrl: 'https://api.test' });
+const sdkDesf = await FutebolPro.getClubeDesfalques('flamengo');
+assert(sdkDesf.ok === true && sdkDesf.relatorioDesfalques.departamentoMedico.length > 0, 'SDK getClubeDesfalques funciona');
+
+const sdkRatings = await FutebolPro.getPartidaRatings('hist_001');
+assert(sdkRatings.ok === true && sdkRatings.ratingsAtletas.length > 0, 'SDK getPartidaRatings funciona');
+
+const sdkOpta = await FutebolPro.getPartidaXgAvancado('hist_001');
+assert(sdkOpta.ok === true && sdkOpta.analiseOptaStatsBomb.metricasOptaStatsBomb.mandante.xG >= 0, 'SDK getPartidaXgAvancado funciona');
+
+const sdkDossie = await FutebolPro.getRelatorioJogadorHtml('pedro-9');
+assert(typeof sdkDossie === 'string' && sdkDossie.includes('Dossiê de Scouting Oficial'), 'SDK getRelatorioJogadorHtml funciona');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
