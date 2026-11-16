@@ -147,6 +147,13 @@ export declare class FutebolPro {
   static getLanceALance(partidaId: string, tipo?: string): Promise<{ ok: boolean; partidaId: string; totalLancesRegistrados: number; resumoDisciplinar: any; lancesMinutoAMinuto: any[] }>;
   static getPosicaoBola(partidaId: string): Promise<{ ok: boolean; partidaId: string; tempoJogo: string; posicaoAtualBola: any; campoSvgUrl: string }>;
   static getCampoSvgUrl(partidaId: string): string;
+  static getCamisaClubeSvgUrl(clubeSlug: string, options?: { numero?: number; nome?: string; tipo?: 'titular' | 'reserva' }): string;
+  static getUniformesClube(clubeSlug: string): Promise<{ ok: boolean; clube: string; uniformes: any }>;
+  static getTecnicosClube(clubeSlug: string): Promise<{ ok: boolean; clube: string; tecnicoAtual: any; tecnicosHistoricosLendarios: any[] }>;
+  static getBrasoesClube(clubeSlug: string): Promise<{ ok: boolean; clube: string; brasoes: any }>;
+  static getCamisaJogadorSvgUrl(jogadorId: string): string;
+  static getAvatarJogadorSvgUrl(jogadorId: string): string;
+  static getHistoricoClubesJogador(jogadorId: string): Promise<{ ok: boolean; atleta: string; historicoClubesAnos: any[] }>;
   static getPartidaStats(partidaId: string): Promise<{ ok: boolean; partidaId: string; campeonato: string; mandante: any; visitante: any; estatisticasOficiais: any[] }>;
   static getPartidaFantasy(partidaId: string): Promise<{ ok: boolean; partidaId: string; totalAtletasAvaliados: number; melhorDaPartidaFantasy: any; pontuacoesAtletas: any[] }>;
   static getRankingRodadaFantasy(): Promise<{ ok: boolean; rankingTopPontuadores: any[] }>;

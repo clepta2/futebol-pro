@@ -354,6 +354,93 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém a URL do Manto / Camisa Oficial do Clube em SVG
+   * @param {string} clubeSlug
+   * @param {Object} [options] - { numero?: number, nome?: string, tipo?: 'titular'|'reserva' }
+   * @returns {string}
+   */
+  static getCamisaClubeSvgUrl(clubeSlug, options = {}) {
+    const num = options.numero || 10;
+    const nome = encodeURIComponent(options.nome || 'MANTO');
+    const tipo = options.tipo === 'reserva' ? 'camisa-reserva' : 'camisa-titular';
+    return `${this.baseUrl}/api/futebol/clubes/${clubeSlug}/${tipo}.svg?numero=${num}&nome=${nome}`;
+  }
+
+  /**
+   * Obtém a coleção de uniformes e mantos da temporada do clube
+   * @param {string} clubeSlug
+   * @returns {Promise<Object>}
+   */
+  static async getUniformesClube(clubeSlug) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/clubes/${clubeSlug}/uniformes`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter uniformes (${clubeSlug}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém os técnicos atuais e a galeria histórica de treinadores do clube
+   * @param {string} clubeSlug
+   * @returns {Promise<Object>}
+   */
+  static async getTecnicosClube(clubeSlug) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/clubes/${clubeSlug}/tecnicos`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter técnicos (${clubeSlug}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém os brasões, logos e escudos oficiais em PNG e SVG
+   * @param {string} clubeSlug
+   * @returns {Promise<Object>}
+   */
+  static async getBrasoesClube(clubeSlug) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/clubes/${clubeSlug}/brasao`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter brasões (${clubeSlug}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL da Camisa Oficial personalizada do Jogador em SVG
+   * @param {string} jogadorId
+   * @returns {string}
+   */
+  static getCamisaJogadorSvgUrl(jogadorId) {
+    return `${this.baseUrl}/api/futebol/jogadores/${jogadorId}/camisa.svg`;
+  }
+
+  /**
+   * Obtém a URL do Avatar Vetorial oficial do Jogador em SVG
+   * @param {string} jogadorId
+   * @returns {string}
+   */
+  static getAvatarJogadorSvgUrl(jogadorId) {
+    return `${this.baseUrl}/api/futebol/jogadores/${jogadorId}/avatar.svg`;
+  }
+
+  /**
+   * Obtém o histórico cronológico de clubes por ano da carreira do atleta
+   * @param {string} jogadorId
+   * @returns {Promise<Object>}
+   */
+  static async getHistoricoClubesJogador(jogadorId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/jogadores/${jogadorId}/historico`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter histórico do jogador (${jogadorId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
    * Obtém a URL oficial do script client-side widget.js
    * @returns {string}
    */

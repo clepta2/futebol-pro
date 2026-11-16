@@ -529,4 +529,49 @@ const resDelWh = await worker.fetch(new Request('https://api.test/api/futebol/we
 }), {});
 assert(resDelWh.status === 200, 'Endpoint DELETE /webhooks/:id responde 200');
 
+
+// ─── 15. CAMISAS/MANTOS SVG, TÉCNICOS, BRASÕES E HISTÓRICO DE CLUBES ───
+console.log('\n--- 15. Camisas/Mantos SVG, Técnicos, Brasões & Histórico de Clubes ---');
+
+// 15.1 Camisa / Manto do Clube SVG
+const resCamisaClube = await worker.fetch(new Request('https://api.test/api/futebol/clubes/flamengo/camisa-titular.svg?numero=9&nome=PEDRO', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resCamisaClube.status === 200, 'Endpoint /clubes/:slug/camisa-titular.svg responde 200');
+assert(resCamisaClube.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para camisa');
+const textCamisa = await resCamisaClube.text();
+assert(textCamisa.includes('PEDRO') && textCamisa.includes('Manto Oficial'), 'Camisa SVG contém nome e detalhes oficiais');
+
+// 15.2 Técnicos Atuais e Históricos do Clube
+const resTec = await worker.fetch(new Request('https://api.test/api/futebol/clubes/flamengo/tecnicos', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resTec.status === 200, 'Endpoint /clubes/:slug/tecnicos responde 200');
+const dataTec = await resTec.json();
+assert(dataTec.tecnicoAtual.nome.includes('Filipe'), 'Técnico atual do clube identificado');
+assert(dataTec.tecnicosHistoricosLendarios.length >= 2, 'Técnicos históricos lendários listados');
+
+// 15.3 Brasões e Logos Oficiais
+const resBrasao = await worker.fetch(new Request('https://api.test/api/futebol/clubes/flamengo/brasao', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resBrasao.status === 200, 'Endpoint /clubes/:slug/brasao responde 200');
+const dataBrasao = await resBrasao.json();
+assert(dataBrasao.brasoes.oficialPng.includes('819.png'), 'Brasão PNG oficial retornado');
+
+// 15.4 Avatar SVG do Jogador
+const resAvSvg = await worker.fetch(new Request('https://api.test/api/futebol/jogadores/pedro-9/avatar.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resAvSvg.status === 200, 'Endpoint /jogadores/:id/avatar.svg responde 200');
+assert(resAvSvg.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para avatar');
+
+// 15.5 Histórico Cronológico de Clubes por Ano do Atleta
+const resHistClubes = await worker.fetch(new Request('https://api.test/api/futebol/jogadores/pedro-9/historico', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resHistClubes.status === 200, 'Endpoint /jogadores/:id/historico responde 200');
+const dataHistClubes = await resHistClubes.json();
+assert(dataHistClubes.historicoClubesAnos.length >= 2, 'Histórico de clubes por ano do atleta retornado');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
