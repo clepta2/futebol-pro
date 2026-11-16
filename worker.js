@@ -39,6 +39,11 @@ import {
   renderGraficoEstatisticoPartidaSvg,
   renderCardPartidaSvg,
   renderRadarAtletaSvg,
+  analisarXgPartida,
+  renderShotMapSvg,
+  renderHeatmapSvg,
+  calcularMercadosOdds,
+  projetarClassificacao,
   exportarTabelaCsv,
   exportarTabelaXml
 } from './dados-futebol.js';
@@ -921,6 +926,21 @@ export default {
         });
       }
 
+      // Projeções Matemáticas da Tabela (Título, G4 e Z4)
+      if (path.endsWith('/projecoes')) {
+        const projecoes = projetarClassificacao(resultado.tabela, COMPETICOES[slug].rodadasTotais || 38);
+        return new Response(JSON.stringify({
+          ok: true,
+          campeonato: COMPETICOES[slug].nome,
+          slug,
+          temporada: COMPETICOES[slug].temporada,
+          rodadasTotais: COMPETICOES[slug].rodadasTotais || 38,
+          projecoes
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       return new Response(JSON.stringify({
         ok: true,
         campeonato: COMPETICOES[slug].nome,
@@ -1167,6 +1187,69 @@ export default {
           mandante: part.mandante,
           visitante: part.visitante,
           estatisticasOficiais: part.estatisticas || []
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Análise de Expected Goals (xG) da Partida
+      if (subAcao === 'xg') {
+        const part = detalhe.partida || detalhe;
+        const analiseXg = analisarXgPartida(part.lanceALance || [], part.mandante?.nome, part.visitante?.nome);
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          partida: `${part.mandante?.nome} vs ${part.visitante?.nome}`,
+          status: part.status,
+          analiseXg
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      // Renderizador do Mapa de Chutes e xG (Shot Map SVG)
+      if (subAcao === 'shotmap.svg') {
+        const part = detalhe.partida || detalhe;
+        const analiseXg = analisarXgPartida(part.lanceALance || [], part.mandante?.nome, part.visitante?.nome);
+        const svg = renderShotMapSvg(analiseXg);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=30',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      // Renderizador do Mapa de Calor (Heatmap SVG) da Equipe
+      if (subAcao === 'heatmap.svg' || parts[5] === 'heatmap') {
+        const part = detalhe.partida || detalhe;
+        const equipeNome = parts[6] ? decodeURIComponent(parts[6]) : (url.searchParams.get('equipe') || 'Geral');
+        const svg = renderHeatmapSvg(part.lanceALance || [], equipeNome);
+        return new Response(svg, {
+          headers: {
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=30',
+            ...CORS_HEADERS,
+            ...rateHeaders
+          }
+        });
+      }
+
+      // Mercados Estatísticos e Odds Justas da Partida (Distribuição Poisson)
+      if (subAcao === 'odds') {
+        const part = detalhe.partida || detalhe;
+        const analiseXg = analisarXgPartida(part.lanceALance || [], part.mandante?.nome, part.visitante?.nome);
+        const expCasa = analiseXg.xgTotalMandante > 0 ? analiseXg.xgTotalMandante : 1.4;
+        const expFora = analiseXg.xgTotalVisitante > 0 ? analiseXg.xgTotalVisitante : 1.0;
+        const odds = calcularMercadosOdds(expCasa, expFora);
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          partida: `${part.mandante?.nome} vs ${part.visitante?.nome}`,
+          status: part.status,
+          mercadosDeOddsPoisson: odds
         }, null, 2), {
           headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
         });
@@ -1620,11 +1703,74 @@ export default {
       }
 
       const analise = calcularProbabilidadeConfronto(clubeCasa, clubeVisitante);
+      
+      // Mercados de Odds do Confronto Direto
+      if (parts[6] === 'odds') {
+        const odds = calcularMercadosOdds(analise.mandante.expectativaGols, analise.visitante.expectativaGols);
+        return new Response(JSON.stringify({
+          ok: true,
+          confronto: `${clubeCasa.nomeCurto} vs ${clubeVisitante.nomeCurto}`,
+          mercadosDeOddsPoisson: odds
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       return new Response(JSON.stringify({
         ok: true,
         confronto: `${clubeCasa.nomeCurto} vs ${clubeVisitante.nomeCurto}`,
         analise
       }), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 13.1 BUSCA GLOBAL UNIVERSAL (OMNISEARCH SUB-5MS)
+    if (path === '/api/futebol/busca' || path === '/api/futebol/pesquisa') {
+      const q = (url.searchParams.get('q') || url.searchParams.get('busca') || '').toLowerCase().trim();
+      if (!q) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'TERMO_BUSCA_OBRIGATORIO',
+          mensagem: 'Informe o parâmetro de busca ?q=termo (ex: ?q=flamengo, ?q=maracana, ?q=pedro)'
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      const clubesEncontrados = Object.values(CLUBES).filter(c => 
+        c.nome.toLowerCase().includes(q) || c.nomeCurto.toLowerCase().includes(q) || c.sigla.toLowerCase().includes(q)
+      );
+
+      const jogadoresEncontrados = JOGADORES_CONSOLIDADOS.filter(j => 
+        j.nome.toLowerCase().includes(q) || (j.nomeCompleto || '').toLowerCase().includes(q) || j.clube.toLowerCase().includes(q)
+      );
+
+      const estadiosEncontrados = ESTADIOS.filter(e => 
+        e.nome.toLowerCase().includes(q) || e.cidade.toLowerCase().includes(q)
+      );
+
+      const competicoesEncontradas = Object.values(COMPETICOES).filter(cp => 
+        cp.nome.toLowerCase().includes(q) || cp.slug.includes(q)
+      );
+
+      const classicosEncontrados = Object.entries(RETROSPECTO_CLASSICOS).filter(([slug, cl]) => 
+        slug.includes(q) || cl.classico.toLowerCase().includes(q)
+      ).map(([slug, cl]) => ({ slug, ...cl }));
+
+      return new Response(JSON.stringify({
+        ok: true,
+        termoPesquisado: q,
+        totalResultados: clubesEncontrados.length + jogadoresEncontrados.length + estadiosEncontrados.length + competicoesEncontradas.length + classicosEncontrados.length,
+        resultados: {
+          clubes: clubesEncontrados,
+          jogadores: jogadoresEncontrados,
+          estadios: estadiosEncontrados,
+          competicoes: competicoesEncontradas,
+          classicos: classicosEncontrados
+        }
+      }, null, 2), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
       });
     }

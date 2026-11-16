@@ -197,6 +197,82 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém a análise de Expected Goals (xG) da partida
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPartidaXg(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/xg`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter xG da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL do Mapa de Chutes e Expected Goals (Shot Map SVG)
+   * @param {string} partidaId
+   * @returns {string}
+   */
+  static getShotMapSvgUrl(partidaId) {
+    return `${this.baseUrl}/api/futebol/partida/${partidaId}/shotmap.svg`;
+  }
+
+  /**
+   * Obtém a URL do Mapa de Calor Tático (Heatmap SVG) da equipe
+   * @param {string} partidaId
+   * @param {string} [equipe]
+   * @returns {string}
+   */
+  static getHeatmapSvgUrl(partidaId, equipe) {
+    const q = equipe ? `?equipe=${encodeURIComponent(equipe)}` : '';
+    return `${this.baseUrl}/api/futebol/partida/${partidaId}/heatmap.svg${q}`;
+  }
+
+  /**
+   * Obtém os mercados de odds justas calculados pela distribuição de Poisson da partida
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPartidaOdds(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/odds`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter odds da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém as projeções matemáticas da tabela (chances de título, G4 e risco de rebaixamento)
+   * @param {string} campeonato
+   * @returns {Promise<Object>}
+   */
+  static async getTabelaProjecoes(campeonato = 'brasileirao-a') {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/tabela/${campeonato}/projecoes`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter projeções da tabela (${campeonato}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Realiza busca global unificada por clube, jogador, estádio ou torneio
+   * @param {string} termo
+   * @returns {Promise<Object>}
+   */
+  static async buscarGlobal(termo) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/busca?q=${encodeURIComponent(termo)}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro na busca global: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
    * Obtém as estatísticas oficiais da partida (posse de bola, finalizações, faltas, escanteios)
    * @param {string} partidaId
    * @returns {Promise<Object>}

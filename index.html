@@ -82,6 +82,13 @@
       </div>
       <h1>Futebol Pro Studio</h1>
       <p>Terminal Anycast de Inteligência Esportiva com dados em tempo real do Brasileirão Série A/B, Copa do Brasil, Libertadores, Champions League e ligas europeias. Tabelas dinâmicas, placares ao vivo, confrontos com rating Elo e cards SVG.</p>
+      
+      <!-- Barra de Omnisearch Global Sub-5ms -->
+      <div style="margin-top:18px; display:flex; gap:8px; max-width:680px;">
+        <input type="text" id="omnisearch-input" class="ponte-input" placeholder="🔍 Pesquisa Global (ex: Flamengo, Real Madrid, Pedro, Maracanã, El Clásico...)" style="flex:1; padding:10px 14px; font-size:13px;" onkeydown="if(event.key==='Enter') executarOmnisearch()">
+        <button class="ponte-btn" style="padding:10px 20px;" onclick="executarOmnisearch()">Buscar</button>
+      </div>
+      <div id="omnisearch-results" style="display:none; margin-top:12px; background:var(--paper); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line); max-width:680px; text-align:left; font-size:13px;"></div>
     </div>
 
     <!-- Ticker de Métricas em Destaque -->

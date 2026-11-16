@@ -148,6 +148,12 @@ export declare class FutebolPro {
   static getPosicaoBola(partidaId: string): Promise<{ ok: boolean; partidaId: string; tempoJogo: string; posicaoAtualBola: any; campoSvgUrl: string }>;
   static getCampoSvgUrl(partidaId: string): string;
   static getPartidaStats(partidaId: string): Promise<{ ok: boolean; partidaId: string; campeonato: string; mandante: any; visitante: any; estatisticasOficiais: any[] }>;
+  static getPartidaXg(partidaId: string): Promise<{ ok: boolean; partidaId: string; analiseXg: any }>;
+  static getShotMapSvgUrl(partidaId: string): string;
+  static getHeatmapSvgUrl(partidaId: string, equipe?: string): string;
+  static getPartidaOdds(partidaId: string): Promise<{ ok: boolean; partidaId: string; mercadosDeOddsPoisson: any }>;
+  static getTabelaProjecoes(campeonato?: string): Promise<{ ok: boolean; campeonato: string; projecoes: any[] }>;
+  static buscarGlobal(termo: string): Promise<{ ok: boolean; termoPesquisado: string; totalResultados: number; resultados: any }>;
   static getGraficoPartidaUrl(partidaId: string): string;
   static getPartidaEscalacoes(partidaId: string): Promise<{ ok: boolean; partidaId: string; escalacoes: any[] }>;
   static getClassicos(slug?: string): Promise<{ ok: boolean; totalClassicos?: number; classicos?: any; dados?: any }>;

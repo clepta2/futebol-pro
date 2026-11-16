@@ -401,4 +401,58 @@ assert(resCampoSvg.headers.get('Content-Type').includes('image/svg+xml'), 'Heade
 const textCampoSvg = await resCampoSvg.text();
 assert(textCampoSvg.includes('RASTREAMENTO ESPACIAL DE CAMPO'), 'Campo 2D SVG gerado com sucesso');
 
+
+// ─── 13. EXPECTED GOALS (xG), SHOT MAP, HEATMAP, ODDS & OMNISEARCH ───
+console.log('\n--- 13. Expected Goals (xG), Shot Map, Heatmap, Odds Poisson & Omnisearch ---');
+
+// 13.1 xG da Partida
+const resXg = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/xg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resXg.status === 200, 'Endpoint /partida/:id/xg responde 200');
+const dataXg = await resXg.json();
+assert(dataXg.analiseXg.xgTotalMandante >= 0, 'xG acumulado do mandante calculado');
+
+// 13.2 Shot Map SVG
+const resShotMap = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/shotmap.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resShotMap.status === 200, 'Endpoint /partida/:id/shotmap.svg responde 200');
+assert(resShotMap.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para shot map');
+const textShotMap = await resShotMap.text();
+assert(textShotMap.includes('MAPA DE FINALIZAÇÕES E EXPECTED GOALS'), 'SVG do shot map gerado');
+
+// 13.3 Heatmap Tático SVG
+const resHeatmap = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/heatmap.svg', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resHeatmap.status === 200, 'Endpoint /partida/:id/heatmap.svg responde 200');
+assert(resHeatmap.headers.get('Content-Type').includes('image/svg+xml'), 'Header image/svg+xml retornado para heatmap');
+
+// 13.4 Mercados de Odds Justas (Poisson)
+const resOdds = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/odds', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resOdds.status === 200, 'Endpoint /partida/:id/odds responde 200');
+const dataOdds = await resOdds.json();
+assert(dataOdds.mercadosDeOddsPoisson.mercado1X2.mandante.oddJusta > 1, 'Odd justa 1X2 calculada');
+
+// 13.5 Projeções da Tabela (Título, G4 e Z4)
+const resProj = await worker.fetch(new Request('https://api.test/api/futebol/tabela/brasileirao-a/projecoes', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resProj.status === 200, 'Endpoint /tabela/:camp/projecoes responde 200');
+const dataProj = await resProj.json();
+assert(dataProj.projecoes.length === 20, 'Projeção calculada para os 20 clubes da Série A');
+assert(dataProj.projecoes[0].probabilidadeTitulo.includes('%'), 'Probabilidade de título formatada');
+
+// 13.6 Busca Global Omnisearch
+const resBusca = await worker.fetch(new Request('https://api.test/api/futebol/busca?q=flamengo', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resBusca.status === 200, 'Endpoint /busca?q=termo responde 200');
+const dataBusca = await resBusca.json();
+assert(dataBusca.totalResultados > 0, 'Resultados unificados encontrados no omnisearch');
+assert(dataBusca.resultados.clubes.length > 0, 'Clube encontrado na busca global');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
