@@ -2940,4 +2940,125 @@ export function projetarClassificacao(tabela, rodadasTotais = 38) {
   });
 }
 
+/**
+ * Motor de Pontuação Oficial de Fantasy Game (Estilo Cartola FC & Fantasy Premier League)
+ */
+export function calcularPontuacaoFantasy(scouts = {}, posicao = 'Atacante', golsSofridosEquipe = 0) {
+  let pts = 0;
+  const detalhe = [];
+
+  const add = (label, qtd, valorUnit) => {
+    if (!qtd) return;
+    const subtotal = Number((qtd * valorUnit).toFixed(1));
+    pts += subtotal;
+    detalhe.push({ scout: label, quantidade: qtd, pontosUnitarios: valorUnit, totalPontos: subtotal });
+  };
+
+  add('Gol', scouts.gols || 0, 8.0);
+  add('Assistência', scouts.assistencias || 0, 5.0);
+  add('Finalização Defendida', scouts.chutesDefendidos || scouts.finalizacoesNoAlvo || 0, 1.2);
+  add('Finalização na Trave', scouts.chutesTrave || 0, 3.0);
+  add('Finalização Fora', Math.max(0, (scouts.finalizacoes || 0) - (scouts.finalizacoesNoAlvo || 0)), 0.8);
+  add('Falta Sofrida', scouts.faltasSofridas || 0, 0.5);
+  add('Falta Cometida', scouts.faltasCometidas || 0, -0.5);
+  add('Cartão Amarelo', scouts.cartoesAmarelos || 0, -1.5);
+  add('Cartão Vermelho', scouts.cartoesVermelhos || 0, -5.0);
+
+  const isDefensor = /goleiro|zagueiro|lateral|def/i.test(posicao);
+  if (isDefensor) {
+    if (golsSofridosEquipe === 0) {
+      add('Jogo Sem Sofrer Gol (SG)', 1, 5.0);
+    } else {
+      add('Gols Sofridos da Defesa', golsSofridosEquipe, -1.0);
+    }
+    if (/goleiro/i.test(posicao)) {
+      add('Defesas do Goleiro', scouts.defesas || 0, 1.5);
+      add('Pênalti Defendido', scouts.penaltisDefendidos || 0, 7.0);
+    }
+  }
+
+  return {
+    pontosTotais: Number(pts.toFixed(1)),
+    scoutsDetalhados: detalhe
+  };
+}
+
+export const RANKING_RODADA_FANTASY = [
+  { rank: 1, atleta: 'Pedro', clube: 'Flamengo', posicao: 'Atacante', pontos: 18.2, scouts: { G: 2, A: 0, FD: 2, FF: 1, FS: 3, FC: 1, CA: 0 } },
+  { rank: 2, atleta: 'Estêvão', clube: 'Palmeiras', posicao: 'Atacante', pontos: 15.6, scouts: { G: 1, A: 1, FD: 1, FF: 2, FS: 4, FC: 0, CA: 0 } },
+  { rank: 3, atleta: 'Raphael Veiga', clube: 'Palmeiras', posicao: 'Meia', pontos: 13.9, scouts: { G: 1, A: 1, FD: 1, FF: 0, FS: 1, FC: 2, CA: 0 } },
+  { rank: 4, atleta: 'Léo Ortiz', clube: 'Flamengo', posicao: 'Zagueiro', pontos: 11.2, scouts: { SG: 1, FC: 1, FS: 2, FD: 0 } },
+  { rank: 5, atleta: 'Agustín Rossi', clube: 'Flamengo', posicao: 'Goleiro', pontos: 11.0, scouts: { SG: 1, DE: 4, FC: 0 } }
+];
+
+export const SCOUTING_SUB21_TALENTOS = [
+  {
+    id: 'estevao-41',
+    nome: 'Estêvão',
+    nomeCompleto: 'Estêvão Willian Almeida de Oliveira Gonçalves',
+    idadeAtual: 19,
+    clubeAtual: 'Palmeiras (Transferência Realizada: Chelsea)',
+    posicao: 'Ponta Direita / Atacante',
+    pePreferido: 'Canhoto',
+    valorMercado: '€ 60M',
+    scoutsAos19: { gols: 26, assistencias: 14, jogos: 62, participacoesGols: 40, mediaParticipacoes: 0.65 },
+    comparacaoLendaMesmaIdade: {
+      lenda: 'Neymar Jr (aos 19 anos no Santos - Temporada 2011)',
+      idadeComparada: 19,
+      scoutsLendaMesmaIdade: { gols: 31, assistencias: 18, jogos: 60, participacoesGols: 49, titulos: ['Libertadores 2011', 'Paulistão'] },
+      parecerScout: 'Estêvão exibe números de drible no terço final e poder de decisão muito compatíveis com o ápice de Neymar no Santos aos 19 anos.'
+    },
+    projecaoFutura: {
+      potencialFifaRating: 94,
+      potencialBolaDeOuro: '85% até 2030',
+      caracteristicaChave: 'Aceleração explosiva com corte para perna esquerda e finalização no ângulo'
+    }
+  },
+  {
+    id: 'lamine-yamal-19',
+    nome: 'Lamine Yamal',
+    nomeCompleto: 'Lamine Yamal Nasraoui Ebana',
+    idadeAtual: 19,
+    clubeAtual: 'FC Barcelona',
+    posicao: 'Ponta Direita',
+    pePreferido: 'Canhoto',
+    valorMercado: '€ 150M',
+    scoutsAos19: { gols: 22, assistencias: 28, jogos: 95, participacoesGols: 50, mediaParticipacoes: 0.53 },
+    comparacaoLendaMesmaIdade: {
+      lenda: 'Lionel Messi (aos 19 anos no Barcelona - Temporada 2006)',
+      idadeComparada: 19,
+      scoutsLendaMesmaIdade: { gols: 17, assistencias: 8, jogos: 40, participacoesGols: 25, titulos: ['Champions League 2006', 'LaLiga'] },
+      parecerScout: 'Lamine Yamal supera Lionel Messi em números brutos de assistências e titularidade no time profissional aos 19 anos.'
+    },
+    projecaoFutura: {
+      potencialFifaRating: 96,
+      potencialBolaDeOuro: '92% até 2028',
+      caracteristicaChave: 'Visão de jogo periférica sobre-humana e passe milimétrico de trivela'
+    }
+  },
+  {
+    id: 'endrick-16',
+    nome: 'Endrick',
+    nomeCompleto: 'Endrick Felipe Moreira de Sousa',
+    idadeAtual: 20,
+    clubeAtual: 'Real Madrid',
+    posicao: 'Centroavante',
+    pePreferido: 'Canhoto',
+    valorMercado: '€ 60M',
+    scoutsAos19: { gols: 28, assistencias: 5, jogos: 82, participacoesGols: 33, mediaParticipacoes: 0.40 },
+    comparacaoLendaMesmaIdade: {
+      lenda: 'Ronaldo Fenômeno (aos 20 anos no PSV / Barcelona - 1996)',
+      idadeComparada: 20,
+      scoutsLendaMesmaIdade: { gols: 47, assistencias: 12, jogos: 49, participacoesGols: 59, titulos: ['Copa del Rey', 'Recopa Europeia'] },
+      parecerScout: 'Endrick possui força física e arranque que lembram o jovem Fenômeno, precisando de sequência de titularidade na Europa.'
+    },
+    projecaoFutura: {
+      potencialFifaRating: 92,
+      potencialBolaDeOuro: '76% até 2030',
+      caracteristicaChave: 'Potência muscular nas arrancadas e chute violento de curta e média distância'
+    }
+  }
+];
+
+
 

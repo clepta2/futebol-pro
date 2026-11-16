@@ -148,6 +148,15 @@ export declare class FutebolPro {
   static getPosicaoBola(partidaId: string): Promise<{ ok: boolean; partidaId: string; tempoJogo: string; posicaoAtualBola: any; campoSvgUrl: string }>;
   static getCampoSvgUrl(partidaId: string): string;
   static getPartidaStats(partidaId: string): Promise<{ ok: boolean; partidaId: string; campeonato: string; mandante: any; visitante: any; estatisticasOficiais: any[] }>;
+  static getPartidaFantasy(partidaId: string): Promise<{ ok: boolean; partidaId: string; totalAtletasAvaliados: number; melhorDaPartidaFantasy: any; pontuacoesAtletas: any[] }>;
+  static getRankingRodadaFantasy(): Promise<{ ok: boolean; rankingTopPontuadores: any[] }>;
+  static getTalentosScouting(): Promise<{ ok: boolean; totalTalentosMonitorados: number; talentos: any[] }>;
+  static getScoutingTalento(talentoId: string): Promise<{ ok: boolean; relatorioScouting: any }>;
+  static cadastrarWebhook(config: { url: string; secret?: string; eventos?: string[]; clubes?: string[] }): Promise<{ ok: boolean; webhook: any }>;
+  static listarWebhooks(): Promise<{ ok: boolean; totalWebhooksAtivos: number; webhooks: any[] }>;
+  static removerWebhook(webhookId: string): Promise<{ ok: boolean; mensagem: string }>;
+  static testarWebhook(): Promise<{ ok: boolean; mensagem: string; payloadDisparado: any }>;
+  static getWidgetJsUrl(): string;
   static getPartidaXg(partidaId: string): Promise<{ ok: boolean; partidaId: string; analiseXg: any }>;
   static getShotMapSvgUrl(partidaId: string): string;
   static getHeatmapSvgUrl(partidaId: string, equipe?: string): string;

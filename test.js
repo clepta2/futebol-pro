@@ -455,4 +455,78 @@ const dataBusca = await resBusca.json();
 assert(dataBusca.totalResultados > 0, 'Resultados unificados encontrados no omnisearch');
 assert(dataBusca.resultados.clubes.length > 0, 'Clube encontrado na busca global');
 
+
+// ─── 14. FANTASY GAME, SCOUTING SUB-21, WEBHOOKS & WIDGET.JS ───
+console.log('\n--- 14. Fantasy Game, Scouting Sub-21, Webhooks & Widget.js ---');
+
+// 14.1 Servir widget.js client-side
+const resWidget = await worker.fetch(new Request('https://api.test/widget.js'), {});
+assert(resWidget.status === 200, 'Endpoint /widget.js responde 200');
+assert(resWidget.headers.get('Content-Type').includes('application/javascript'), 'Header application/javascript retornado');
+const textWidget = await resWidget.text();
+assert(textWidget.includes('futebol-pro-widget'), 'Código client-side do widget validado');
+
+// 14.2 Fantasy Game da Partida
+const resFantasy = await worker.fetch(new Request('https://api.test/api/futebol/partida/hist_001/fantasy', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resFantasy.status === 200, 'Endpoint /partida/:id/fantasy responde 200');
+const dataFantasy = await resFantasy.json();
+assert(dataFantasy.pontuacoesAtletas.length > 0, 'Pontuação de atletas calculada na partida');
+
+// 14.3 Ranking da Rodada Fantasy Game
+const resRankFant = await worker.fetch(new Request('https://api.test/api/futebol/fantasy/ranking-rodada', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resRankFant.status === 200, 'Endpoint /fantasy/ranking-rodada responde 200');
+const dataRankFant = await resRankFant.json();
+assert(dataRankFant.rankingTopPontuadores.length >= 5, 'Top 5 pontuadores da rodada retornados');
+
+// 14.4 Radar de Talentos Sub-21
+const resTalentos = await worker.fetch(new Request('https://api.test/api/futebol/scouting/talentos', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resTalentos.status === 200, 'Endpoint /scouting/talentos responde 200');
+const dataTalentos = await resTalentos.json();
+assert(dataTalentos.totalTalentosMonitorados >= 3, 'Talentos Sub-21 retornados');
+
+// 14.5 Relatório e Projeção de Talento (Estêvão)
+const resEstevao = await worker.fetch(new Request('https://api.test/api/futebol/scouting/estevao-41', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resEstevao.status === 200, 'Endpoint /scouting/:id responde 200');
+const dataEstevao = await resEstevao.json();
+assert(dataEstevao.relatorioScouting.comparacaoLendaMesmaIdade.lenda.includes('Neymar'), 'Comparação etária com Neymar validada');
+
+// 14.6 Cadastro e Listagem de Webhook
+const resCadWh = await worker.fetch(new Request('https://api.test/api/futebol/webhooks/cadastrar', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer fut_master_suite', 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url: 'https://meuapp.com/webhook', eventos: ['gol', 'cartao_vermelho'] })
+}), {});
+assert(resCadWh.status === 200, 'Endpoint POST /webhooks/cadastrar responde 200');
+const dataCadWh = await resCadWh.json();
+assert(dataCadWh.webhook.id.startsWith('wh_'), 'Webhook ID gerado com sucesso');
+const whId = dataCadWh.webhook.id;
+
+const resListWh = await worker.fetch(new Request('https://api.test/api/futebol/webhooks/listar', {
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resListWh.status === 200, 'Endpoint GET /webhooks/listar responde 200');
+const dataListWh = await resListWh.json();
+assert(dataListWh.totalWebhooksAtivos >= 1, 'Webhook cadastrado listado');
+
+// 14.7 Teste e Remoção de Webhook
+const resTestWh = await worker.fetch(new Request('https://api.test/api/futebol/webhooks/testar', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resTestWh.status === 200, 'Endpoint POST /webhooks/testar responde 200');
+
+const resDelWh = await worker.fetch(new Request('https://api.test/api/futebol/webhooks/' + whId, {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer fut_master_suite' }
+}), {});
+assert(resDelWh.status === 200, 'Endpoint DELETE /webhooks/:id responde 200');
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);

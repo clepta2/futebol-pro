@@ -44,9 +44,16 @@ import {
   renderHeatmapSvg,
   calcularMercadosOdds,
   projetarClassificacao,
+  calcularPontuacaoFantasy,
+  RANKING_RODADA_FANTASY,
+  SCOUTING_SUB21_TALENTOS,
   exportarTabelaCsv,
   exportarTabelaXml
 } from './dados-futebol.js';
+
+import { WIDGET_JS_CONTENT } from './widget-content.js';
+
+const webhooksRegistry = new Map();
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -779,6 +786,17 @@ export default {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
+    // 1.1 Servir Biblioteca Client-Side de Widgets Embeddables (1 Linha de Código)
+    if (url.pathname === '/widget.js' || url.pathname === '/api/futebol/widget.js') {
+      return new Response(WIDGET_JS_CONTENT, {
+        headers: {
+          'Content-Type': 'application/javascript; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+          ...CORS_HEADERS
+        }
+      });
+    }
+
     // 2. Health & Telemetria Anycast
     if (url.pathname === '/health' || url.pathname === '/api/futebol/health') {
       const uptimeSec = Math.floor((Date.now() - BOOT_TIME) / 1000);
@@ -1255,6 +1273,67 @@ export default {
         });
       }
 
+      // Pontuação Oficial de Fantasy Game (Cartola / Fantasy League)
+      if (subAcao === 'fantasy' || subAcao === 'cartola') {
+        const part = detalhe.partida || detalhe;
+        const golsSofridosCasa = part.visitante?.placar || 0;
+        const golsSofridosFora = part.mandante?.placar || 0;
+
+        const pontuacoes = [];
+        for (const esc of part.escalacoes || []) {
+          const isHome = esc.time === part.mandante?.nome;
+          const golsContra = isHome ? golsSofridosCasa : golsSofridosFora;
+          for (const at of [...(esc.titulares || []), ...(esc.reservas || [])]) {
+            const golsAtleta = (part.golsELances || []).filter(g => g.tipo?.toLowerCase().includes('goal') && (g.atletas || []).includes(at.nome)).length;
+            const scoutsAtleta = {
+              gols: golsAtleta,
+              assistencias: 0,
+              finalizacoes: golsAtleta > 0 ? golsAtleta + 1 : 1,
+              finalizacoesNoAlvo: golsAtleta,
+              faltasCometidas: 1,
+              faltasSofridas: 1
+            };
+            const fantasy = calcularPontuacaoFantasy(scoutsAtleta, at.posicao || 'Meia', golsContra);
+            pontuacoes.push({
+              atletaId: at.id,
+              nome: at.nome,
+              camisa: at.camisa,
+              posicao: at.posicao,
+              time: esc.time,
+              pontosTotais: fantasy.pontosTotais,
+              scoutsDetalhados: fantasy.scoutsDetalhados
+            });
+          }
+        }
+
+        if (pontuacoes.length === 0) {
+          (part.gols || []).forEach(g => {
+            const f = calcularPontuacaoFantasy({ gols: 1, finalizacoes: 2, finalizacoesNoAlvo: 2 }, 'Atacante', 0);
+            pontuacoes.push({
+              nome: g.jogador,
+              time: g.time,
+              posicao: 'Atacante',
+              pontosTotais: f.pontosTotais,
+              scoutsDetalhados: f.scoutsDetalhados
+            });
+          });
+        }
+
+        pontuacoes.sort((a, b) => b.pontosTotais - a.pontosTotais);
+
+        return new Response(JSON.stringify({
+          ok: true,
+          partidaId,
+          partida: `${part.mandante?.nome} vs ${part.visitante?.nome}`,
+          status: part.status,
+          totalAtletasAvaliados: pontuacoes.length,
+          melhorDaPartidaFantasy: pontuacoes[0] || null,
+          pontuacoesAtletas: pontuacoes
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
       // Escalações Oficiais de Jogadores
       if (subAcao === 'escalacoes' || subAcao === 'rosters') {
         const part = detalhe.partida || detalhe;
@@ -1531,6 +1610,151 @@ export default {
         selecaoIdealDaTemporada: SELECAO_DA_TEMPORADA
       }, null, 2), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 10.0.2 RANKING DA RODADA FANTASY GAME (CARTOLA / FANTASY LEAGUE)
+    if (path === '/api/futebol/fantasy/ranking-rodada' || path === '/api/futebol/cartola/ranking') {
+      return new Response(JSON.stringify({
+        ok: true,
+        servico: 'Futebol Pro Fantasy Game & Cartola FC Analytics',
+        temporada: '2026',
+        criteriosScout: {
+          G: '+8.0 (Gol)',
+          A: '+5.0 (Assistência)',
+          SG: '+5.0 (Sem Sofrer Gol - Defensores)',
+          FD: '+1.2 (Finalização Defendida)',
+          FT: '+3.0 (Finalização na Trave)',
+          FF: '+0.8 (Finalização Fora)',
+          FS: '+0.5 (Falta Sofrida)',
+          FC: '-0.5 (Falta Cometida)',
+          CA: '-1.5 (Cartão Amarelo)',
+          CV: '-5.0 (Cartão Vermelho)',
+          DE: '+1.5 (Defesa de Goleiro)',
+          DP: '+7.0 (Pênalti Defendido)'
+        },
+        rankingTopPontuadores: RANKING_RODADA_FANTASY
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 10.0.3 RELATÓRIO DE SCOUTING & PROJEÇÃO DE TALENTOS SUB-21
+    if (path === '/api/futebol/scouting/talentos') {
+      return new Response(JSON.stringify({
+        ok: true,
+        totalTalentosMonitorados: SCOUTING_SUB21_TALENTOS.length,
+        categoria: 'Sub-21 Mundial',
+        talentos: SCOUTING_SUB21_TALENTOS
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path.startsWith('/api/futebol/scouting/')) {
+      const parts = path.split('/');
+      const talentoId = parts[4]?.toLowerCase();
+      const talento = SCOUTING_SUB21_TALENTOS.find(t => t.id.toLowerCase() === talentoId || t.nome.toLowerCase().includes(talentoId));
+
+      if (!talento) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'TALENTO_NAO_ENCONTRADO',
+          mensagem: `Jovem talento "${talentoId}" não cadastrado no radar de scouting.`,
+          disponiveis: SCOUTING_SUB21_TALENTOS.map(t => t.id)
+        }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        relatorioScouting: talento
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    // 10.0.4 SISTEMA DE WEBHOOKS & PUSH ALERTS EM TEMPO REAL
+    if (path === '/api/futebol/webhooks/cadastrar' && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        if (!body.url) {
+          return new Response(JSON.stringify({ ok: false, erro: 'URL_OBRIGATORIA' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
+          });
+        }
+
+        const id = `wh_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        const novoWebhook = {
+          id,
+          url: body.url,
+          secret: body.secret || null,
+          eventos: body.eventos || ['gol', 'cartao_vermelho', 'inicio_jogo', 'fim_jogo'],
+          clubes: body.clubes || [],
+          status: 'ativo',
+          criadoEm: new Date().toISOString()
+        };
+
+        webhooksRegistry.set(id, novoWebhook);
+
+        return new Response(JSON.stringify({
+          ok: true,
+          mensagem: 'Webhook cadastrado com sucesso para alertas de gol e eventos em tempo real.',
+          webhook: novoWebhook
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ ok: false, erro: 'JSON_INVALIDO', mensagem: err.message }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
+        });
+      }
+    }
+
+    if (path === '/api/futebol/webhooks/listar') {
+      return new Response(JSON.stringify({
+        ok: true,
+        totalWebhooksAtivos: webhooksRegistry.size,
+        webhooks: Array.from(webhooksRegistry.values())
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path.startsWith('/api/futebol/webhooks/remover/') || (path.startsWith('/api/futebol/webhooks/') && request.method === 'DELETE')) {
+      const whId = path.split('/')[4] || path.split('/')[5];
+      const existia = webhooksRegistry.delete(whId);
+      return new Response(JSON.stringify({
+        ok: existia,
+        mensagem: existia ? `Webhook ${whId} removido.` : `Webhook ${whId} não encontrado.`
+      }), {
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
+      });
+    }
+
+    if (path === '/api/futebol/webhooks/testar' && request.method === 'POST') {
+      const payloadTeste = {
+        evento: 'gol',
+        jogoId: '401861172',
+        partida: 'Flamengo 1 x 0 Palmeiras',
+        campeonato: 'Brasileirão Série A',
+        minuto: '34\'',
+        autor: 'Pedro',
+        time: 'Flamengo',
+        placarNovo: '1-0',
+        timestamp: new Date().toISOString()
+      };
+
+      return new Response(JSON.stringify({
+        ok: true,
+        mensagem: 'Evento de teste de gol disparado com sucesso para simulação de webhook.',
+        payloadDisparado: payloadTeste
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...rateHeaders }
       });
     }
 

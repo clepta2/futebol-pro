@@ -245,6 +245,123 @@ export class FutebolPro {
   }
 
   /**
+   * Obtém as pontuações e scouts detalhados de Fantasy Game dos atletas na partida
+   * @param {string} partidaId
+   * @returns {Promise<Object>}
+   */
+  static async getPartidaFantasy(partidaId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/partida/${partidaId}/fantasy`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter fantasy da partida (${partidaId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o ranking oficial dos maiores pontuadores da rodada de Fantasy Game
+   * @returns {Promise<Object>}
+   */
+  static async getRankingRodadaFantasy() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/fantasy/ranking-rodada`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter ranking fantasy da rodada: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o radar de jovens promessas Sub-21 e comparações históricas
+   * @returns {Promise<Object>}
+   */
+  static async getTalentosScouting() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/scouting/talentos`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao listar talentos de scouting: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém o relatório e projeção futura de um jovem talento específico
+   * @param {string} talentoId
+   * @returns {Promise<Object>}
+   */
+  static async getScoutingTalento(talentoId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/scouting/${talentoId}`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao obter scouting do talento (${talentoId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Cadastra um novo webhook para receber alertas push de gols e cartões vermelhos
+   * @param {Object} config - { url: string, secret?: string, eventos?: string[], clubes?: string[] }
+   * @returns {Promise<Object>}
+   */
+  static async cadastrarWebhook(config) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/webhooks/cadastrar`, {
+      method: 'POST',
+      headers: { ...this._getHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    });
+    if (!resp.ok) throw new Error(`Erro ao cadastrar webhook: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Lista todos os webhooks ativos
+   * @returns {Promise<Object>}
+   */
+  static async listarWebhooks() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/webhooks/listar`, {
+      method: 'GET',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao listar webhooks: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Remove um webhook cadastrado
+   * @param {string} webhookId
+   * @returns {Promise<Object>}
+   */
+  static async removerWebhook(webhookId) {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/webhooks/${webhookId}`, {
+      method: 'DELETE',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao remover webhook (${webhookId}): HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Dispara simulação de teste de evento de gol via webhook
+   * @returns {Promise<Object>}
+   */
+  static async testarWebhook() {
+    const resp = await fetch(`${this.baseUrl}/api/futebol/webhooks/testar`, {
+      method: 'POST',
+      headers: this._getHeaders()
+    });
+    if (!resp.ok) throw new Error(`Erro ao testar webhook: HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
+  /**
+   * Obtém a URL oficial do script client-side widget.js
+   * @returns {string}
+   */
+  static getWidgetJsUrl() {
+    return `${this.baseUrl}/widget.js`;
+  }
+
+  /**
    * Obtém as projeções matemáticas da tabela (chances de título, G4 e risco de rebaixamento)
    * @param {string} campeonato
    * @returns {Promise<Object>}

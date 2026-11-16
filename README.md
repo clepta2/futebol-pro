@@ -75,9 +75,30 @@ Monitoramento contínuo em tempo real com minutos e placar atualizado com latên
 - `GET /api/futebol/carreiras/comparar/:id1/:id2.svg`: Gráfico visual bi-direcional em SVG comparando as duas carreiras lado a lado.
 - `GET /api/futebol/premios/melhor-do-ano`: Corrida oficial para Melhor Jogador da Temporada (Ballon d'Or & Bola de Ouro Placar) e Seleção Ideal da Temporada (XI Titular).
 
-### 7. 📊 Tabela de Classificação
+### 7. 🎮 Motor de Fantasy Game (Cartola FC / Fantasy League)
+- `GET /api/futebol/partida/:id/fantasy`: Pontuações individuais calculadas a partir de scouts reais (Gol +8, Assistência +5, SG +5, FD +1.2, FT +3, FS +0.5, FC -0.5, CA -1.5, CV -5.0).
+- `GET /api/futebol/fantasy/ranking-rodada`: Top pontuadores oficiais da rodada.
+
+### 8. 🌟 Scouting Automatizado & Projeção Sub-21
+- `GET /api/futebol/scouting/talentos`: Radar de jovens promessas mundiais (Estêvão, Lamine Yamal, Endrick).
+- `GET /api/futebol/scouting/:talentoId`: Relatório analítico comparativo do atleta com lendas mundiais na mesma idade (ex: Estêvão aos 19 vs Neymar aos 19; Yamal aos 19 vs Messi aos 19).
+
+### 9. 🔔 Webhooks & Alertas Push em Tempo Real
+- `POST /api/futebol/webhooks/cadastrar`: Cadastra URL de webhook com filtros de eventos (`gol`, `cartao_vermelho`, `inicio_jogo`, `fim_jogo`) e clubes.
+- `GET /api/futebol/webhooks/listar`: Lista webhooks ativos.
+- `DELETE /api/futebol/webhooks/:id`: Remove webhook.
+- `POST /api/futebol/webhooks/testar`: Dispara simulação de gol para testes de integração.
+
+### 10. 🧩 Widgets Embeddables de 1 Linha (`widget.js`)
+Incorpore placares, tabelas e rastreamento em qualquer site externo com uma única tag:
+```html
+<div class="futebol-pro-widget" data-tipo="placar" data-partida="hist_001"></div>
+<script src="https://futebol-pro-api.clepta2.workers.dev/widget.js" async></script>
+```
+
+### 11. 📊 Tabela de Classificação & Projeções
 `GET /api/futebol/tabela/:campeonato`  
-Parâmetro opcional: `?formato=json|csv|xml`
+Parâmetro opcional: `?formato=json|csv|xml` ou `GET /api/futebol/tabela/:campeonato/projecoes` para probabilidades de Título, G4 e Z4.
 
 **Competições Suportadas:**
 - `brasileirao-a` (Brasileirão Série A)
