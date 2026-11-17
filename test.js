@@ -862,6 +862,23 @@ assert(typeof sdkDossie === 'string' && sdkDossie.includes('Dossiê de Scouting 
 const sdkEscSvgUrl = FutebolPro.getPartidaEscalacoesSvgUrl('hist_001');
 assert(sdkEscSvgUrl.includes('/escalacoes.svg'), 'Helper getPartidaEscalacoesSvgUrl gera URL correta');
 
+// 20.12 Teste de entrega dos Assets do Studio na Borda Anycast
+const resHtml = await worker.fetch(new Request('https://api.test/', {
+  headers: { 'Accept': 'text/html' }
+}), {});
+assert(resHtml.status === 200, 'Raiz com Accept text/html entrega Studio HTML');
+assert(resHtml.headers.get('Content-Type').includes('text/html'), 'Header text/html retornado para Studio');
+const textHtml = await resHtml.text();
+assert(textHtml.includes('Futebol Pro Studio'), 'Conteúdo do Futebol Pro Studio validado');
+
+const resCss = await worker.fetch(new Request('https://api.test/ponte-suite.css'), {});
+assert(resCss.status === 200, 'Arquivo /ponte-suite.css responde 200');
+assert(resCss.headers.get('Content-Type').includes('text/css'), 'Header text/css retornado');
+
+const resDados = await worker.fetch(new Request('https://api.test/dados-futebol.js'), {});
+assert(resDados.status === 200, 'Arquivo /dados-futebol.js responde 200');
+assert(resDados.headers.get('Content-Type').includes('application/javascript'), 'Header application/javascript retornado');
+
 globalThis.fetch = origGlobalFetch;
 
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);

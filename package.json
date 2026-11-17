@@ -7,9 +7,10 @@
   "module": "futebol-pro.js",
   "types": "types/index.d.ts",
   "scripts": {
-    "test": "node test.js",
+    "build:assets": "node scripts/build-assets.js",
+    "test": "node scripts/build-assets.js && node test.js",
     "sync:dados": "node scripts/baixar-dados-soberanos.js",
-    "deploy": "wrangler deploy",
+    "deploy": "node scripts/build-assets.js && wrangler deploy",
     "security:check": "node scripts/security-guard.js"
   },
   "keywords": [

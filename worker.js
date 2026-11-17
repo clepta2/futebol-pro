@@ -82,6 +82,7 @@ import {
 } from './dados/index.js';
 
 import { WIDGET_JS_CONTENT } from './widget-content.js';
+import { STYLES_CSS, HTML_INDEX, DADOS_FUTEBOL_JS, FUTEBOL_PRO_SDK_JS, OZPRO_MARK_SVG } from './site-assets.js';
 
 const webhooksRegistry = new Map();
 
@@ -851,6 +852,59 @@ export default {
         headers: {
           'Content-Type': 'application/javascript; charset=utf-8',
           'Cache-Control': 'public, max-age=3600',
+          ...CORS_HEADERS
+        }
+      });
+    }
+
+    // 1.2 Servir Assets Estáticos do Studio Oficial Anycast
+    if (url.pathname === '/ponte-suite.css' || url.pathname === '/styles.css') {
+      return new Response(STYLES_CSS, {
+        headers: {
+          'Content-Type': 'text/css; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400',
+          ...CORS_HEADERS
+        }
+      });
+    }
+
+    if (url.pathname === '/dados-futebol.js') {
+      return new Response(DADOS_FUTEBOL_JS, {
+        headers: {
+          'Content-Type': 'application/javascript; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+          ...CORS_HEADERS
+        }
+      });
+    }
+
+    if (url.pathname === '/futebol-pro.js') {
+      return new Response(FUTEBOL_PRO_SDK_JS, {
+        headers: {
+          'Content-Type': 'application/javascript; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+          ...CORS_HEADERS
+        }
+      });
+    }
+
+    if (url.pathname === '/brand/ozpro-mark.svg') {
+      return new Response(OZPRO_MARK_SVG, {
+        headers: {
+          'Content-Type': 'image/svg+xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400',
+          ...CORS_HEADERS
+        }
+      });
+    }
+
+    // 1.3 Servir Studio Visual Oficial na Raiz para Navegadores Web
+    const acceptHeader = request.headers.get('Accept') || '';
+    if ((url.pathname === '/' || url.pathname === '/app') && !acceptHeader.includes('application/json')) {
+      return new Response(HTML_INDEX, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=300',
           ...CORS_HEADERS
         }
       });

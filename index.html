@@ -130,6 +130,10 @@
       <button class="ponte-btn secondary" id="tab-btn-tabela" onclick="switchTab('tabela')">📊 Classificação</button>
       <button class="ponte-btn secondary" id="tab-btn-clubes" onclick="switchTab('clubes')">🛡️ Clubes &amp; Estádios</button>
       <button class="ponte-btn secondary" id="tab-btn-confronto" onclick="switchTab('confronto')">⚔️ Simulador Elo</button>
+      <button class="ponte-btn secondary" id="tab-btn-desfalques" onclick="switchTab('desfalques')">🚨 Desfalques &amp; DM</button>
+      <button class="ponte-btn secondary" id="tab-btn-streaks" onclick="switchTab('streaks')">📈 Streaks &amp; Tendências</button>
+      <button class="ponte-btn secondary" id="tab-btn-mercado" onclick="switchTab('mercado')">💰 Mercado &amp; Valuations</button>
+      <button class="ponte-btn secondary" id="tab-btn-matamata" onclick="switchTab('matamata')">🏆 Mata-Mata &amp; Finais</button>
       <button class="ponte-btn secondary" id="tab-btn-cardsvg" onclick="switchTab('cardsvg')">🎨 Card SVG</button>
       <button class="ponte-btn secondary" id="tab-btn-playground" onclick="switchTab('playground')">💻 Sandbox</button>
     </div>
@@ -145,9 +149,23 @@
         </div>
 
         <div style="display:flex; gap:8px; align-items:center;">
+          <button class="ponte-btn secondary" id="btn-auto-refresh" style="padding:6px 12px; font-size:12px; display:inline-flex; align-items:center; gap:6px;" onclick="toggleAutoRefresh()">
+            <span class="live-pulse" style="width:6px; height:6px;"></span> <span>Auto-Sync (30s)</span>
+          </button>
+          <span id="auto-refresh-badge" class="ponte-badge mint" style="display:none; font-size:11px;">● LIVE SYNC ON</span>
           <span id="mundo-counter-badge" class="ponte-badge blue">0 jogos carregados</span>
           <button class="ponte-btn secondary" style="padding:6px 14px; font-size:12px;" onclick="loadJogosMundo()">🔄 Atualizar</button>
         </div>
+      </div>
+
+      <!-- Filtros Rápidos por Liga -->
+      <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+        <button class="ponte-btn" id="btn-filtro-liga-todas" style="padding:4px 10px; font-size:11px; border-color:var(--mint);" onclick="filtrarLigaMundo('')">🔥 Todas as Ligas</button>
+        <button class="ponte-btn secondary" id="btn-filtro-liga-bra" style="padding:4px 10px; font-size:11px;" onclick="filtrarLigaMundo('bra')">🇧🇷 Brasileirão</button>
+        <button class="ponte-btn secondary" id="btn-filtro-liga-champions" style="padding:4px 10px; font-size:11px;" onclick="filtrarLigaMundo('champions')">🏆 Champions</button>
+        <button class="ponte-btn secondary" id="btn-filtro-liga-eng" style="padding:4px 10px; font-size:11px;" onclick="filtrarLigaMundo('premier')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
+        <button class="ponte-btn secondary" id="btn-filtro-liga-esp" style="padding:4px 10px; font-size:11px;" onclick="filtrarLigaMundo('laliga')">🇪🇸 LaLiga</button>
+        <button class="ponte-btn secondary" id="btn-filtro-liga-libertadores" style="padding:4px 10px; font-size:11px;" onclick="filtrarLigaMundo('libertadores')">⭐ Libertadores</button>
       </div>
 
       <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
@@ -555,6 +573,124 @@
       </div>
     </section>
 
+    <!-- ABA: DESFALQUES, DM & SUSPENSÕES DOS CLUBES -->
+    <section id="section-desfalques" style="display:none;">
+      <div class="ponte-card" style="padding:24px; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+          <div>
+            <h3 style="margin:0 0 4px; font-size:16px; color:var(--ink);">🚨 Relatório Oficial do Departamento Médico &amp; Suspensões</h3>
+            <p style="color:var(--muted); font-size:12.5px; margin:0;">Status clínico de lesões, transição física e suspensões por cartões STJD / CBF / UEFA.</p>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <select id="desfalques-clube-select" class="ponte-select" style="min-width:200px;" onchange="carregarDesfalquesClube(this.value)">
+              <option value="flamengo">Flamengo</option>
+              <option value="palmeiras">Palmeiras</option>
+              <option value="sao-paulo">São Paulo</option>
+              <option value="corinthians">Corinthians</option>
+              <option value="real-madrid">Real Madrid</option>
+              <option value="manchester-city">Manchester City</option>
+              <option value="barcelona">Barcelona</option>
+              <option value="cruzeiro">Cruzeiro</option>
+              <option value="atletico-mg">Atlético-MG</option>
+            </select>
+            <button class="ponte-btn secondary" style="padding:6px 12px; font-size:12px;" onclick="carregarDesfalquesClube(document.getElementById('desfalques-clube-select').value)">🔄 Atualizar</button>
+          </div>
+        </div>
+
+        <div id="desfalques-resultado">
+          <div style="text-align:center; padding:30px; color:var(--muted);">Carregando relatório do Departamento Médico...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA: STREAKS & TENDÊNCIAS WHOSCORED / SOFASCORE -->
+    <section id="section-streaks" style="display:none;">
+      <div class="ponte-card" style="padding:24px; margin-bottom:20px;">
+        <h3 style="margin-top:0; font-size:16px; color:var(--ink);">📈 Streaks de Confronto &amp; Tendências de Mercado (WhoScored / Sofascore)</h3>
+        <p style="color:var(--muted); font-size:12.5px; margin-bottom:18px;">
+          Sequências ativas de vitórias, clean sheets e tendências estatísticas verificadas para apostas e análise pré-jogo.
+        </p>
+
+        <div style="display:grid; grid-template-columns: 1fr auto 1fr; gap:16px; align-items:center; margin-bottom:18px;">
+          <div>
+            <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:6px;">MANDANTE</label>
+            <select id="streaks-time1" class="ponte-select" style="width:100%;">
+              <option value="flamengo">Flamengo</option>
+              <option value="palmeiras">Palmeiras</option>
+              <option value="real-madrid">Real Madrid</option>
+              <option value="sao-paulo">São Paulo</option>
+              <option value="corinthians">Corinthians</option>
+              <option value="manchester-city">Manchester City</option>
+              <option value="arsenal">Arsenal</option>
+              <option value="cruzeiro">Cruzeiro</option>
+            </select>
+          </div>
+          <div style="font-weight:900; font-size:20px; color:var(--mint); margin-top:20px;">VS</div>
+          <div>
+            <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:6px;">VISITANTE</label>
+            <select id="streaks-time2" class="ponte-select" style="width:100%;">
+              <option value="palmeiras">Palmeiras</option>
+              <option value="flamengo">Flamengo</option>
+              <option value="barcelona">Barcelona</option>
+              <option value="corinthians">Corinthians</option>
+              <option value="liverpool">Liverpool</option>
+              <option value="sao-paulo">São Paulo</option>
+              <option value="atletico-mg">Atlético-MG</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="ponte-btn" style="width:100%; margin-bottom:16px;" onclick="carregarStreaksConfronto()">⚡ Calcular Streaks &amp; Tendências de Apostas</button>
+        <div id="streaks-resultado"></div>
+      </div>
+    </section>
+
+    <!-- ABA: MERCADO DA BOLA & VALUATION DE ELENCO -->
+    <section id="section-mercado" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px;">💰 Mercado da Bola, Top Transferências &amp; Valuation (Transfermarkt)</h3>
+        <span class="ponte-badge mint">Valores Oficiais em Euros (€)</span>
+      </div>
+
+      <div class="ponte-grid-2" style="margin-bottom:24px;">
+        <div class="ponte-card" style="padding:20px;">
+          <h4 style="margin:0 0 12px; font-size:14px; color:var(--mint);">🌍 Top 10 Transferências Mais Caras da História</h4>
+          <div id="lista-top-transferencias">Carregando mercado...</div>
+        </div>
+
+        <div class="ponte-card" style="padding:20px;">
+          <h4 style="margin:0 0 12px; font-size:14px; color:#60a5fa;">🛡️ Valuation dos Maiores Elencos</h4>
+          <div id="lista-valuation-elencos">Carregando valuations...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA: TORNEIOS MATA-MATA & CHAVEAMENTO SVG -->
+    <section id="section-matamata" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px;">🏆 Torneios Mata-Mata &amp; Chaveamento Oficial</h3>
+        <div style="display:flex; gap:8px;">
+          <button class="ponte-btn" id="btn-mm-libertadores" style="padding:6px 14px; font-size:12px; border-color:var(--mint);" onclick="renderMataMata('libertadores')">Libertadores</button>
+          <button class="ponte-btn secondary" id="btn-mm-copa-do-brasil" style="padding:6px 14px; font-size:12px;" onclick="renderMataMata('copa-do-brasil')">Copa do Brasil</button>
+          <button class="ponte-btn secondary" id="btn-mm-champions-league" style="padding:6px 14px; font-size:12px;" onclick="renderMataMata('champions-league')">Champions League</button>
+        </div>
+      </div>
+
+      <div class="ponte-card" style="padding:20px; margin-bottom:20px; text-align:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h4 id="matamata-titulo" style="margin:0; font-size:14px; color:var(--mint);">Chaveamento Vetorial Anycast (Fases Finais)</h4>
+          <a id="matamata-svg-link" href="/api/futebol/matamata/libertadores/chaveamento.svg" target="_blank" class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;">Abrir SVG em Nova Aba ↗</a>
+        </div>
+        <div id="matamata-svg-container" style="overflow-x:auto;">
+          <img id="matamata-svg-img" src="/api/futebol/matamata/libertadores/chaveamento.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Chaveamento Mata-Mata">
+        </div>
+      </div>
+
+      <div id="matamata-confrontos" class="ponte-grid-2">
+        <!-- Injetado dinamicamente -->
+      </div>
+    </section>
+
     <!-- ABA 6: SANDBOX & SNIPPETS MULTI-LINGUAGEM -->
     <section id="section-playground" style="display:none;">
       <div class="ponte-card" style="padding:24px;">
@@ -632,7 +768,7 @@
     let currentNoticiaLiga = 'bra.1';
 
     window.switchTab = function(tabName) {
-      const tabs = ['mundo', 'premios', 'chuteira', 'noticias', 'dossie', 'carreiras', 'futuro', 'antigos', 'classicos', 'jogadores', 'tabela', 'clubes', 'confronto', 'cardsvg', 'playground'];
+      const tabs = ['mundo', 'premios', 'chuteira', 'noticias', 'dossie', 'carreiras', 'futuro', 'antigos', 'classicos', 'jogadores', 'tabela', 'clubes', 'confronto', 'desfalques', 'streaks', 'mercado', 'matamata', 'cardsvg', 'playground'];
       tabs.forEach(t => {
         const sec = document.getElementById(`section-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
@@ -659,8 +795,290 @@
       if (tabName === 'jogadores') renderJogadores(JOGADORES_CONSOLIDADOS);
       if (tabName === 'tabela') loadTabela(currentCampeonato);
       if (tabName === 'clubes') renderClubes(Object.values(CLUBES));
+      if (tabName === 'confronto') executarSimulador();
+      if (tabName === 'desfalques') carregarDesfalquesClube(document.getElementById('desfalques-clube-select')?.value || 'flamengo');
+      if (tabName === 'streaks') carregarStreaksConfronto();
+      if (tabName === 'mercado') carregarMercadoValuations();
+      if (tabName === 'matamata') renderMataMata('libertadores');
       if (tabName === 'cardsvg') atualizarCardSvg();
       if (tabName === 'playground') updateSnippets();
+    };
+
+    let autoRefreshTimer = null;
+    window.toggleAutoRefresh = function() {
+      const badge = document.getElementById('auto-refresh-badge');
+      const btn = document.getElementById('btn-auto-refresh');
+      if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+        if (badge) badge.style.display = 'none';
+        if (btn) btn.className = 'ponte-btn secondary';
+      } else {
+        autoRefreshTimer = setInterval(() => {
+          loadJogosMundo(true);
+        }, 30000);
+        if (badge) badge.style.display = 'inline-block';
+        if (btn) btn.className = 'ponte-btn';
+        loadJogosMundo(true);
+      }
+    };
+
+    let filtroLigaAtual = '';
+    window.filtrarLigaMundo = function(ligaKey) {
+      filtroLigaAtual = ligaKey.toLowerCase();
+      const botoes = [
+        { id: 'btn-filtro-liga-todas', key: '' },
+        { id: 'btn-filtro-liga-bra', key: 'bra' },
+        { id: 'btn-filtro-liga-champions', key: 'champions' },
+        { id: 'btn-filtro-liga-eng', key: 'premier' },
+        { id: 'btn-filtro-liga-esp', key: 'laliga' },
+        { id: 'btn-filtro-liga-libertadores', key: 'libertadores' }
+      ];
+      botoes.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (el) {
+          if (b.key === filtroLigaAtual) {
+            el.className = 'ponte-btn';
+            el.style.borderColor = 'var(--mint)';
+          } else {
+            el.className = 'ponte-btn secondary';
+            el.style.borderColor = 'transparent';
+          }
+        }
+      });
+      filtrarJogosMundo();
+    };
+
+    window.carregarDesfalquesClube = async function(slug) {
+      const container = document.getElementById('desfalques-resultado');
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Consultando departamento médico e STJD...</div>';
+      try {
+        const res = await fetch(`/api/futebol/clubes/${slug}/desfalques`);
+        const data = await res.json();
+        const r = data.relatorioDesfalques || {};
+        const dm = r.departamentoMedico || [];
+        const susp = r.suspensoes || [];
+        const trans = r.transicaoFisica || [];
+
+        container.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h4 style="margin:0; font-size:15px; color:var(--ink);">${r.clube} • Situação Clínica &amp; Jurídica</h4>
+              <small style="color:var(--muted);">Total de ausências confirmadas: <strong>${r.totalDesfalques || 0} atleta(s)</strong></small>
+            </div>
+            <span class="ponte-badge ${r.totalDesfalques > 2 ? 'amber' : 'mint'}">Impacto: ${r.impactoEstimadoNoTime || 'Moderado'}</span>
+          </div>
+
+          <div class="ponte-grid-3">
+            <div style="background:var(--paper-elevated); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line);">
+              <h5 style="margin:0 0 10px; color:#ef4444; font-size:13px;">🏥 Departamento Médico (${dm.length})</h5>
+              ${dm.length ? dm.map(a => `
+                <div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px;">
+                  <strong style="color:var(--ink);">${a.jogador}</strong> <small style="color:var(--muted);">(${a.posicao})</small>
+                  <div style="color:#ef4444; font-size:11px; margin-top:2px;">• ${a.motivo || a.lesao}</div>
+                  <small style="color:var(--muted); font-size:10.5px;">Retorno estimado: ${a.previsaoRetorno || 'Em avaliação'}</small>
+                </div>
+              `).join('') : '<div style="color:var(--muted); font-size:12px;">Nenhum jogador no DM.</div>'}
+            </div>
+
+            <div style="background:var(--paper-elevated); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line);">
+              <h5 style="margin:0 0 10px; color:#fbbf24; font-size:13px;">⚡ Transição Física (${trans.length})</h5>
+              ${trans.length ? trans.map(a => `
+                <div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px;">
+                  <strong style="color:var(--ink);">${a.jogador}</strong> <small style="color:var(--muted);">(${a.posicao})</small>
+                  <div style="color:#fbbf24; font-size:11px; margin-top:2px;">• ${a.estagio || 'Treinos leves'}</div>
+                  <small style="color:var(--muted); font-size:10.5px;">Previsão: ${a.previsaoRetorno || 'Próxima rodada'}</small>
+                </div>
+              `).join('') : '<div style="color:var(--muted); font-size:12px;">Nenhum jogador em transição.</div>'}
+            </div>
+
+            <div style="background:var(--paper-elevated); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line);">
+              <h5 style="margin:0 0 10px; color:#f87171; font-size:13px;">🟥 Suspensões Cartões / STJD (${susp.length})</h5>
+              ${susp.length ? susp.map(a => `
+                <div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px;">
+                  <strong style="color:var(--ink);">${a.jogador}</strong> <small style="color:var(--muted);">(${a.posicao})</small>
+                  <div style="color:#f87171; font-size:11px; margin-top:2px;">• ${a.motivo || '3º Cartão Amarelo'}</div>
+                  <small style="color:var(--muted); font-size:10.5px;">Cumpre suspensão nesta rodada</small>
+                </div>
+              `).join('') : '<div style="color:var(--muted); font-size:12px;">Nenhum atleta suspenso.</div>'}
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<div style="color:#ef4444; padding:20px;">Erro ao carregar desfalques: ${err.message}</div>`;
+      }
+    };
+
+    window.carregarStreaksConfronto = async function() {
+      const s1 = document.getElementById('streaks-time1')?.value || 'flamengo';
+      const s2 = document.getElementById('streaks-time2')?.value || 'palmeiras';
+      const container = document.getElementById('streaks-resultado');
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Calculando sequências e tendências estatísticas...</div>';
+
+      try {
+        const res = await fetch(`/api/futebol/confronto/${s1}/${s2}/streaks`);
+        const data = await res.json();
+        const st = data.streaks || {};
+        const m = st.mandante || {};
+        const v = st.visitante || {};
+        const tend = st.tendenciasMercado || [];
+
+        container.innerHTML = `
+          <div class="ponte-grid-2" style="margin-bottom:18px;">
+            <div style="background:var(--paper-elevated); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line);">
+              <h5 style="margin:0 0 10px; color:var(--mint); font-size:13px;">🛡️ Sequências Ativas: ${m.time || s1}</h5>
+              ${(m.streaks || []).map(str => `<div style="padding:4px 0; font-size:12px; color:var(--ink-secondary);">✔ <strong>${str}</strong></div>`).join('')}
+            </div>
+            <div style="background:var(--paper-elevated); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line);">
+              <h5 style="margin:0 0 10px; color:#60a5fa; font-size:13px;">🛡️ Sequências Ativas: ${v.time || s2}</h5>
+              ${(v.streaks || []).map(str => `<div style="padding:4px 0; font-size:12px; color:var(--ink-secondary);">✔ <strong>${str}</strong></div>`).join('')}
+            </div>
+          </div>
+
+          <div style="background:var(--canvas); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line);">
+            <h5 style="margin:0 0 10px; color:#fbbf24; font-size:13px;">📊 Tendências de Mercado &amp; Apostas (WhoScored Modelo)</h5>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:10px;">
+              ${tend.map(t => `
+                <div style="background:var(--paper); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--line-light); font-size:12px;">
+                  <strong style="color:var(--ink); display:block; margin-bottom:2px;">${t.mercado || t.tendencia}</strong>
+                  <span style="color:var(--mint); font-size:11px;">Assertividade: ${t.probabilidade || t.confianca || 'Alta'}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<div style="color:#ef4444; padding:20px;">Erro ao carregar streaks: ${err.message}</div>`;
+      }
+    };
+
+    window.carregarMercadoValuations = async function() {
+      const topDiv = document.getElementById('lista-top-transferencias');
+      const valDiv = document.getElementById('lista-valuation-elencos');
+
+      try {
+        const [resTransf, resVal] = await Promise.all([
+          fetch('/api/futebol/transferencias/top'),
+          fetch('/api/futebol/clubes/flamengo/valuation')
+        ]);
+        const dataTransf = await resTransf.json();
+        const listaTransf = dataTransf.transferencias || [];
+
+        topDiv.innerHTML = listaTransf.slice(0, 8).map((t, i) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px;">
+            <div>
+              <span style="color:var(--muted); font-weight:700; margin-right:6px;">#${i + 1}</span>
+              <strong style="color:var(--ink);">${t.jogador}</strong>
+              <small style="color:var(--muted); display:block; font-size:10.5px;">${t.de} → ${t.para} (${t.ano})</small>
+            </div>
+            <div style="font-weight:800; color:var(--mint); font-family:var(--font-mono); font-size:13px;">
+              ${t.valor}
+            </div>
+          </div>
+        `).join('');
+
+        const clubesValuation = [
+          { nome: 'Real Madrid', val: '€ 1.36 Bi', top: 'Vinícius Jr (€ 200M)', liga: 'LaLiga' },
+          { nome: 'Manchester City', val: '€ 1.29 Bi', top: 'Erling Haaland (€ 200M)', liga: 'Premier League' },
+          { nome: 'Arsenal', val: '€ 1.17 Bi', top: 'Bukayo Saka (€ 140M)', liga: 'Premier League' },
+          { nome: 'Barcelona', val: '€ 950 Mi', top: 'Lamine Yamal (€ 150M)', liga: 'LaLiga' },
+          { nome: 'Flamengo', val: '€ 185 Mi', top: 'Pedro (€ 30M)', liga: 'Brasileirão' },
+          { nome: 'Palmeiras', val: '€ 178 Mi', top: 'Estêvão (€ 40M)', liga: 'Brasileirão' }
+        ];
+
+        valDiv.innerHTML = clubesValuation.map(c => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px;">
+            <div>
+              <strong style="color:var(--ink); font-size:13px;">${c.nome}</strong>
+              <small style="color:var(--muted); display:block; font-size:10.5px;">${c.liga} • Destaque: ${c.top}</small>
+            </div>
+            <div style="font-weight:800; color:#60a5fa; font-family:var(--font-mono); font-size:13px;">
+              ${c.val}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        topDiv.innerHTML = `<div style="color:#ef4444; padding:10px;">Erro: ${err.message}</div>`;
+      }
+    };
+
+    window.renderMataMata = async function(torneio = 'libertadores') {
+      const botoes = [
+        { id: 'btn-mm-libertadores', key: 'libertadores' },
+        { id: 'btn-mm-copa-do-brasil', key: 'copa-do-brasil' },
+        { id: 'btn-mm-champions-league', key: 'champions-league' }
+      ];
+      botoes.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (el) {
+          if (b.key === torneio) {
+            el.className = 'ponte-btn';
+            el.style.borderColor = 'var(--mint)';
+          } else {
+            el.className = 'ponte-btn secondary';
+            el.style.borderColor = 'transparent';
+          }
+        }
+      });
+
+      const svgLink = document.getElementById('matamata-svg-link');
+      const svgImg = document.getElementById('matamata-svg-img');
+      const tit = document.getElementById('matamata-titulo');
+      if (svgLink) svgLink.href = `/api/futebol/matamata/${torneio}/chaveamento.svg`;
+      if (svgImg) svgImg.src = `/api/futebol/matamata/${torneio}/chaveamento.svg`;
+      if (tit) tit.textContent = `Chaveamento Vetorial Oficial • ${torneio.replace(/-/g, ' ').toUpperCase()}`;
+
+      const container = document.getElementById('matamata-confrontos');
+      container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); grid-column:1/-1;">Carregando confrontos mata-mata...</div>';
+
+      try {
+        const res = await fetch(`/api/futebol/matamata/${torneio}`);
+        const data = await res.json();
+        const ch = data.chaveamento || [];
+        const fin = data.final;
+
+        let html = '';
+        if (fin) {
+          html += `
+            <div class="match-card" style="grid-column:1/-1; border-color:var(--mint); background:linear-gradient(180deg, rgba(163,230,53,0.06) 0%, var(--paper) 100%);">
+              <div class="match-header">
+                <span>🏆 <strong>GRANDE FINAL OFICIAL</strong></span>
+                <span class="ponte-badge mint">Decisão do Título</span>
+              </div>
+              <div class="match-body">
+                <div class="match-team">
+                  <strong style="font-size:15px;">${fin.time1}</strong>
+                </div>
+                <div class="match-score" style="font-size:24px; color:var(--mint);">
+                  ${fin.placar || 'VS'}
+                </div>
+                <div class="match-team">
+                  <strong style="font-size:15px;">${fin.time2}</strong>
+                </div>
+              </div>
+              ${fin.campeao ? `<div style="text-align:center; margin-top:8px; font-weight:800; color:var(--mint); font-size:13px;">🎉 Campeão: ${fin.campeao}</div>` : ''}
+            </div>
+          `;
+        }
+
+        html += ch.map(c => `
+          <div class="match-card">
+            <div class="match-header">
+              <span>${c.fase || 'Confronto'}</span>
+              <span style="color:var(--muted);">${c.idaVolta ? 'Ida & Volta' : 'Jogo Único'}</span>
+            </div>
+            <div class="match-body">
+              <div class="match-team"><strong>${c.time1}</strong></div>
+              <div class="match-score" style="font-size:18px;">${c.placarAgregado || c.placar || 'VS'}</div>
+              <div class="match-team"><strong>${c.time2}</strong></div>
+            </div>
+          </div>
+        `).join('');
+
+        container.innerHTML = html;
+      } catch (err) {
+        container.innerHTML = `<div style="color:#ef4444; padding:20px; grid-column:1/-1;">Erro: ${err.message}</div>`;
+      }
     };
 
     window.renderChuteira = async function() {
@@ -1182,9 +1600,12 @@
           <!-- Abas de Visualização Gráfica da Partida -->
           <div style="display:flex; gap:8px; margin-bottom:14px; overflow-x:auto;">
             <button class="ponte-btn" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'stats')">📊 Estatísticas</button>
+            <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'escalacoes')">👕 Escalações SVG</button>
+            <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'probabilidade')">🔮 Preditor Ao Vivo</button>
             <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'shotmap')">🗺️ xG Shot Map</button>
             <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'campo')">📍 Posição da Bola 2D</button>
             <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'heatmap')">🔥 Heatmap Tático</button>
+            <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'momentum')">⚡ Momentum</button>
             <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="trocarVisualModal('${id}', 'odds')">🎲 Odds Poisson</button>
           </div>
 
@@ -1211,12 +1632,45 @@
       const container = document.getElementById('modal-visual-container');
       if (tipo === 'stats') {
         container.innerHTML = `<img src="/api/futebol/partida/${id}/grafico.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+      } else if (tipo === 'escalacoes') {
+        container.innerHTML = `<img src="/api/futebol/partida/${id}/escalacoes.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Escalações Táticas">`;
       } else if (tipo === 'shotmap') {
         container.innerHTML = `<img src="/api/futebol/partida/${id}/shotmap.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
       } else if (tipo === 'campo') {
         container.innerHTML = `<img src="/api/futebol/partida/${id}/campo.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
       } else if (tipo === 'heatmap') {
         container.innerHTML = `<img src="/api/futebol/partida/${id}/heatmap.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+      } else if (tipo === 'momentum') {
+        container.innerHTML = `<img src="/api/futebol/partida/${id}/momentum.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Gráfico de Momentum">`;
+      } else if (tipo === 'probabilidade') {
+        container.innerHTML = '<div style="padding:20px; color:var(--muted);">Calculando modelo preditivo ao vivo (Opta / Google Sports)...</div>';
+        try {
+          const res = await fetch(`/api/futebol/partida/${id}/probabilidade`);
+          const data = await res.json();
+          const p = data.preditorProbabilidades || {};
+          container.innerHTML = `
+            <div style="background:var(--paper-elevated); padding:18px; border-radius:var(--radius-md); text-align:left; font-size:12px; border:1px solid var(--line);">
+              <h4 style="margin:0 0 8px; color:var(--mint);">🔮 Preditor Probabilístico em Tempo Real (Live Match Predictor)</h4>
+              <p style="color:var(--ink-secondary); font-size:12px; margin-bottom:14px; line-height:1.5;">${p.narrativaPreditora || ''}</p>
+              <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; text-align:center;">
+                <div style="background:var(--canvas); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--line);">
+                  <small style="color:var(--muted);">Vitória Mandante</small>
+                  <div style="font-weight:900; color:#10b981; font-size:22px; margin-top:4px;">${p.probabilidadeVitoriaMandante || '-'}</div>
+                </div>
+                <div style="background:var(--canvas); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--line);">
+                  <small style="color:var(--muted);">Empate</small>
+                  <div style="font-weight:900; color:#fbbf24; font-size:22px; margin-top:4px;">${p.probabilidadeEmpate || '-'}</div>
+                </div>
+                <div style="background:var(--canvas); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--line);">
+                  <small style="color:var(--muted);">Vitória Visitante</small>
+                  <div style="font-weight:900; color:#60a5fa; font-size:22px; margin-top:4px;">${p.probabilidadeVitoriaVisitante || '-'}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        } catch (e) {
+          container.innerHTML = '<div style="color:#ef4444; padding:20px;">Erro ao carregar preditor.</div>';
+        }
       } else if (tipo === 'odds') {
         container.innerHTML = '<div style="padding:20px; color:var(--muted);">Calculando probabilidades Poisson...</div>';
         try {
@@ -1303,6 +1757,12 @@
       const status = (document.getElementById('filtro-mundo-status')?.value || '').toLowerCase();
 
       let filtrados = cacheJogosMundo;
+      if (filtroLigaAtual) {
+        filtrados = filtrados.filter(j => 
+          (j.campeonatoSlug || '').toLowerCase().includes(filtroLigaAtual) ||
+          (j.campeonato || '').toLowerCase().includes(filtroLigaAtual)
+        );
+      }
       if (status) {
         filtrados = filtrados.filter(j => j.status === status);
       }
