@@ -356,7 +356,7 @@
         <div class="ponte-card" style="padding:20px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <h4 style="margin:0; font-size:14px; color:#fbbf24;">👟 Chuteira de Ouro Mundial (Top Artilheiros)</h4>
-            <a href="/api/futebol/premios/chuteira-de-ouro.svg" target="_blank" class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;">Ver Troféu SVG</a>
+            <a href="${API_BASE}/api/futebol/premios/chuteira-de-ouro.svg" target="_blank" class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;">Ver Troféu SVG</a>
           </div>
           <p style="font-size:11.5px; color:var(--muted); margin-bottom:12px;">Gols multiplicados pelo coeficiente de dificuldade da liga (UEFA / CONMEBOL x2.0 ou x1.5).</p>
           <div id="lista-chuteira-ouro">
@@ -419,7 +419,7 @@
         </div>
 
         <div style="border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden; background:#0b0f19;">
-          <iframe id="iframe-dossie-preview" src="/api/futebol/jogadores/pedro-9/relatorio.html" style="width:100%; height:520px; border:none;"></iframe>
+          <iframe id="iframe-dossie-preview" src="${API_BASE}/api/futebol/jogadores/pedro-9/relatorio.html" style="width:100%; height:520px; border:none;"></iframe>
         </div>
       </div>
     </section>
@@ -812,10 +812,10 @@
       <div class="ponte-card" style="padding:20px; margin-bottom:20px; text-align:center;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <h4 id="matamata-titulo" style="margin:0; font-size:14px; color:var(--mint);">Chaveamento Vetorial Anycast (Fases Finais)</h4>
-          <a id="matamata-svg-link" href="/api/futebol/matamata/libertadores/chaveamento.svg" target="_blank" class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;">Abrir SVG em Nova Aba ↗</a>
+          <a id="matamata-svg-link" href="${API_BASE}/api/futebol/matamata/libertadores/chaveamento.svg" target="_blank" class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;">Abrir SVG em Nova Aba ↗</a>
         </div>
         <div id="matamata-svg-container" style="overflow-x:auto;">
-          <img id="matamata-svg-img" src="/api/futebol/matamata/libertadores/chaveamento.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Chaveamento Mata-Mata">
+          <img id="matamata-svg-img" src="${API_BASE}/api/futebol/matamata/libertadores/chaveamento.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Chaveamento Mata-Mata">
         </div>
       </div>
 
@@ -936,6 +936,10 @@
       renderRadarAtletaSvg,
       renderCardPartidaSvg 
     } from './dados-futebol.js';
+
+    const API_BASE = (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') || window.location.protocol === 'file:')
+      ? 'https://futebol-pro-api.clepta2.workers.dev'
+      : '';
 
     let currentCampeonato = 'brasileirao-a';
     let currentLang = 'curl';
@@ -1097,7 +1101,7 @@
       const container = document.getElementById('desfalques-resultado');
       container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Consultando departamento médico e STJD...</div>';
       try {
-        const res = await fetch(`/api/futebol/clubes/${slug}/desfalques`);
+        const res = await fetch(`${API_BASE}/api/futebol/clubes/${slug}/desfalques`);
         const data = await res.json();
         const r = data.relatorioDesfalques || {};
         const dm = r.departamentoMedico || [];
@@ -1160,7 +1164,7 @@
       container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Calculando sequências e tendências estatísticas...</div>';
 
       try {
-        const res = await fetch(`/api/futebol/confronto/${s1}/${s2}/streaks`);
+        const res = await fetch(`${API_BASE}/api/futebol/confronto/${s1}/${s2}/streaks`);
         const data = await res.json();
         const st = data.streaks || {};
         const m = st.mandante || {};
@@ -1202,8 +1206,8 @@
 
       try {
         const [resTransf, resVal] = await Promise.all([
-          fetch('/api/futebol/transferencias/top'),
-          fetch('/api/futebol/clubes/flamengo/valuation')
+          fetch('${API_BASE}/api/futebol/transferencias/top'),
+          fetch('${API_BASE}/api/futebol/clubes/flamengo/valuation')
         ]);
         const dataTransf = await resTransf.json();
         const listaTransf = dataTransf.transferencias || [];
@@ -1268,15 +1272,15 @@
       const svgLink = document.getElementById('matamata-svg-link');
       const svgImg = document.getElementById('matamata-svg-img');
       const tit = document.getElementById('matamata-titulo');
-      if (svgLink) svgLink.href = `/api/futebol/matamata/${torneio}/chaveamento.svg`;
-      if (svgImg) svgImg.src = `/api/futebol/matamata/${torneio}/chaveamento.svg`;
+      if (svgLink) svgLink.href = `${API_BASE}/api/futebol/matamata/${torneio}/chaveamento.svg`;
+      if (svgImg) svgImg.src = `${API_BASE}/api/futebol/matamata/${torneio}/chaveamento.svg`;
       if (tit) tit.textContent = `Chaveamento Vetorial Oficial • ${torneio.replace(/-/g, ' ').toUpperCase()}`;
 
       const container = document.getElementById('matamata-confrontos');
       container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); grid-column:1/-1;">Carregando confrontos mata-mata...</div>';
 
       try {
-        const res = await fetch(`/api/futebol/matamata/${torneio}`);
+        const res = await fetch(`${API_BASE}/api/futebol/matamata/${torneio}`);
         const data = await res.json();
         const ch = data.chaveamento || [];
         const fin = data.final;
@@ -1327,7 +1331,7 @@
 
     window.renderChuteira = async function() {
       try {
-        const resChuteira = await fetch('/api/futebol/premios/chuteira-de-ouro');
+        const resChuteira = await fetch('${API_BASE}/api/futebol/premios/chuteira-de-ouro');
         const dataChuteira = await resChuteira.json();
         const listaChuteira = dataChuteira.ranking || [];
 
@@ -1349,7 +1353,7 @@
           </div>
         `).join('');
 
-        const resFifa = await fetch('/api/futebol/ranking-fifa');
+        const resFifa = await fetch('${API_BASE}/api/futebol/ranking-fifa');
         const dataFifa = await resFifa.json();
         const listaFifa = dataFifa.ranking || [];
 
@@ -1378,7 +1382,7 @@
       grid.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); grid-column:1/-1;">Carregando notícias da ESPN...</div>';
 
       try {
-        const res = await fetch(`/api/futebol/espn/noticias?liga=${liga}`);
+        const res = await fetch(`${API_BASE}/api/futebol/espn/noticias?liga=${liga}`);
         const data = await res.json();
         const noticias = data.noticias || [];
 
@@ -1411,8 +1415,8 @@
 
       try {
         const [resStatus, resPartidas] = await Promise.all([
-          fetch('/api/futebol/globo/mercado-status'),
-          fetch('/api/futebol/globo/partidas')
+          fetch('${API_BASE}/api/futebol/globo/mercado-status'),
+          fetch('${API_BASE}/api/futebol/globo/partidas')
         ]);
         const dataStatus = await resStatus.json();
         const dataPartidas = await resPartidas.json();
@@ -1457,8 +1461,8 @@
     window.abrirDossieSelecionado = function(abrirAba = true) {
       const id = document.getElementById('select-atleta-dossie')?.value || 'pedro-9';
       const iframe = document.getElementById('iframe-dossie-preview');
-      if (iframe) iframe.src = `/api/futebol/jogadores/${id}/relatorio.html`;
-      if (abrirAba) window.open(`/api/futebol/jogadores/${id}/relatorio.html`, '_blank');
+      if (iframe) iframe.src = `${API_BASE}/api/futebol/jogadores/${id}/relatorio.html`;
+      if (abrirAba) window.open(`${API_BASE}/api/futebol/jogadores/${id}/relatorio.html`, '_blank');
     };
 
     window.renderPremios = function(escopo = 'global') {
@@ -1513,7 +1517,7 @@
       container.innerHTML = `
         <!-- Embed do Gráfico SVG de Carreiras -->
         <div style="text-align:center; margin-bottom:20px; overflow-x:auto;">
-          <img src="/api/futebol/carreiras/comparar/${id1}/${id2}.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Comparação de Carreiras">
+          <img src="${API_BASE}/api/futebol/carreiras/comparar/${id1}/${id2}.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Comparação de Carreiras">
         </div>
 
         <div style="background:var(--paper-elevated); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line-light); font-size:12.5px;">
@@ -1664,11 +1668,11 @@
     };
 
     window.abrirDashboardJogador = function(id) {
-      window.open(`/api/futebol/jogadores/${id}/dashboard.svg`, '_blank');
+      window.open(`${API_BASE}/api/futebol/jogadores/${id}/dashboard.svg`, '_blank');
     };
 
     window.abrirRadarJogador = function(id) {
-      window.open(`/api/futebol/jogadores/${id}/radar.svg`, '_blank');
+      window.open(`${API_BASE}/api/futebol/jogadores/${id}/radar.svg`, '_blank');
     };
 
     window.abrirMotorAnalise = async function(id) {
@@ -1678,7 +1682,7 @@
         conteudo.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Executando motor analítico com dados oficiais...</div>';
         modal.style.display = 'flex';
 
-        const res = await fetch(`/api/futebol/jogadores/${id}/analise`);
+        const res = await fetch(`${API_BASE}/api/futebol/jogadores/${id}/analise`);
         const data = await res.json();
         const a = data.analise;
         const m = a.motorAnalitico;
@@ -1727,7 +1731,7 @@
           </div>
 
           <div style="text-align:center; margin-top:20px;">
-            <a href="/api/futebol/jogadores/${id}/dashboard.svg" target="_blank" class="ponte-btn" style="display:inline-block; padding:8px 18px; font-size:12px;">📊 Abrir Dashboard Gráfico SVG em Nova Aba</a>
+            <a href="${API_BASE}/api/futebol/jogadores/${id}/dashboard.svg" target="_blank" class="ponte-btn" style="display:inline-block; padding:8px 18px; font-size:12px;">📊 Abrir Dashboard Gráfico SVG em Nova Aba</a>
           </div>
         `;
       } catch (err) {
@@ -1747,7 +1751,7 @@
       resBox.innerHTML = '<span style="color:var(--muted);">Pesquisando no catálogo Anycast...</span>';
 
       try {
-        const resp = await fetch(`/api/futebol/busca?q=${encodeURIComponent(q)}`);
+        const resp = await fetch(`${API_BASE}/api/futebol/busca?q=${encodeURIComponent(q)}`);
         const data = await resp.json();
         const r = data.resultados || {};
         const total = data.totalResultados || 0;
@@ -1796,7 +1800,7 @@
       tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:30px; color:var(--muted);">Calculando modelo probabilístico de projeção (Título, G4 e Z4)...</td></tr>';
 
       try {
-        const res = await fetch(`/api/futebol/tabela/${currentCampeonato}/projecoes`);
+        const res = await fetch(`${API_BASE}/api/futebol/tabela/${currentCampeonato}/projecoes`);
         const data = await res.json();
         const proj = data.projecoes || [];
 
@@ -1828,15 +1832,28 @@
         conteudo.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Carregando análise e gráfico estatístico oficial em tempo real...</div>';
         modal.style.display = 'flex';
 
-        const res = await fetch(`/api/futebol/partida/${id}`);
+        const res = await fetch(`${API_BASE}/api/futebol/partida/${id}`);
         const data = await res.json();
-        const p = data.partida || data;
+        let p = (data && data.ok) ? (data.partida || data) : null;
+        if (!p || !p.mandante) {
+          p = cacheJogosMundo.find(j => j.id === id) || {
+            mandante: { nome: 'Mandante', placar: '-' },
+            visitante: { nome: 'Visitante', placar: '-' },
+            campeonato: 'Campeonato Oficial',
+            infoJogo: { estadio: 'Estádio Oficial' }
+          };
+        }
+
+        const mandanteNome = p.mandante?.nome || 'Mandante';
+        const visitanteNome = p.visitante?.nome || 'Visitante';
+        const mandantePlacar = p.mandante?.placar ?? '-';
+        const visitantePlacar = p.visitante?.placar ?? '-';
 
         conteudo.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <div>
-              <h3 style="margin:0; font-size:1.2rem; color:var(--ink);">${p.mandante?.nome} (${p.mandante?.placar !== null ? p.mandante.placar : '-'}) vs (${p.visitante?.placar !== null ? p.visitante.placar : '-'}) ${p.visitante?.nome}</h3>
-              <small style="color:var(--muted);">${p.campeonato} • ${p.infoJogo?.estadio || p.estadio || 'Estádio Oficial'}</small>
+              <h3 style="margin:0; font-size:1.2rem; color:var(--ink);">${mandanteNome} (${mandantePlacar}) vs (${visitantePlacar}) ${visitanteNome}</h3>
+              <small style="color:var(--muted);">${p.campeonato || 'Campeonato'} • ${p.infoJogo?.estadio || p.estadio || 'Estádio Oficial'}</small>
             </div>
             <span class="ponte-badge mint">Dados Verídicos Oficiais</span>
           </div>
@@ -1854,7 +1871,7 @@
           </div>
 
           <div id="modal-visual-container" style="text-align:center; margin-bottom:20px; overflow-x:auto;">
-            <img src="/api/futebol/partida/${id}/grafico.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Gráfico Comparativo da Partida">
+            <img src="${API_BASE}/api/futebol/partida/${id}/grafico.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Gráfico Comparativo da Partida">
           </div>
 
           <!-- Súmula Real de Gols e Lances -->
@@ -1875,21 +1892,21 @@
     window.trocarVisualModal = async function(id, tipo) {
       const container = document.getElementById('modal-visual-container');
       if (tipo === 'stats') {
-        container.innerHTML = `<img src="/api/futebol/partida/${id}/grafico.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+        container.innerHTML = `<img src="${API_BASE}/api/futebol/partida/${id}/grafico.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
       } else if (tipo === 'escalacoes') {
-        container.innerHTML = `<img src="/api/futebol/partida/${id}/escalacoes.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Escalações Táticas">`;
+        container.innerHTML = `<img src="${API_BASE}/api/futebol/partida/${id}/escalacoes.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Escalações Táticas">`;
       } else if (tipo === 'shotmap') {
-        container.innerHTML = `<img src="/api/futebol/partida/${id}/shotmap.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+        container.innerHTML = `<img src="${API_BASE}/api/futebol/partida/${id}/shotmap.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
       } else if (tipo === 'campo') {
-        container.innerHTML = `<img src="/api/futebol/partida/${id}/campo.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+        container.innerHTML = `<img src="${API_BASE}/api/futebol/partida/${id}/campo.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
       } else if (tipo === 'heatmap') {
-        container.innerHTML = `<img src="/api/futebol/partida/${id}/heatmap.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
+        container.innerHTML = `<img src="${API_BASE}/api/futebol/partida/${id}/heatmap.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);">`;
       } else if (tipo === 'momentum') {
-        container.innerHTML = `<img src="/api/futebol/partida/${id}/momentum.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Gráfico de Momentum">`;
+        container.innerHTML = `<img src="${API_BASE}/api/futebol/partida/${id}/momentum.svg" style="max-width:100%; height:auto; border-radius:var(--radius-md); border:1px solid var(--line);" alt="Gráfico de Momentum">`;
       } else if (tipo === 'probabilidade') {
         container.innerHTML = '<div style="padding:20px; color:var(--muted);">Calculando modelo preditivo ao vivo (Opta / Google Sports)...</div>';
         try {
-          const res = await fetch(`/api/futebol/partida/${id}/probabilidade`);
+          const res = await fetch(`${API_BASE}/api/futebol/partida/${id}/probabilidade`);
           const data = await res.json();
           const p = data.preditorProbabilidades || {};
           container.innerHTML = `
@@ -1918,7 +1935,7 @@
       } else if (tipo === 'odds') {
         container.innerHTML = '<div style="padding:20px; color:var(--muted);">Calculando probabilidades Poisson...</div>';
         try {
-          const res = await fetch(`/api/futebol/partida/${id}/odds`);
+          const res = await fetch(`${API_BASE}/api/futebol/partida/${id}/odds`);
           const data = await res.json();
           const o = data.mercadosDeOddsPoisson;
           container.innerHTML = `
@@ -1981,7 +1998,7 @@
       container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Consultando feeds mundiais na borda Anycast...</div>';
 
       try {
-        const res = await fetch(`/api/futebol/mundo?data=${currentMundoData}`);
+        const res = await fetch(`${API_BASE}/api/futebol/mundo?data=${currentMundoData}`);
         const data = await res.json();
         cacheJogosMundo = data.jogos || [];
 
@@ -2081,7 +2098,7 @@
       tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:30px; color:var(--muted);">Carregando dados na borda Anycast...</td></tr>';
 
       try {
-        const res = await fetch(`/api/futebol/tabela/${campSlug}`);
+        const res = await fetch(`${API_BASE}/api/futebol/tabela/${campSlug}`);
         const data = await res.json();
         const lista = data.tabela || TABELAS_SOBERANAS[campSlug] || [];
         renderTabela(lista);
@@ -2131,7 +2148,7 @@
     }
 
     window.downloadTabela = function(formato) {
-      window.open(`/api/futebol/tabela/${currentCampeonato}?formato=${formato}`, '_blank');
+      window.open(`${API_BASE}/api/futebol/tabela/${currentCampeonato}?formato=${formato}`, '_blank');
     };
 
     window.loadAoVivo = async function() {
@@ -2139,7 +2156,7 @@
       container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Carregando placares...</div>';
 
       try {
-        const res = await fetch('/api/futebol/aovivo');
+        const res = await fetch('${API_BASE}/api/futebol/aovivo');
         const data = await res.json();
         const jogos = data.todosJogos || [];
 
@@ -2196,7 +2213,7 @@
             <strong>🏆 Títulos:</strong> ${Object.entries(c.titulosPrincipais || {}).map(([k, v]) => `${v}x ${k}`).join(', ')}
           </div>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:8px;">
-            <button class="ponte-btn" style="padding:6px; font-size:11px;" onclick="window.open('/api/futebol/clubes/${c.slug}/camisa-titular.svg?numero=10&nome=${encodeURIComponent(c.sigla)}', '_blank')">👕 Manto SVG</button>
+            <button class="ponte-btn" style="padding:6px; font-size:11px;" onclick="window.open('${API_BASE}/api/futebol/clubes/${c.slug}/camisa-titular.svg?numero=10&nome=${encodeURIComponent(c.sigla)}', '_blank')">👕 Manto SVG</button>
             <button class="ponte-btn secondary" style="padding:6px; font-size:11px;" onclick="abrirTecnicosClube('${c.slug}')">👔 Técnicos</button>
             <button class="ponte-btn secondary" style="grid-column: span 2; padding:6px; font-size:11px;" onclick="abrirSimuladorCom('${c.slug}')">⚔️ Simular Jogo</button>
           </div>
@@ -2211,7 +2228,7 @@
         conteudo.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Carregando técnicos...</div>';
         modal.style.display = 'flex';
 
-        const res = await fetch(`/api/futebol/clubes/${slug}/tecnicos`);
+        const res = await fetch(`${API_BASE}/api/futebol/clubes/${slug}/tecnicos`);
         const data = await res.json();
         const tAtual = data.tecnicoAtual || {};
         const tHist = data.tecnicosHistoricosLendarios || [];
@@ -2349,47 +2366,47 @@
       const display = document.getElementById('snippet-display');
 
       if (currentLang === 'curl') {
-        display.textContent = 'curl -X GET "' + url + '" \
-  -H "Authorization: Bearer ' + key + '" \
-  -H "x-api-key: ' + key + '" \
-  -H "Accept: application/json"';
+        display.textContent = `curl -X GET "${url}" \
+  -H "Authorization: Bearer ${key}" \
+  -H "x-api-key: ${key}" \
+  -H "Accept: application/json"`;
       } else if (currentLang === 'node') {
-        display.textContent = "import { FutebolPro } from 'futebol-pro';
+        display.textContent = `import { FutebolPro } from 'futebol-pro';
 
-FutebolPro.configure({ baseUrl: 'https://futebol-pro-api.clepta2.workers.dev', apiKey: '" + key + "' });
-const res = await fetch('" + url + "', {
-  headers: { 'Authorization': 'Bearer " + key + "', 'x-api-key': '" + key + "' }
+FutebolPro.configure({ baseUrl: 'https://futebol-pro-api.clepta2.workers.dev', apiKey: '${key}' });
+const res = await fetch('${url}', {
+  headers: { 'Authorization': 'Bearer ${key}', 'x-api-key': '${key}' }
 });
 const data = await res.json();
-console.log(data);";
+console.log(data);`;
       } else if (currentLang === 'python') {
-        display.textContent = "import requests
+        display.textContent = `import requests
 
 headers = {
-    'Authorization': 'Bearer " + key + "',
-    'x-api-key': '" + key + "'
+    'Authorization': 'Bearer ${key}',
+    'x-api-key': '${key}'
 }
-resp = requests.get('" + url + "', headers=headers)
-print(resp.json())";
+resp = requests.get('${url}', headers=headers)
+print(resp.json())`;
       } else if (currentLang === 'php') {
-        display.textContent = "<?php
-$ch = curl_init('" + url + "');
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer " + key + "',
-    'x-api-key: " + key + "'
+        display.textContent = `<?php
+\$ch = curl_init('${url}');
+curl_setopt(\$ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer ${key}',
+    'x-api-key: ${key}'
 ]);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$res = curl_exec($ch);
-print_r(json_decode($res, true));";
+curl_setopt(\$ch, CURLOPT_RETURNTRANSFER, true);
+\$res = curl_exec(\$ch);
+print_r(json_decode(\$res, true));`;
       } else if (currentLang === 'csharp') {
-        display.textContent = 'using System.Net.Http;
+        display.textContent = `using System.Net.Http;
 using System.Net.Http.Headers;
 
 var client = new HttpClient();
-client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "' + key + '");
-client.DefaultRequestHeaders.Add("x-api-key", "' + key + '");
-var response = await client.GetStringAsync("' + url + '");
-Console.WriteLine(response);';
+client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "${key}");
+client.DefaultRequestHeaders.Add("x-api-key", "${key}");
+var response = await client.GetStringAsync("${url}");
+Console.WriteLine(response);`;
       }
     };
 
@@ -2404,7 +2421,7 @@ Console.WriteLine(response);';
       const t0 = performance.now();
 
       try {
-        const res = await fetch(ep, {
+        const res = await fetch((ep.startsWith("http") ? ep : (API_BASE + ep)), {
           headers: {
             'Authorization': 'Bearer ' + key,
             'x-api-key': key,
