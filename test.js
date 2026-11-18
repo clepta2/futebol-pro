@@ -881,4 +881,43 @@ assert(resDados.headers.get('Content-Type').includes('application/javascript'), 
 
 globalThis.fetch = origGlobalFetch;
 
+// ─── 21. AUDITORIA ANTI-ALUCINAÇÃO & RESILIÊNCIA CONTRA DADOS INVENTADOS ───
+console.log('\n--- 21. Auditoria Anti-Alucinação & Zero Dados Inventados ---');
+
+// 21.1 Inspeção Estática do Código de Produção (Zero placares/jogos fixos de fallback)
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __testDir = path.dirname(fileURLToPath(import.meta.url));
+const workerSrc = fs.readFileSync(path.join(__testDir, 'worker.js'), 'utf8');
+
+const termosProibidosFutebol = [
+  'fb_001',
+  'fb_002',
+  'fb_003',
+  'Possession: 54',
+  'Falta tática no meio campo'
+];
+
+for (const termo of termosProibidosFutebol) {
+  assert(!workerSrc.includes(termo), `Código de produção NÃO deve conter fallback de dados falsos: "${termo}"`);
+}
+
+// 21.2 Validação Dinâmica: Quando não houver jogos no upstream, a API DEVE retornar lista vazia
+const mockFetchVazio = async () => new Response(JSON.stringify({ sports: [{ leagues: [{ events: [] }] }] }), {
+  status: 200,
+  headers: { 'Content-Type': 'application/json' }
+});
+
+const origFetchMock = globalThis.fetch;
+globalThis.fetch = mockFetchVazio;
+
+const resMundoVazio = await worker.fetch(new Request('https://api.test/api/futebol/mundo?data=2028-01-01'), {});
+const dataMundoVazio = await resMundoVazio.json();
+assert(Array.isArray(dataMundoVazio.jogos) && dataMundoVazio.jogos.length === 0, 'Data futura sem jogos retorna lista vazia legítima (sem inventar partidas)');
+assert(dataMundoVazio.totalJogos === 0, 'Total de jogos reportado como zero');
+
+globalThis.fetch = origFetchMock;
+
 console.log(`\n🎉 Todos os ${passCount} testes foram executados e APROVADOS com sucesso! Zero falhas (${failCount}).\n`);
