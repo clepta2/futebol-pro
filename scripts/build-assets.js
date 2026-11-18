@@ -1,7 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const rootDir = path.resolve('.');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '..');
 
 const css = fs.readFileSync(path.join(rootDir, 'ponte-suite.css'), 'utf8');
 const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');

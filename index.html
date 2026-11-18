@@ -2318,38 +2318,112 @@
 
     window.selectLang = function(lang) {
       currentLang = lang;
+      ['curl', 'node', 'python', 'php', 'csharp'].forEach(l => {
+        const btn = document.getElementById('btn-lang-' + l);
+        if (btn) {
+          if (l === lang) {
+            btn.className = 'ponte-btn is-active';
+            btn.style.borderColor = 'var(--mint)';
+          } else {
+            btn.className = 'ponte-btn secondary';
+            btn.style.borderColor = 'transparent';
+          }
+        }
+      });
       updateSnippets();
+    };
+
+    window.copiarSnippetCodigo = function() {
+      const code = document.getElementById('snippet-display')?.textContent || '';
+      if (code) {
+        navigator.clipboard.writeText(code).then(() => {
+          alert('Snippet copiado com sucesso!');
+        });
+      }
     };
 
     window.updateSnippets = function() {
       const ep = document.getElementById('sandbox-endpoint').value;
-      const url = `https://ponte.ozpro.com.br${ep}`;
+      const key = document.getElementById('sandbox-api-key')?.value || 'fut_master_live_anycast_key';
+      const url = 'https://futebol-pro-api.clepta2.workers.dev' + ep;
       const display = document.getElementById('snippet-display');
 
       if (currentLang === 'curl') {
-        display.textContent = `curl -X GET "${url}" \\\n  -H "Authorization: Bearer pnt_live_89f2a7..." \\\n  -H "Accept: application/json"`;
+        display.textContent = 'curl -X GET "' + url + '" \
+  -H "Authorization: Bearer ' + key + '" \
+  -H "x-api-key: ' + key + '" \
+  -H "Accept: application/json"';
       } else if (currentLang === 'node') {
-        display.textContent = `import { FutebolPro } from 'futebol-pro';\n\nFutebolPro.configure({ apiKey: 'pnt_live_89f2a7...' });\nconst data = await fetch('${url}', {\n  headers: { 'Authorization': 'Bearer pnt_live_...' }\n}).then(r => r.json());\nconsole.log(data);`;
+        display.textContent = "import { FutebolPro } from 'futebol-pro';
+
+FutebolPro.configure({ baseUrl: 'https://futebol-pro-api.clepta2.workers.dev', apiKey: '" + key + "' });
+const res = await fetch('" + url + "', {
+  headers: { 'Authorization': 'Bearer " + key + "', 'x-api-key': '" + key + "' }
+});
+const data = await res.json();
+console.log(data);";
       } else if (currentLang === 'python') {
-        display.textContent = `import requests\n\nheaders = {'Authorization': 'Bearer pnt_live_...'}\nresp = requests.get('${url}', headers=headers)\nprint(resp.json())`;
+        display.textContent = "import requests
+
+headers = {
+    'Authorization': 'Bearer " + key + "',
+    'x-api-key': '" + key + "'
+}
+resp = requests.get('" + url + "', headers=headers)
+print(resp.json())";
       } else if (currentLang === 'php') {
-        display.textContent = `<?php\n$ch = curl_init('${url}');\ncurl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer pnt_live_...']);\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n$res = curl_exec($ch);\nprint_r(json_decode($res, true));`;
+        display.textContent = "<?php
+$ch = curl_init('" + url + "');
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer " + key + "',
+    'x-api-key: " + key + "'
+]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$res = curl_exec($ch);
+print_r(json_decode($res, true));";
       } else if (currentLang === 'csharp') {
-        display.textContent = `using System.Net.Http;\nusing System.Net.Http.Headers;\n\nvar client = new HttpClient();\nclient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "pnt_live_...");\nvar response = await client.GetStringAsync("${url}");\nConsole.WriteLine(response);`;
+        display.textContent = 'using System.Net.Http;
+using System.Net.Http.Headers;
+
+var client = new HttpClient();
+client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "' + key + '");
+client.DefaultRequestHeaders.Add("x-api-key", "' + key + '");
+var response = await client.GetStringAsync("' + url + '");
+Console.WriteLine(response);';
       }
     };
 
     window.executarSandbox = async function() {
       const ep = document.getElementById('sandbox-endpoint').value;
+      const key = document.getElementById('sandbox-api-key')?.value || 'fut_master_live_anycast_key';
       const respBox = document.getElementById('sandbox-response');
+      const statusBox = document.getElementById('console-status');
+      const latBox = document.getElementById('console-latency');
+
       respBox.textContent = 'Executando requisição Anycast...';
+      const t0 = performance.now();
 
       try {
-        const res = await fetch(ep);
+        const res = await fetch(ep, {
+          headers: {
+            'Authorization': 'Bearer ' + key,
+            'x-api-key': key,
+            'Accept': 'application/json'
+          }
+        });
+        const lat = (performance.now() - t0).toFixed(1);
         const json = await res.json();
+
+        if (statusBox) {
+          statusBox.textContent = res.status + ' ' + (res.statusText || 'OK');
+          statusBox.className = res.ok ? 'status-badge-pill green' : 'status-badge-pill red';
+        }
+        if (latBox) {
+          latBox.textContent = 'Latência: ' + lat + 'ms';
+        }
         respBox.textContent = JSON.stringify(json, null, 2);
       } catch (err) {
-        respBox.textContent = `Erro ao executar chamada: ${err.message}`;
+        respBox.textContent = 'Erro ao executar chamada: ' + err.message;
       }
     };
 
@@ -2361,9 +2435,43 @@
       localStorage.setItem('ponte.theme', next);
     });
 
+    // Mobile Bottom Nav Sync
+    document.querySelectorAll('.mobile-bottom-nav .mobile-nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        if (tab) {
+          document.querySelectorAll('.mobile-bottom-nav .mobile-nav-item').forEach(b => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+          switchTab(tab);
+        }
+      });
+    });
+
     // Inicialização
     loadJogosMundo();
+    if (window.lucide && window.lucide.createIcons) {
+      window.lucide.createIcons();
+    }
   </script>
+
+  <!-- Barra de Navegação Inferior Mobile Oficial -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegação mobile">
+    <button class="mobile-nav-item is-active" data-tab="mundo">
+      <i data-lucide="activity"></i><span>Ao Vivo</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="tabela">
+      <i data-lucide="layers"></i><span>Tabela</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="confronto">
+      <i data-lucide="zap"></i><span>Simulador</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="desfalques">
+      <i data-lucide="shield-check"></i><span>DM</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="playground">
+      <i data-lucide="play"></i><span>Sandbox</span>
+    </button>
+  </nav>
 </body>
 </html>
 
