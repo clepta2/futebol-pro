@@ -82,7 +82,7 @@ import {
 } from './dados/index.js';
 
 import { WIDGET_JS_CONTENT } from './widget-content.js';
-import { STYLES_CSS, HTML_INDEX, DADOS_FUTEBOL_JS, FUTEBOL_PRO_SDK_JS, OZPRO_MARK_SVG } from './site-assets.js';
+import { STYLES_CSS, HTML_INDEX, DADOS_FUTEBOL_JS, FUTEBOL_PRO_SDK_JS, PONTE_ICONS_JS, OZPRO_MARK_SVG } from './site-assets.js';
 
 const webhooksRegistry = new Map();
 
@@ -487,28 +487,34 @@ async function fetchJogosMundoLive(dataParam, env, ctx) {
   const ymd = normalizarDataYmd(dataParam);
   const cacheKey = `mundo_header_${ymd}`;
   const cached = await getStorageData(cacheKey, env);
-  if (cached) {
+  if (cached && Array.isArray(cached) && cached.length > 0) {
     return cached;
   }
 
+  const mapIds = new Set();
+  const todosJogos = [];
+
+  // ─── PROVEDOR 1: ESPN Scoreboard Header Global ───
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4500);
+    const timeout = setTimeout(() => controller.abort(), 3500);
 
     const url = `https://site.web.api.espn.com/apis/v2/scoreboard/header?sport=soccer&dates=${ymd}`;
     const resp = await fetch(url, {
       signal: controller.signal,
-      headers: { 'Accept': 'application/json', 'User-Agent': 'FutebolPro-GlobalWorker/2.0' }
+      headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
     });
     clearTimeout(timeout);
 
     if (resp.ok) {
       const json = await resp.json();
       const leagues = json.sports?.[0]?.leagues || [];
-      const todosJogos = [];
 
       for (const l of leagues) {
         for (const ev of l.events || []) {
+          if (mapIds.has(ev.id)) continue;
+          mapIds.add(ev.id);
+
           const home = (ev.competitors || []).find(c => c.homeAway === 'home') || {};
           const away = (ev.competitors || []).find(c => c.homeAway === 'away') || {};
           const fullStatus = ev.fullStatus || {};
@@ -528,8 +534,8 @@ async function fetchJogosMundoLive(dataParam, env, ctx) {
             id: ev.id,
             data: ev.date,
             horaUtc: ev.date ? ev.date.slice(11, 16) : '',
-            campeonato: l.name,
-            campeonatoSlug: l.slug,
+            campeonato: l.name || 'Futebol Internacional',
+            campeonatoSlug: l.slug || 'soccer',
             status,
             statusDescricao: statusType.shortDetail || statusType.description || ev.summary || 'Agendado',
             tempoJogo: fullStatus.displayClock || "0'",
@@ -551,60 +557,158 @@ async function fetchJogosMundoLive(dataParam, env, ctx) {
           });
         }
       }
-
-      const todayYmd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      const isToday = ymd === todayYmd;
-      const ttl = isToday ? 45 : 86400;
-
-      await putStorageData(cacheKey, todosJogos, ttl, env, ctx);
-
-      return todosJogos;
     }
-  } catch (err) {
-    // Fallback silencioso
+  } catch (_) {}
+
+  // ─── PROVEDOR 2: ESPN Public REST API (all/scoreboard) ───
+  if (todosJogos.length === 0) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3500);
+
+      const resp = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard?dates=${ymd}`, {
+        signal: controller.signal,
+        headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+      });
+      clearTimeout(timeout);
+
+      if (resp.ok) {
+        const json = await resp.json();
+        for (const ev of json.events || []) {
+          if (mapIds.has(ev.id)) continue;
+          mapIds.add(ev.id);
+
+          const comp = ev.competitions?.[0] || {};
+          const home = (comp.competitors || []).find(c => c.homeAway === 'home') || {};
+          const away = (comp.competitors || []).find(c => c.homeAway === 'away') || {};
+          const statusType = ev.status?.type || {};
+
+          let status = 'agendado';
+          if (statusType.state === 'in') status = 'ao_vivo';
+          else if (statusType.completed || statusType.state === 'post') status = 'encerrado';
+
+          const placarCasa = home.score !== '' && home.score !== undefined ? parseInt(home.score, 10) : null;
+          const placarVisitante = away.score !== '' && away.score !== undefined ? parseInt(away.score, 10) : null;
+
+          todosJogos.push({
+            id: ev.id,
+            data: ev.date,
+            horaUtc: ev.date ? ev.date.slice(11, 16) : '',
+            campeonato: ev.season?.slug || 'Futebol Internacional',
+            campeonatoSlug: 'soccer',
+            status,
+            statusDescricao: statusType.shortDetail || statusType.description || 'Agendado',
+            tempoJogo: ev.status?.displayClock || "0'",
+            minuto: ev.status?.clock || 0,
+            mandante: {
+              id: home.id,
+              nome: home.team?.displayName || home.team?.name || 'Mandante',
+              sigla: home.team?.abbreviation || (home.team?.displayName || '').slice(0, 3).toUpperCase(),
+              logo: home.team?.logo || home.team?.logos?.[0]?.href || '',
+              placar: placarCasa
+            },
+            visitante: {
+              id: away.id,
+              nome: away.team?.displayName || away.team?.name || 'Visitante',
+              sigla: away.team?.abbreviation || (away.team?.displayName || '').slice(0, 3).toUpperCase(),
+              logo: away.team?.logo || away.team?.logos?.[0]?.href || '',
+              placar: placarVisitante
+            }
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  // ─── PROVEDOR 3: Feeds Paralelos por Liga Oficial (Brasileirão, Champions, Premier, LaLiga) ───
+  if (todosJogos.length === 0) {
+    const leagues = [
+      { slug: 'bra.1', nome: 'Brasileirão Série A' },
+      { slug: 'eng.1', nome: 'Premier League' },
+      { slug: 'esp.1', nome: 'LaLiga EA Sports' },
+      { slug: 'ita.1', nome: 'Serie A Italiana' },
+      { slug: 'ger.1', nome: 'Bundesliga' },
+      { slug: 'uefa.champions', nome: 'UEFA Champions League' },
+      { slug: 'conmebol.libertadores', nome: 'CONMEBOL Libertadores' }
+    ];
+
+    try {
+      const promises = leagues.map(async l => {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 2500);
+          const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${l.slug}/scoreboard`, {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' }
+          });
+          clearTimeout(timeout);
+
+          if (res.ok) {
+            const j = await res.json();
+            return (j.events || []).map(ev => {
+              const comp = ev.competitions?.[0] || {};
+              const home = (comp.competitors || []).find(c => c.homeAway === 'home') || {};
+              const away = (comp.competitors || []).find(c => c.homeAway === 'away') || {};
+              const statusType = ev.status?.type || {};
+
+              let status = 'agendado';
+              if (statusType.state === 'in') status = 'ao_vivo';
+              else if (statusType.completed || statusType.state === 'post') status = 'encerrado';
+
+              return {
+                id: ev.id,
+                data: ev.date,
+                horaUtc: ev.date ? ev.date.slice(11, 16) : '',
+                campeonato: l.nome,
+                campeonatoSlug: l.slug,
+                status,
+                statusDescricao: statusType.shortDetail || statusType.description || 'Agendado',
+                tempoJogo: ev.status?.displayClock || "0'",
+                mandante: {
+                  id: home.id,
+                  nome: home.team?.displayName || home.team?.name || 'Mandante',
+                  sigla: home.team?.abbreviation || '',
+                  logo: home.team?.logo || '',
+                  placar: home.score !== '' && home.score !== undefined ? parseInt(home.score, 10) : null
+                },
+                visitante: {
+                  id: away.id,
+                  nome: away.team?.displayName || away.team?.name || 'Visitante',
+                  sigla: away.team?.abbreviation || '',
+                  logo: away.team?.logo || '',
+                  placar: away.score !== '' && away.score !== undefined ? parseInt(away.score, 10) : null
+                }
+              };
+            });
+          }
+        } catch (_) {}
+        return [];
+      });
+
+      const results = await Promise.all(promises);
+      for (const arr of results) {
+        for (const j of arr) {
+          if (!mapIds.has(j.id)) {
+            mapIds.add(j.id);
+            todosJogos.push(j);
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  if (todosJogos.length > 0) {
+    const todayYmd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const isToday = ymd === todayYmd;
+    const ttl = isToday ? 45 : 86400;
+
+    await putStorageData(cacheKey, todosJogos, ttl, env, ctx);
+    return todosJogos;
   }
 
   if (cached) return cached;
 
-  // Fallback Soberano caso o upstream esteja inacessível
-  return [
-    {
-      id: 'fb_001',
-      data: new Date().toISOString(),
-      horaUtc: '16:00',
-      campeonato: 'Brasileirão Série A',
-      campeonatoSlug: 'bra.1',
-      status: 'encerrado',
-      statusDescricao: 'FT',
-      tempoJogo: "90'+4'",
-      mandante: { id: '819', nome: 'Flamengo', sigla: 'FLA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/819.png', placar: 2 },
-      visitante: { id: '2029', nome: 'Palmeiras', sigla: 'PAL', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2029.png', placar: 1 }
-    },
-    {
-      id: 'fb_002',
-      data: new Date().toISOString(),
-      horaUtc: '17:00',
-      campeonato: 'Premier League',
-      campeonatoSlug: 'eng.1',
-      status: 'encerrado',
-      statusDescricao: 'FT',
-      tempoJogo: "90'+3'",
-      mandante: { id: '359', nome: 'Arsenal', sigla: 'ARS', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png', placar: 3 },
-      visitante: { id: '364', nome: 'Liverpool', sigla: 'LIV', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/364.png', placar: 2 }
-    },
-    {
-      id: 'fb_003',
-      data: new Date().toISOString(),
-      horaUtc: '18:30',
-      campeonato: 'LaLiga EA Sports',
-      campeonatoSlug: 'esp.1',
-      status: 'encerrado',
-      statusDescricao: 'FT',
-      tempoJogo: "90'+5'",
-      mandante: { id: '86', nome: 'Real Madrid', sigla: 'RMA', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/86.png', placar: 2 },
-      visitante: { id: '83', nome: 'Barcelona', sigla: 'BAR', logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/83.png', placar: 1 }
-    }
-  ];
+  return [];
 }
 
 const MAPA_ESPN_TEAMS = {
@@ -723,47 +827,13 @@ async function fetchPartidaDetalheLive(partidaId, ligaSlug = 'all', env, ctx) {
     return { ok: true, tipo: 'jogo_futuro', partida: futuro };
   }
 
-  const jogosHoje = await fetchJogosMundoLive('hoje');
-  const jogoHoje = (jogosHoje || []).find(j => j.id === partidaId);
-  if (jogoHoje) {
-    return {
-      ok: true,
-      tipo: 'jogo_ao_vivo',
-      partida: {
-        id: jogoHoje.id,
-        campeonato: jogoHoje.campeonato,
-        status: jogoHoje.status,
-        statusDescricao: jogoHoje.statusDescricao,
-        tempoJogo: jogoHoje.tempoJogo,
-        mandante: jogoHoje.mandante,
-        visitante: jogoHoje.visitante,
-        infoJogo: {
-          estadio: jogoHoje.estadio || 'Estádio Oficial',
-          arbitro: 'Árbitro Oficial'
-        },
-        golsELances: [
-          { minuto: "28'", jogador: jogoHoje.mandante?.nome || 'Mandante', time: jogoHoje.mandante?.nome || 'Mandante', tipo: 'Gol' },
-          { minuto: "64'", jogador: jogoHoje.visitante?.nome || 'Visitante', time: jogoHoje.visitante?.nome || 'Visitante', tipo: 'Gol' }
-        ],
-        lanceALance: [
-          { minuto: "14'", tipo: 'foul', descricao: 'Falta tática no meio campo', coordenadasCampo: { x: 48, y: 32 } },
-          { minuto: "28'", tipo: 'goal', descricao: `Gol do ${jogoHoje.mandante?.nome}!`, coordenadasCampo: { x: 92, y: 50 } },
-          { minuto: "64'", tipo: 'goal', descricao: `Gol do ${jogoHoje.visitante?.nome}!`, coordenadasCampo: { x: 8, y: 50 } }
-        ],
-        estatisticas: [
-          { time: jogoHoje.mandante?.nome || 'Mandante', stats: { Possession: 54, SHOTS: 14, 'ON GOAL': 6, Fouls: 11, 'Corner Kicks': 6 } },
-          { time: jogoHoje.visitante?.nome || 'Visitante', stats: { Possession: 46, SHOTS: 10, 'ON GOAL': 4, Fouls: 13, 'Corner Kicks': 4 } }
-        ]
-      }
-    };
-  }
-
   const cacheKey = `partida_${partidaId}`;
   const cached = await getStorageData(cacheKey, env);
   if (cached) {
     return cached;
   }
 
+  // 1. Tenta consultar o resumo oficial em tempo real da ESPN
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
@@ -868,6 +938,32 @@ async function fetchPartidaDetalheLive(partidaId, ligaSlug = 'all', env, ctx) {
     }
   } catch (_) {}
 
+  // 2. Se a ESPN não tiver resumo detalhado, procura na lista de jogos do dia (sem inventar lances)
+  const jogosHoje = await fetchJogosMundoLive('hoje');
+  const jogoHoje = (jogosHoje || []).find(j => j.id === partidaId);
+  if (jogoHoje) {
+    return {
+      ok: true,
+      tipo: 'jogo_ao_vivo',
+      partida: {
+        id: jogoHoje.id,
+        campeonato: jogoHoje.campeonato,
+        status: jogoHoje.status,
+        statusDescricao: jogoHoje.statusDescricao,
+        tempoJogo: jogoHoje.tempoJogo,
+        mandante: jogoHoje.mandante,
+        visitante: jogoHoje.visitante,
+        infoJogo: {
+          estadio: jogoHoje.estadio || 'Estádio Oficial',
+          arbitro: 'Árbitro Oficial'
+        },
+        golsELances: [],
+        lanceALance: [],
+        estatisticas: []
+      }
+    };
+  }
+
   return null;
 }
 
@@ -923,6 +1019,16 @@ export default {
       });
     }
 
+    if (url.pathname === '/ponte-icons.js') {
+      return new Response(PONTE_ICONS_JS, {
+        headers: {
+          'Content-Type': 'application/javascript; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400',
+          ...CORS_HEADERS
+        }
+      });
+    }
+
     if (url.pathname === '/brand/ozpro-mark.svg') {
       return new Response(OZPRO_MARK_SVG, {
         headers: {
@@ -935,7 +1041,7 @@ export default {
 
     // 1.3 Servir Studio Visual Oficial na Raiz para Navegadores Web
     const acceptHeader = request.headers.get('Accept') || '';
-    if ((url.pathname === '/' || url.pathname === '/app') && !acceptHeader.includes('application/json')) {
+    if ((url.pathname === '/' || url.pathname === '/app' || url.pathname === '/index.html') && !acceptHeader.includes('application/json')) {
       return new Response(HTML_INDEX, {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
