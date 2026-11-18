@@ -356,7 +356,7 @@
         <div class="ponte-card" style="padding:20px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <h4 style="margin:0; font-size:14px; color:#fbbf24;">👟 Chuteira de Ouro Mundial (Top Artilheiros)</h4>
-            <a href="${API_BASE}/api/futebol/premios/chuteira-de-ouro.svg" target="_blank" class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;">Ver Troféu SVG</a>
+            <a href="/api/futebol/premios/chuteira-de-ouro.svg" target="_blank" class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;">Ver Troféu SVG</a>
           </div>
           <p style="font-size:11.5px; color:var(--muted); margin-bottom:12px;">Gols multiplicados pelo coeficiente de dificuldade da liga (UEFA / CONMEBOL x2.0 ou x1.5).</p>
           <div id="lista-chuteira-ouro">
@@ -419,7 +419,7 @@
         </div>
 
         <div style="border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden; background:#0b0f19;">
-          <iframe id="iframe-dossie-preview" src="${API_BASE}/api/futebol/jogadores/pedro-9/relatorio.html" style="width:100%; height:520px; border:none;"></iframe>
+          <iframe id="iframe-dossie-preview" src="/api/futebol/jogadores/pedro-9/relatorio.html" style="width:100%; height:520px; border:none;"></iframe>
         </div>
       </div>
     </section>
@@ -937,9 +937,7 @@
       renderCardPartidaSvg 
     } from './dados-futebol.js';
 
-    const API_BASE = (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') || window.location.protocol === 'file:')
-      ? 'https://futebol-pro-api.clepta2.workers.dev'
-      : '';
+    const API_BASE = '';
 
     let currentCampeonato = 'brasileirao-a';
     let currentLang = 'curl';

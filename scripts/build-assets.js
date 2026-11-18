@@ -10,6 +10,7 @@ const css = fs.readFileSync(path.join(rootDir, 'ponte-suite.css'), 'utf8');
 const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
 const dados = fs.readFileSync(path.join(rootDir, 'dados-futebol.js'), 'utf8');
 const sdk = fs.readFileSync(path.join(rootDir, 'futebol-pro.js'), 'utf8');
+const ponteIcons = fs.readFileSync(path.join(rootDir, 'ponte-icons.js'), 'utf8');
 
 const ozproMarkSvg = `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="40" height="40" rx="10" fill="#a3e635"/>
@@ -23,6 +24,7 @@ export const STYLES_CSS = ${JSON.stringify(css)};
 export const HTML_INDEX = ${JSON.stringify(html)};
 export const DADOS_FUTEBOL_JS = ${JSON.stringify(dados)};
 export const FUTEBOL_PRO_SDK_JS = ${JSON.stringify(sdk)};
+export const PONTE_ICONS_JS = ${JSON.stringify(ponteIcons)};
 export const OZPRO_MARK_SVG = ${JSON.stringify(ozproMarkSvg)};
 `;
 
