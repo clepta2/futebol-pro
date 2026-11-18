@@ -1,12 +1,22 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Futebol Pro Studio — Dados em Tempo Real, Tabelas &amp; Ao Vivo Anycast</title>
-  <meta name="description" content="API Anycast de Dados Esportivos: Brasileirão Série A, Champions League, Premier League, Placares Ao Vivo, Clubes, Estádios e Simulador de Confrontos.">
-  <link rel="stylesheet" href="ponte-suite.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Futebol Pro Studio • Terminal &amp; Dados Esportivos Anycast • Ponte API Market</title>
+  <meta name="description" content="Terminal Esportivo e API Anycast de Alta Performance: Brasileirão Série A/B, Champions League, Premier League, Placares Ao Vivo, xG, Escalações SVG e Dossiês de Scouting." />
+  
+  <link rel="stylesheet" href="styles.css?v=4.0.0" />
+  <link rel="stylesheet" href="ponte-suite.css" />
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('ponte.theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+  <script defer src="ponte-icons.js"></script>
   <style>
+    /* Estilos Customizados de Alta Precisão para Futebol Pro */
     .futebol-badge-libertadores { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 999px; }
     .futebol-badge-pre { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 999px; }
     .futebol-badge-sula { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 999px; }
@@ -28,117 +38,240 @@
     .match-score { font-family: var(--font-mono); font-size: 28px; font-weight: 800; color: var(--ink); background: var(--paper-elevated); padding: 6px 18px; border-radius: var(--radius-md); border: 1px solid var(--line); }
     .club-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
     .club-card:hover { border-color: var(--mint); box-shadow: var(--shadow-md); }
+
+    /* Terminal Console Dark Oficial */
+    .terminal-window {
+      background: #091311;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-xl);
+      display: flex;
+      flex-direction: column;
+    }
+    .terminal-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .terminal-dots {
+      display: flex;
+      gap: 7px;
+    }
+    .terminal-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .terminal-dot.red { background: #ef4444; }
+    .terminal-dot.yellow { background: #f59e0b; }
+    .terminal-dot.green { background: #10b981; }
+    .status-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 11px;
+      border-radius: var(--radius-full);
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .status-badge-pill.green {
+      background: rgba(16, 185, 129, 0.12);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .status-badge-pill.blue {
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
   </style>
-  <script>
-    (function() {
-      const savedTheme = localStorage.getItem('ponte.theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    })();
-  </script>
 </head>
 <body>
 
-  <!-- Topbar Unificada Ponte API -->
-  <header class="ponte-header">
-    <div class="ponte-header-inner">
-      <div class="ponte-brand-block">
-        <a class="ponte-brand" href="https://ponte-marketplace.maputo2.workers.dev/#catalogo">
-          <svg class="ponte-brand-logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="40" height="40" rx="10" fill="#a3e635"/>
-            <path d="M12 28V12L28 20L12 28Z" fill="#0c1715"/>
-          </svg>
-          <div class="ponte-brand-copy">
-            <strong>ponte</strong>
-            <small>API MARKET · OZPRO</small>
-          </div>
+  <div class="sidebar-drawer-backdrop" id="sidebar-drawer-backdrop" hidden></div>
+
+  <div class="app-shell">
+    <!-- Sidebar Oficial do Ecossistema Ponte / OZPro -->
+    <aside class="sidebar" aria-label="Navegação principal">
+      <button class="sidebar-drawer-close" id="sidebar-drawer-close" aria-label="Fechar menu lateral"><i data-lucide="x"></i></button>
+      <a class="brand" href="https://ponte-marketplace.maputo2.workers.dev/#catalogo" aria-label="Ponte API, Futebol Pro">
+        <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="10" fill="#a3e635"/>
+          <path d="M12 28V12L28 20L12 28Z" fill="#0c1715"/>
+        </svg>
+        <span><strong>ponte</strong><small>FUTEBOL PRO · OZPRO</small></span>
+      </a>
+
+      <nav class="primary-nav" id="primary-nav">
+        <div class="nav-section-label">CENTRAL AO VIVO</div>
+        <button class="nav-link is-active" data-tab="mundo" onclick="switchTab('mundo')">
+          <i data-lucide="activity"></i> <span>Jogos do Mundo (Live)</span>
+        </button>
+        <button class="nav-link" data-tab="tabela" onclick="switchTab('tabela')">
+          <i data-lucide="layers"></i> <span>Classificação &amp; Tabelas</span>
+        </button>
+        <button class="nav-link" data-tab="confronto" onclick="switchTab('confronto')">
+          <i data-lucide="zap"></i> <span>Simulador Rating Elo</span>
+        </button>
+        <button class="nav-link" data-tab="desfalques" onclick="switchTab('desfalques')">
+          <i data-lucide="shield-check"></i> <span>Desfalques &amp; DM</span>
+        </button>
+
+        <div class="nav-section-label">SCOUTING &amp; MERCADO</div>
+        <button class="nav-link" data-tab="premios" onclick="switchTab('premios')">
+          <i data-lucide="sparkles"></i> <span>Melhores do Ano (MVP)</span>
+        </button>
+        <button class="nav-link" data-tab="chuteira" onclick="switchTab('chuteira')">
+          <i data-lucide="gauge"></i> <span>Chuteira de Ouro &amp; FIFA</span>
+        </button>
+        <button class="nav-link" data-tab="streaks" onclick="switchTab('streaks')">
+          <i data-lucide="pie-chart"></i> <span>Streaks &amp; Tendências</span>
+        </button>
+        <button class="nav-link" data-tab="mercado" onclick="switchTab('mercado')">
+          <i data-lucide="receipt"></i> <span>Mercado &amp; Valuations</span>
+        </button>
+        <button class="nav-link" data-tab="dossie" onclick="switchTab('dossie')">
+          <i data-lucide="file-check-2"></i> <span>Dossiê Scouting HTML</span>
+        </button>
+        <button class="nav-link" data-tab="carreiras" onclick="switchTab('carreiras')">
+          <i data-lucide="scale"></i> <span>Comparar Carreiras (GOAT)</span>
+        </button>
+        <button class="nav-link" data-tab="jogadores" onclick="switchTab('jogadores')">
+          <i data-lucide="bike"></i> <span>Jogadores &amp; Radar SVG</span>
+        </button>
+        <button class="nav-link" data-tab="clubes" onclick="switchTab('clubes')">
+          <i data-lucide="map-pin"></i> <span>Clubes &amp; Estádios</span>
+        </button>
+        <button class="nav-link" data-tab="matamata" onclick="switchTab('matamata')">
+          <i data-lucide="git-commit"></i> <span>Mata-Mata &amp; Finais</span>
+        </button>
+        <button class="nav-link" data-tab="antigos" onclick="switchTab('antigos')">
+          <i data-lucide="clipboard-list"></i> <span>Jogos Históricos</span>
+        </button>
+        <button class="nav-link" data-tab="futuro" onclick="switchTab('futuro')">
+          <i data-lucide="search"></i> <span>Próximas Rodadas</span>
+        </button>
+        <button class="nav-link" data-tab="classicos" onclick="switchTab('classicos')">
+          <i data-lucide="badge-check"></i> <span>Clássicos H2H</span>
+        </button>
+        <button class="nav-link" data-tab="noticias" onclick="switchTab('noticias')">
+          <i data-lucide="book-open"></i> <span>Notícias ESPN &amp; Globo</span>
+        </button>
+
+        <div class="nav-section-label">DESENVOLVEDORES</div>
+        <button class="nav-link" data-tab="playground" onclick="switchTab('playground')">
+          <i data-lucide="play"></i> <span>Sandbox &amp; Snippets</span>
+        </button>
+        <button class="nav-link" data-tab="cardsvg" onclick="switchTab('cardsvg')">
+          <i data-lucide="image"></i> <span>Gerador Card SVG</span>
+        </button>
+
+        <div class="nav-section-label">ECOSSISTEMA PONTE</div>
+        <a class="nav-link" href="https://ponte-marketplace.maputo2.workers.dev/#catalogo" target="_blank" rel="noopener">
+          <i data-lucide="layout-grid"></i> <span>API Marketplace</span>
+          <span class="nav-ext"><i data-lucide="arrow-up-right"></i></span>
         </a>
-        <div class="ponte-breadcrumb">
-          <a href="https://ponte-marketplace.maputo2.workers.dev/#catalogo">Workspace</a>
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-          <a href="https://ponte-marketplace.maputo2.workers.dev/#catalogo">Dados &amp; Esportes</a>
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-          <strong>Futebol Pro Studio</strong>
+        <a class="nav-link" href="https://github.com/clepta2/futebol-pro" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
+          <span>GitHub Oficial</span>
+          <span class="nav-ext"><i data-lucide="arrow-up-right"></i></span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="status-row">
+          <span class="status-dot connected"></span>
+          <span>Cloudflare Edge · &lt;2ms</span>
         </div>
+        <div class="profile-row">
+          <div class="avatar lg" style="background:#10b981; color:#0c1715; font-weight:800;">⚽</div>
+          <div class="profile-copy">
+            <strong>Futebol Pro Anycast</strong>
+            <span>Console Oficial Anycast</span>
+          </div>
+        </div>
+        <div class="sidebar-version">v2.0.0 · 30+ Ligas · Anycast GRU</div>
       </div>
-      <div class="ponte-topbar-actions">
-        <span class="ponte-status-edge"><span class="ponte-status-dot"></span> Cloudflare Anycast &lt;5ms</span>
-        <a href="https://ponte-marketplace.maputo2.workers.dev/#catalogo" class="ponte-btn-marketplace">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
-          Marketplace
-        </a>
-        <button class="ponte-theme-btn" id="theme-toggle-btn" title="Alternar tema claro/escuro">🌙</button>
-      </div>
-    </div>
-  </header>
+    </aside>
 
-  <!-- Container Principal -->
-  <main class="ponte-container">
-    <div class="ponte-hero">
-      <div class="ponte-badges-bar">
-        <span class="ponte-badge mint">● Brasileirão &amp; Europa Live</span>
-        <span class="ponte-badge blue">⚡ 86.400 req/dia (1 req/s)</span>
-        <span class="ponte-badge purple">⚽ Tabelas &amp; Placares Ao Vivo</span>
-        <span class="ponte-badge amber">🏟️ Clubes &amp; Estádios Soberanos</span>
-      </div>
-      <h1>Futebol Pro Studio</h1>
-      <p>Terminal Anycast de Inteligência Esportiva com dados em tempo real do Brasileirão Série A/B, Copa do Brasil, Libertadores, Champions League e ligas europeias. Tabelas dinâmicas, placares ao vivo, confrontos com rating Elo e cards SVG.</p>
-      
-      <!-- Barra de Omnisearch Global Sub-5ms -->
-      <div style="margin-top:18px; display:flex; gap:8px; max-width:680px;">
-        <input type="text" id="omnisearch-input" class="ponte-input" placeholder="🔍 Pesquisa Global (ex: Flamengo, Real Madrid, Pedro, Maracanã, El Clásico...)" style="flex:1; padding:10px 14px; font-size:13px;" onkeydown="if(event.key==='Enter') executarOmnisearch()">
-        <button class="ponte-btn" style="padding:10px 20px;" onclick="executarOmnisearch()">Buscar</button>
-      </div>
-      <div id="omnisearch-results" style="display:none; margin-top:12px; background:var(--paper); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line); max-width:680px; text-align:left; font-size:13px;"></div>
-    </div>
+    <!-- Área Principal do Console -->
+    <main class="main-area">
+      <!-- Topbar Unificada -->
+      <header class="topbar">
+        <button class="mobile-hamburger-btn" id="mobile-hamburger-btn" aria-label="Abrir menu lateral"><i data-lucide="menu"></i></button>
+        <div class="breadcrumb">
+          <span>Workspace</span>
+          <i data-lucide="chevron-right"></i>
+          <span>Dados &amp; Esportes</span>
+          <i data-lucide="chevron-right"></i>
+          <strong id="breadcrumb-title">Jogos do Mundo (Live)</strong>
+        </div>
+        <div class="topbar-actions">
+          <span class="environment">
+            <span class="status-dot connected"></span>
+            Cloudflare Anycast Global (330+ Cidades)
+          </span>
+          <button class="icon-button theme-toggle-btn" id="theme-toggle-btn" aria-label="Alternar tema" title="Alternar tema claro/escuro">
+            <i data-lucide="moon"></i>
+          </button>
+          <a href="https://ponte-marketplace.maputo2.workers.dev/#catalogo" target="_blank" rel="noopener" class="primary-button accent" style="text-decoration:none;display:inline-flex;align-items:center;gap:7px;font-size:12.5px;padding:0 16px;height:36px;">
+            <i data-lucide="sparkles"></i> <span>Marketplace</span>
+          </a>
+        </div>
+      </header>
 
-    <!-- Ticker de Métricas em Destaque -->
-    <div class="ponte-grid-4">
-      <div class="ponte-stat-box">
-        <div class="ponte-stat-label">🏆 Líder Brasileirão Série A</div>
-        <div class="ponte-stat-val" style="color:var(--mint);">Flamengo (76 pts)</div>
-        <span style="font-size:11px;color:#10b981;">34 Jogos • 23 Vitórias • +42 SG</span>
-      </div>
-      <div class="ponte-stat-box">
-        <div class="ponte-stat-label">🥈 Vice-Líder na Caça</div>
-        <div class="ponte-stat-val" style="color:#60a5fa;">Palmeiras (73 pts)</div>
-        <span style="font-size:11px;color:#60a5fa;">34 Jogos • 21 Vitórias • +39 SG</span>
-      </div>
-      <div class="ponte-stat-box">
-        <div class="ponte-stat-label">🎯 Artilheiro da Série A</div>
-        <div class="ponte-stat-val" style="color:#fbbf24;">Pedro (21 gols)</div>
-        <span style="font-size:11px;color:#94a3b8;">Flamengo • 0.72 gols/jogo</span>
-      </div>
-      <div class="ponte-stat-box">
-        <div class="ponte-stat-label">⚡ Latência Edge Anycast</div>
-        <div class="ponte-stat-val" style="color:var(--mint);">&lt; 3.2 ms</div>
-        <span style="font-size:11px;color:#10b981;">Sub-5ms RAM Anycast • GRU</span>
-      </div>
-    </div>
+      <!-- Conteúdo da Página -->
+      <div class="content-wrap" style="padding: 24px 32px 60px;">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">DADOS ESPORTIVOS EM TEMPO REAL &amp; INTELIGÊNCIA ANYCAST</p>
+            <h1>Futebol Pro Studio • Terminal Esportivo Anycast</h1>
+            <p class="page-subtitle">
+              Terminal de alta performance com dados em tempo real do Brasileirão Série A/B, Libertadores, Champions League, Premier League e LaLiga. Placares ao vivo, xG avançado, escalações táticas vetoriais em SVG e simulação com Rating Elo.
+            </p>
+          </div>
+        </div>
 
-    <!-- Navegação por Abas -->
-    <div style="display:flex; gap:10px; margin: 24px 0 16px; border-bottom:1px solid var(--line); padding-bottom:12px; overflow-x:auto;">
-      <button class="ponte-btn" id="tab-btn-mundo" onclick="switchTab('mundo')" style="border-color:var(--mint);">🌍 Jogos do Mundo (Hoje/Live)</button>
-      <button class="ponte-btn secondary" id="tab-btn-premios" onclick="switchTab('premios')">👑 Melhores do Ano &amp; Seleção</button>
-      <button class="ponte-btn secondary" id="tab-btn-chuteira" onclick="switchTab('chuteira')">🏆 Chuteira de Ouro &amp; FIFA</button>
-      <button class="ponte-btn secondary" id="tab-btn-noticias" onclick="switchTab('noticias')">📰 Notícias ESPN &amp; Globo</button>
-      <button class="ponte-btn secondary" id="tab-btn-dossie" onclick="switchTab('dossie')">📋 Dossiê Scouting HTML</button>
-      <button class="ponte-btn secondary" id="tab-btn-carreiras" onclick="switchTab('carreiras')">⚖️ Comparar Carreiras (GOAT)</button>
-      <button class="ponte-btn secondary" id="tab-btn-futuro" onclick="switchTab('futuro')">📅 Jogos Futuros (Calendário)</button>
-      <button class="ponte-btn secondary" id="tab-btn-antigos" onclick="switchTab('antigos')">📜 Jogos Antigos &amp; Históricos</button>
-      <button class="ponte-btn secondary" id="tab-btn-classicos" onclick="switchTab('classicos')">🏆 Clássicos H2H</button>
-      <button class="ponte-btn secondary" id="tab-btn-jogadores" onclick="switchTab('jogadores')">🏃 Jogadores &amp; Radar SVG</button>
-      <button class="ponte-btn secondary" id="tab-btn-tabela" onclick="switchTab('tabela')">📊 Classificação</button>
-      <button class="ponte-btn secondary" id="tab-btn-clubes" onclick="switchTab('clubes')">🛡️ Clubes &amp; Estádios</button>
-      <button class="ponte-btn secondary" id="tab-btn-confronto" onclick="switchTab('confronto')">⚔️ Simulador Elo</button>
-      <button class="ponte-btn secondary" id="tab-btn-desfalques" onclick="switchTab('desfalques')">🚨 Desfalques &amp; DM</button>
-      <button class="ponte-btn secondary" id="tab-btn-streaks" onclick="switchTab('streaks')">📈 Streaks &amp; Tendências</button>
-      <button class="ponte-btn secondary" id="tab-btn-mercado" onclick="switchTab('mercado')">💰 Mercado &amp; Valuations</button>
-      <button class="ponte-btn secondary" id="tab-btn-matamata" onclick="switchTab('matamata')">🏆 Mata-Mata &amp; Finais</button>
-      <button class="ponte-btn secondary" id="tab-btn-cardsvg" onclick="switchTab('cardsvg')">🎨 Card SVG</button>
-      <button class="ponte-btn secondary" id="tab-btn-playground" onclick="switchTab('playground')">💻 Sandbox</button>
-    </div>
+        <!-- Barra de Omnisearch Global Sub-5ms -->
+        <div style="margin-bottom:22px; display:flex; gap:8px; max-width:680px;">
+          <input type="text" id="omnisearch-input" class="ponte-input" placeholder="🔍 Pesquisa Global (ex: Flamengo, Real Madrid, Pedro, Maracanã, El Clásico...)" style="flex:1; padding:10px 14px; font-size:13px;" onkeydown="if(event.key==='Enter') executarOmnisearch()">
+          <button class="primary-button accent" style="padding:10px 22px; height:auto;" onclick="executarOmnisearch()">
+            <i data-lucide="search"></i> <span>Buscar</span>
+          </button>
+        </div>
+        <div id="omnisearch-results" style="display:none; margin-bottom:20px; background:var(--paper); padding:16px; border-radius:var(--radius-md); border:1px solid var(--line); max-width:680px; text-align:left; font-size:13px;"></div>
 
-    <!-- ABA 0: TODOS OS JOGOS DO MUNDO (GLOBAL HUB) -->
+        <!-- Ticker de Métricas em Destaque -->
+        <div class="ponte-grid-4" style="margin-bottom:24px;">
+          <div class="ponte-stat-box">
+            <div class="ponte-stat-label">🏆 Líder Brasileirão Série A</div>
+            <div class="ponte-stat-val" style="color:var(--mint);">Flamengo (76 pts)</div>
+            <span style="font-size:11px;color:#10b981;">34 Jogos • 23 Vitórias • +42 SG</span>
+          </div>
+          <div class="ponte-stat-box">
+            <div class="ponte-stat-label">🥈 Vice-Líder na Caça</div>
+            <div class="ponte-stat-val" style="color:#60a5fa;">Palmeiras (73 pts)</div>
+            <span style="font-size:11px;color:#60a5fa;">34 Jogos • 21 Vitórias • +39 SG</span>
+          </div>
+          <div class="ponte-stat-box">
+            <div class="ponte-stat-label">🎯 Artilheiro da Série A</div>
+            <div class="ponte-stat-val" style="color:#fbbf24;">Pedro (21 gols)</div>
+            <span style="font-size:11px;color:#94a3b8;">Flamengo • 0.72 gols/jogo</span>
+          </div>
+          <div class="ponte-stat-box">
+            <div class="ponte-stat-label">⚡ Latência Edge Anycast</div>
+            <div class="ponte-stat-val" style="color:var(--mint);">&lt; 3.2 ms</div>
+            <span style="font-size:11px;color:#10b981;">Sub-5ms RAM Anycast • GRU</span>
+          </div>
+        </div>
+
+        <!-- Seções das Funcionalidades -->
+        <!-- ABA 0: TODOS OS JOGOS DO MUNDO (GLOBAL HUB) -->
     <section id="section-mundo">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -693,53 +826,97 @@
 
     <!-- ABA 6: SANDBOX & SNIPPETS MULTI-LINGUAGEM -->
     <section id="section-playground" style="display:none;">
-      <div class="ponte-card" style="padding:24px;">
-        <h3 style="margin-top:0;">Sandbox Interativo REST &amp; Gerador de Código</h3>
-        <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">
-          Copie snippets prontos para produção ou execute requisições HTTP diretamente pelo browser.
-        </p>
+      <div class="playground-split" style="display:grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap:20px; align-items:start;">
+        
+        <!-- Coluna 1: Seletor de Endpoint & Controles -->
+        <div class="ponte-card" style="padding:22px;">
+          <h3 style="margin-top:0; font-size:16px;">Console Interativo REST Anycast</h3>
+          <p style="color:var(--muted); font-size:12.5px; margin-bottom:18px;">
+            Execute chamadas reais contra a malha Cloudflare Anycast (&lt;5ms) ou copie snippets de integração prontos para seu backend.
+          </p>
 
-        <div style="display:flex; gap:10px; margin-bottom:14px;">
-          <select id="sandbox-endpoint" class="ponte-select" style="flex:1;" onchange="updateSnippets()">
-            <option value="/api/futebol/jogadores/pedro-9/analise">GET /api/futebol/jogadores/pedro-9/analise (Motor de Análise do Jogador)</option>
-            <option value="/api/futebol/partida/hist_001/stats">GET /api/futebol/partida/hist_001/stats (Estatísticas Oficiais da Partida)</option>
-            <option value="/api/futebol/clubes/flamengo/elenco">GET /api/futebol/clubes/flamengo/elenco (Elenco Oficial com 40+ Jogadores)</option>
-            <option value="/api/futebol/jogadores/comparar/pedro-9/veiga-23">GET /api/futebol/jogadores/comparar/pedro-9/veiga-23 (Comparador H2H)</option>
-            <option value="/api/futebol/mundo/hoje">GET /api/futebol/mundo/hoje (Todos os Jogos de Hoje)</option>
-            <option value="/api/futebol/classicos/flamengo-palmeiras">GET /api/futebol/classicos/flamengo-palmeiras (Retrospecto de Clássico)</option>
-            <option value="/api/futebol/tabela/brasileirao-a">GET /api/futebol/tabela/brasileirao-a (Classificação)</option>
-            <option value="/api/futebol/aovivo">GET /api/futebol/aovivo (Placares em Tempo Real)</option>
-            <option value="/api/futebol/confronto/flamengo/palmeiras">GET /api/futebol/confronto/flamengo/palmeiras (Simulador Elo)</option>
-            <option value="/api/futebol/health">GET /api/futebol/health (Healthcheck Anycast)</option>
-          </select>
-          <button class="ponte-btn" onclick="executarSandbox()">▶ Executar</button>
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px;">Endpoint REST Oficial:</label>
+            <select id="sandbox-endpoint" class="ponte-select" style="width:100%;" onchange="updateSnippets()">
+              <option value="/api/futebol/mundo/hoje">GET /api/futebol/mundo/hoje (Hub de Jogos de Hoje)</option>
+              <option value="/api/futebol/aovivo">GET /api/futebol/aovivo (Placares Ao Vivo em Tempo Real)</option>
+              <option value="/api/futebol/partida/hist_001/stats">GET /api/futebol/partida/hist_001/stats (Boxscore e Estatísticas)</option>
+              <option value="/api/futebol/partida/hist_001/probabilidade">GET /api/futebol/partida/hist_001/probabilidade (Preditor Ao Vivo)</option>
+              <option value="/api/futebol/confronto/flamengo/palmeiras/streaks">GET /api/futebol/confronto/flamengo/palmeiras/streaks (Streaks e Apostas)</option>
+              <option value="/api/futebol/clubes/flamengo/desfalques">GET /api/futebol/clubes/flamengo/desfalques (Departamento Médico)</option>
+              <option value="/api/futebol/transferencias/top">GET /api/futebol/transferencias/top (Top Transferências Mundiais)</option>
+              <option value="/api/futebol/clubes/flamengo/valuation">GET /api/futebol/clubes/flamengo/valuation (Valuation Transfermarkt)</option>
+              <option value="/api/futebol/jogadores/pedro-9/analise">GET /api/futebol/jogadores/pedro-9/analise (Motor de Scouting)</option>
+              <option value="/api/futebol/clubes/flamengo/elenco">GET /api/futebol/clubes/flamengo/elenco (Elenco Oficial 40+ Atletas)</option>
+              <option value="/api/futebol/tabela/brasileirao-a">GET /api/futebol/tabela/brasileirao-a (Tabela Brasileirão)</option>
+              <option value="/api/futebol/tabela/brasileirao-a/projecoes">GET /api/futebol/tabela/brasileirao-a/projecoes (Projeção Título/G4/Z4)</option>
+              <option value="/api/futebol/matamata/libertadores">GET /api/futebol/matamata/libertadores (Chaveamento Mata-Mata)</option>
+              <option value="/api/futebol/health">GET /api/futebol/health (Healthcheck Anycast)</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:18px;">
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px;">Chave de Acesso (Bearer Token / x-api-key):</label>
+            <input type="text" id="sandbox-api-key" class="ponte-input" value="fut_master_live_anycast_key" style="width:100%; font-family:var(--font-mono); font-size:12px;" oninput="updateSnippets()">
+          </div>
+
+          <button class="primary-button accent" style="width:100%; height:40px; font-size:13px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; gap:8px;" onclick="executarSandbox()">
+            <i data-lucide="play"></i> <span>Executar Chamada na Borda Anycast</span>
+          </button>
         </div>
 
-        <!-- Seletor de Linguagem -->
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
-          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('curl')">cURL</button>
-          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('node')">Node.js</button>
-          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('python')">Python</button>
-          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('php')">PHP</button>
-          <button class="ponte-btn secondary" style="padding:4px 10px; font-size:11px;" onclick="selectLang('csharp')">C#</button>
+        <!-- Coluna 2: Terminal Console Dark Oficial -->
+        <div class="playground-right">
+          <div class="terminal-window">
+            <div class="terminal-topbar">
+              <div class="terminal-dots">
+                <div class="terminal-dot red"></div>
+                <div class="terminal-dot yellow"></div>
+                <div class="terminal-dot green"></div>
+              </div>
+              <div class="snippet-lang-tabs" role="tablist" style="display:flex; gap:6px;">
+                <button class="ponte-btn is-active" id="btn-lang-curl" style="padding:3px 9px; font-size:11px;" onclick="selectLang('curl')">cURL</button>
+                <button class="ponte-btn secondary" id="btn-lang-node" style="padding:3px 9px; font-size:11px;" onclick="selectLang('node')">Node.js</button>
+                <button class="ponte-btn secondary" id="btn-lang-python" style="padding:3px 9px; font-size:11px;" onclick="selectLang('python')">Python</button>
+                <button class="ponte-btn secondary" id="btn-lang-php" style="padding:3px 9px; font-size:11px;" onclick="selectLang('php')">PHP</button>
+                <button class="ponte-btn secondary" id="btn-lang-csharp" style="padding:3px 9px; font-size:11px;" onclick="selectLang('csharp')">C#</button>
+              </div>
+              <button class="icon-button copy-mini" id="btn-copy-code" title="Copiar Snippet" onclick="copiarSnippetCodigo()" style="background:transparent; border:none; color:var(--muted); cursor:pointer;">
+                <i data-lucide="copy" style="width:14px;height:14px;"></i>
+              </button>
+            </div>
+
+            <!-- Snippet de Código -->
+            <div class="snippet-code-box" style="padding:12px 16px; background:rgba(0,0,0,0.30); border-bottom:1px solid rgba(255,255,255,0.06);">
+              <pre class="snippet-pre" style="margin:0; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#7dd3fc; line-height:1.5; overflow-x:auto;"><code id="snippet-display"></code></pre>
+            </div>
+
+            <!-- Console de Resposta JSON -->
+            <div class="playground-console" style="min-height:280px; max-height:460px; overflow-y:auto; padding:16px;">
+              <div class="console-response-header" style="font-size:11.5px; margin-bottom:10px; display:flex; gap:8px; align-items:center;">
+                <span class="status-badge-pill green" id="console-status">200 OK</span>
+                <span id="console-latency" style="color:var(--muted); font-size:11px;">Latência: 1.8ms</span>
+                <span style="color:var(--mint); font-size:11px;">● Anycast GRU</span>
+              </div>
+              <pre id="sandbox-response" style="margin:0; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#f8fafc; line-height:1.5; overflow-x:auto;">Clique em "Executar Chamada" para disparar a requisição na borda.</pre>
+            </div>
+          </div>
         </div>
 
-        <pre id="snippet-display" class="ponte-code" style="padding:14px; background:var(--canvas); border-radius:var(--radius-md); font-family:var(--font-mono); font-size:12px; overflow-x:auto;"></pre>
-
-        <h4 style="margin:20px 0 8px;">Resposta HTTP em Tempo Real:</h4>
-        <pre id="sandbox-response" class="ponte-code" style="max-height:280px; padding:14px; background:var(--canvas); border-radius:var(--radius-md); font-family:var(--font-mono); font-size:12px; overflow:auto; color:var(--mint);">Clique em "▶ Executar" para testar a chamada ao vivo.</pre>
       </div>
     </section>
 
-    <!-- Modal Detalhes da Partida / Súmula -->
-    <div id="modal-partida" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:16px;">
-      <div style="background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-lg); max-width:760px; width:100%; max-height:90vh; overflow-y:auto; padding:24px; position:relative;">
-        <button onclick="fecharModalPartida()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--muted); font-size:24px; cursor:pointer;">&times;</button>
-        <div id="modal-partida-conteudo"></div>
       </div>
-    </div>
+    </main>
+  </div>
 
-  </main>
+  <!-- Modal Detalhes da Partida / Súmula -->
+  <div id="modal-partida" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-lg); max-width:760px; width:100%; max-height:90vh; overflow-y:auto; padding:24px; position:relative;">
+      <button onclick="fecharModalPartida()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--muted); font-size:24px; cursor:pointer;">&times;</button>
+      <div id="modal-partida-conteudo"></div>
+    </div>
+  </div>
 
   <script type="module">
     import { 
@@ -769,6 +946,51 @@
 
     window.switchTab = function(tabName) {
       const tabs = ['mundo', 'premios', 'chuteira', 'noticias', 'dossie', 'carreiras', 'futuro', 'antigos', 'classicos', 'jogadores', 'tabela', 'clubes', 'confronto', 'desfalques', 'streaks', 'mercado', 'matamata', 'cardsvg', 'playground'];
+      
+      const tabTitles = {
+        mundo: 'Jogos do Mundo (Ao Vivo)',
+        tabela: 'Classificação & Tabelas',
+        confronto: 'Simulador Rating Elo',
+        desfalques: 'Desfalques & Departamento Médico',
+        premios: 'Melhores da Temporada (MVP)',
+        chuteira: 'Chuteira de Ouro & Ranking FIFA',
+        streaks: 'Streaks & Tendências',
+        mercado: 'Mercado & Valuations',
+        dossie: 'Dossiê Scouting HTML',
+        carreiras: 'Comparar Carreiras (GOAT)',
+        jogadores: 'Jogadores & Radar SVG',
+        clubes: 'Clubes & Estádios',
+        matamata: 'Mata-Mata & Finais',
+        antigos: 'Jogos Históricos',
+        futuro: 'Próximas Rodadas',
+        classicos: 'Clássicos H2H',
+        noticias: 'Notícias Esportivas',
+        playground: 'Sandbox REST & Snippets',
+        cardsvg: 'Gerador Card SVG'
+      };
+
+      const breadcrumb = document.getElementById('breadcrumb-title');
+      if (breadcrumb && tabTitles[tabName]) {
+        breadcrumb.textContent = tabTitles[tabName];
+      }
+
+      // Sincroniza links da Sidebar
+      document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+        if (link.dataset.tab === tabName) {
+          link.classList.add('is-active');
+        } else {
+          link.classList.remove('is-active');
+        }
+      });
+
+      // Fecha o drawer mobile ao selecionar
+      const sidebarEl = document.querySelector('.sidebar');
+      const drawerBackdrop = document.getElementById('sidebar-drawer-backdrop');
+      if (sidebarEl && window.innerWidth <= 860) {
+        sidebarEl.classList.remove('is-open');
+        if (drawerBackdrop) drawerBackdrop.hidden = true;
+      }
+
       tabs.forEach(t => {
         const sec = document.getElementById(`section-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
@@ -803,6 +1025,28 @@
       if (tabName === 'cardsvg') atualizarCardSvg();
       if (tabName === 'playground') updateSnippets();
     };
+
+    // Controle do Menu Lateral Mobile (Drawer)
+    function setupMobileNav() {
+      const drawerBtn = document.getElementById('mobile-hamburger-btn');
+      const drawerClose = document.getElementById('sidebar-drawer-close');
+      const drawerBackdrop = document.getElementById('sidebar-drawer-backdrop');
+      const sidebarEl = document.querySelector('.sidebar');
+
+      function openDrawer() {
+        if (sidebarEl) sidebarEl.classList.add('is-open');
+        if (drawerBackdrop) drawerBackdrop.hidden = false;
+      }
+      function closeDrawer() {
+        if (sidebarEl) sidebarEl.classList.remove('is-open');
+        if (drawerBackdrop) drawerBackdrop.hidden = true;
+      }
+
+      drawerBtn?.addEventListener('click', openDrawer);
+      drawerClose?.addEventListener('click', closeDrawer);
+      drawerBackdrop?.addEventListener('click', closeDrawer);
+    }
+    setupMobileNav();
 
     let autoRefreshTimer = null;
     window.toggleAutoRefresh = function() {
@@ -2122,3 +2366,4 @@
   </script>
 </body>
 </html>
+
