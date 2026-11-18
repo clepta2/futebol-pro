@@ -2840,15 +2840,71 @@ export default {
       });
     }
 
-    // 12. Artilharia e Estatísticas
+    // 12. Artilharia e Estatísticas (ESPN Live Statistics + Fallback Consolidado)
     if (path.startsWith('/api/futebol/artilharia/')) {
-      const slug = path.split('/')[4]?.toLowerCase();
-      const artilharia = ARTILHARIA_CONSOLIDADA[slug] || ARTILHARIA_CONSOLIDADA['brasileirao-a'];
+      const slug = path.split('/')[4]?.toLowerCase() || 'brasileirao-a';
+      const comp = COMPETICOES[slug] || COMPETICOES['brasileirao-a'];
 
+      const cacheKey = `artilharia_${comp.codigoEspn || slug}`;
+      const cached = await getStorageData(cacheKey, env);
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        return new Response(JSON.stringify({
+          ok: true,
+          campeonato: comp.nome || 'Brasileirão Série A',
+          slug,
+          fonte: 'espn_live_cache',
+          totalArtilheiros: cached.length,
+          ranking: cached
+        }), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+        });
+      }
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3500);
+        const resp = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${comp.codigoEspn || 'bra.1'}/statistics`, {
+          signal: controller.signal,
+          headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' }
+        });
+        clearTimeout(timeout);
+
+        if (resp.ok) {
+          const json = await resp.json();
+          const goalsCat = (json.stats || []).find(s => s.name === 'goalsLeaders');
+          if (goalsCat && goalsCat.leaders && goalsCat.leaders.length > 0) {
+            const formatados = goalsCat.leaders.map((l, idx) => ({
+              rank: idx + 1,
+              jogador: l.athlete?.displayName || l.athlete?.name || 'Jogador',
+              clube: l.team?.displayName || l.team?.name || comp.nome,
+              slugClube: (l.team?.displayName || '').toLowerCase().replace(/\s+/g, '-'),
+              gols: l.value || 0,
+              detalhe: l.displayValue || `${l.value} gols`,
+              foto: l.athlete?.headshot?.href || ''
+            }));
+
+            await putStorageData(cacheKey, formatados, 300, env, ctx);
+
+            return new Response(JSON.stringify({
+              ok: true,
+              campeonato: comp.nome || 'Brasileirão Série A',
+              slug,
+              fonte: 'espn_live_statistics',
+              totalArtilheiros: formatados.length,
+              ranking: formatados
+            }), {
+              headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS, ...rateHeaders }
+            });
+          }
+        }
+      } catch (_) {}
+
+      const artilharia = ARTILHARIA_CONSOLIDADA[slug] || ARTILHARIA_CONSOLIDADA['brasileirao-a'];
       return new Response(JSON.stringify({
         ok: true,
-        campeonato: COMPETICOES[slug]?.nome || 'Brasileirão Série A',
-        slug: slug || 'brasileirao-a',
+        campeonato: comp?.nome || 'Brasileirão Série A',
+        slug,
+        fonte: 'consolidada_soberana',
         totalArtilheiros: artilharia.length,
         ranking: artilharia
       }), {

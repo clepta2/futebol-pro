@@ -250,22 +250,22 @@
         <div class="ponte-grid-4" style="margin-bottom:24px;">
           <div class="ponte-stat-box">
             <div class="ponte-stat-label">🏆 Líder Brasileirão Série A</div>
-            <div class="ponte-stat-val" style="color:var(--mint);">Flamengo (76 pts)</div>
-            <span style="font-size:11px;color:#10b981;">34 Jogos • 23 Vitórias • +42 SG</span>
+            <div class="ponte-stat-val" id="kpi-lider-val" style="color:var(--mint);">Carregando...</div>
+            <span id="kpi-lider-desc" style="font-size:11px;color:#10b981;">Sincronizando com a Borda Anycast...</span>
           </div>
           <div class="ponte-stat-box">
             <div class="ponte-stat-label">🥈 Vice-Líder na Caça</div>
-            <div class="ponte-stat-val" style="color:#60a5fa;">Palmeiras (73 pts)</div>
-            <span style="font-size:11px;color:#60a5fa;">34 Jogos • 21 Vitórias • +39 SG</span>
+            <div class="ponte-stat-val" id="kpi-vicelider-val" style="color:#60a5fa;">Carregando...</div>
+            <span id="kpi-vicelider-desc" style="font-size:11px;color:#60a5fa;">Pontuação em tempo real</span>
           </div>
           <div class="ponte-stat-box">
             <div class="ponte-stat-label">🎯 Artilheiro da Série A</div>
-            <div class="ponte-stat-val" style="color:#fbbf24;">Pedro (21 gols)</div>
-            <span style="font-size:11px;color:#94a3b8;">Flamengo • 0.72 gols/jogo</span>
+            <div class="ponte-stat-val" id="kpi-artilheiro-val" style="color:#fbbf24;">Carregando...</div>
+            <span id="kpi-artilheiro-desc" style="font-size:11px;color:#94a3b8;">Gols oficiais da temporada</span>
           </div>
           <div class="ponte-stat-box">
             <div class="ponte-stat-label">⚡ Latência Edge Anycast</div>
-            <div class="ponte-stat-val" style="color:var(--mint);">&lt; 3.2 ms</div>
+            <div class="ponte-stat-val" id="kpi-latency-val" style="color:var(--mint);">&lt; 3.2 ms</div>
             <span style="font-size:11px;color:#10b981;">Sub-5ms RAM Anycast • GRU</span>
           </div>
         </div>
@@ -1537,8 +1537,48 @@
       `;
     };
 
-    window.renderJogosFuturos = function() {
+    window.renderJogosFuturos = async function() {
       const container = document.getElementById('grid-futuro');
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); grid-column:1/-1;">Carregando próximas rodadas na borda Anycast...</div>';
+
+      try {
+        const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10).replace(/-/g, '');
+        const res = await fetch(`${API_BASE}/api/futebol/mundo?data=${tomorrow}`);
+        const data = await res.json();
+        const jogosAmanha = (data.jogos || []).slice(0, 12);
+
+        if (jogosAmanha.length > 0) {
+          container.innerHTML = jogosAmanha.map(j => `
+            <div class="match-card">
+              <div class="match-header">
+                <span><strong>${j.campeonato}</strong> • ${j.horaUtc ? j.horaUtc + ' UTC' : 'Agendado'}</span>
+                <span style="color:var(--mint); font-weight:600;">Amanhã</span>
+              </div>
+              <div class="match-body">
+                <div class="match-team">
+                  ${j.mandante.logo ? `<img src="${j.mandante.logo}" style="width:36px; height:36px; object-fit:contain;">` : ''}
+                  <strong>${j.mandante.nome}</strong>
+                  <small style="color:var(--muted); font-size:11px;">Mandante</small>
+                </div>
+                <div class="match-score" style="font-size:14px; padding:6px 14px; color:var(--muted);">
+                  VS
+                </div>
+                <div class="match-team">
+                  ${j.visitante.logo ? `<img src="${j.visitante.logo}" style="width:36px; height:36px; object-fit:contain;">` : ''}
+                  <strong>${j.visitante.nome}</strong>
+                  <small style="color:var(--muted); font-size:11px;">Visitante</small>
+                </div>
+              </div>
+              <div style="margin-top:10px; text-align:center;">
+                <button class="ponte-btn secondary" style="width:100%; padding:3px 8px; font-size:10.5px;" onclick="abrirGraficoEstatisticoPartida('${j.id}')">📊 Prévia &amp; Análise Oficial</button>
+              </div>
+            </div>
+          `).join('');
+          return;
+        }
+      } catch (_) {}
+
+      // Fallback para calendário consolidado
       container.innerHTML = JOGOS_FUTUROS_CALENDARIO.map(j => `
         <div class="match-card">
           <div class="match-header">
@@ -2154,7 +2194,7 @@
       container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Carregando placares...</div>';
 
       try {
-        const res = await fetch('${API_BASE}/api/futebol/aovivo');
+        const res = await fetch(`${API_BASE}/api/futebol/aovivo`);
         const data = await res.json();
         const jogos = data.todosJogos || [];
 
@@ -2462,8 +2502,54 @@ Console.WriteLine(response);`;
       });
     });
 
+    async function carregarKpisEmTempoReal() {
+      try {
+        const t0 = performance.now();
+        const [resTab, resArt] = await Promise.all([
+          fetch(`${API_BASE}/api/futebol/tabela/brasileirao-a`),
+          fetch(`${API_BASE}/api/futebol/artilharia/brasileirao-a`)
+        ]);
+
+        const lat = (performance.now() - t0).toFixed(1);
+        const elLat = document.getElementById('kpi-latency-val');
+        if (elLat) elLat.textContent = `${lat} ms`;
+
+        if (resTab.ok) {
+          const dataTab = await resTab.json();
+          const tab = dataTab.tabela || [];
+          if (tab.length >= 2) {
+            const lider = tab[0];
+            const vice = tab[1];
+
+            const elLiderVal = document.getElementById('kpi-lider-val');
+            const elLiderDesc = document.getElementById('kpi-lider-desc');
+            if (elLiderVal) elLiderVal.textContent = `${lider.time} (${lider.pts} pts)`;
+            if (elLiderDesc) elLiderDesc.textContent = `${lider.j} Jogos • ${lider.v} Vitórias • ${lider.sg > 0 ? '+' + lider.sg : lider.sg} SG`;
+
+            const elViceVal = document.getElementById('kpi-vicelider-val');
+            const elViceDesc = document.getElementById('kpi-vicelider-desc');
+            if (elViceVal) elViceVal.textContent = `${vice.time} (${vice.pts} pts)`;
+            if (elViceDesc) elViceDesc.textContent = `${vice.j} Jogos • ${vice.v} Vitórias • ${vice.sg > 0 ? '+' + vice.sg : vice.sg} SG`;
+          }
+        }
+
+        if (resArt.ok) {
+          const dataArt = await resArt.json();
+          const r = dataArt.ranking || [];
+          if (r.length > 0) {
+            const topScorer = r[0];
+            const elArtVal = document.getElementById('kpi-artilheiro-val');
+            const elArtDesc = document.getElementById('kpi-artilheiro-desc');
+            if (elArtVal) elArtVal.textContent = `${topScorer.jogador} (${topScorer.gols} gols)`;
+            if (elArtDesc) elArtDesc.textContent = `${topScorer.clube} • Líder da Artilharia`;
+          }
+        }
+      } catch (_) {}
+    }
+
     // Inicialização
     loadJogosMundo();
+    carregarKpisEmTempoReal();
     if (window.lucide && window.lucide.createIcons) {
       window.lucide.createIcons();
     }
